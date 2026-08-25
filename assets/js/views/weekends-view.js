@@ -39,7 +39,7 @@ export function renderWeekends(container, filtered, { places, config, overrides 
         const d = parseDate(dateKey);
         return d >= friday && d <= sunday;
       })?.[1];
-      const candidates = rankWeekendCandidates(friday, weekendEvents, places, config.scoring, override);
+      const candidates = rankWeekendCandidates(friday, weekendEvents, places, config.scoring, override, state.rangeNm);
 
       if (candidates.length === 0) {
         return `
