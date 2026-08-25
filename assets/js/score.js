@@ -91,7 +91,7 @@ export function rankPlacesByActivity(places, eventsByPlace, activityKey, scoring
  * eventsByWeekend: Map<fridayKey, Event[]>
  * overrides: { "YYYY-MM-DD": { placeId, note } }
  */
-export function rankWeekendCandidates(friday, weekendEvents, places, scoring, override) {
+export function rankWeekendCandidates(friday, weekendEvents, places, scoring, override, rangeNm) {
   const placesById = new Map(places.map((p) => [p.id, p]));
   const byPlace = new Map();
 
@@ -121,9 +121,18 @@ export function rankWeekendCandidates(friday, weekendEvents, places, scoring, ov
     .filter((c) => c.score > 0)
     .sort((a, b) => b.score - a.score);
 
+  // A locked pick still has to be a flight someone could actually take. This
+  // list is resolved against the full curated place set (placesById), not
+  // the caller's already-range-filtered one, precisely so it can still
+  // recommend a place currently outside the selected radius — but
+  // "recommend" doesn't mean "force past reachability". Gate it by the same
+  // rule filters.js uses to decide what's in range at all
+  // (place.distanceNm <= rangeNm); a pick past that line falls back to
+  // however the weekend scored on its own, same as if no override existed.
   if (override) {
     const overridePlace = placesById.get(override.placeId);
-    if (overridePlace) {
+    const reachable = overridePlace && (rangeNm == null || overridePlace.distanceNm <= rangeNm);
+    if (reachable) {
       candidates = candidates.filter((c) => c.place.id !== override.placeId);
       const existingEntry = byPlace.get(override.placeId);
       candidates.unshift({
