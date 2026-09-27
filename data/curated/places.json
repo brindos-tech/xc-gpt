@@ -4403,5 +4403,39 @@
       }
     ],
     "links": {}
+  },
+  {
+    "id": "fort-smith-ar",
+    "name": "Fort Smith",
+    "state": "AR",
+    "lat": 35.3859,
+    "lon": -94.3985,
+    "kinds": [
+      "city"
+    ],
+    "activities": {
+      "live-music": 2,
+      "art": 3,
+      "food": 2,
+      "nightlife": 2,
+      "outdoors": 3,
+      "weird": 2
+    },
+    "blurb": "Old frontier town on the Arkansas River — the U.S. Marshals Museum, Garrison Avenue, and a downtown covered in murals from The Unexpected festival. Ebbing ANGB shares the field and hosts the foreign F-35 pilot training center.",
+    "airports": [
+      {
+        "icao": "KFSM",
+        "name": "Fort Smith Regional",
+        "lat": 35.3367,
+        "lon": -94.3675,
+        "driveMiles": 5,
+        "driveMinutes": 12,
+        "vanceApproved": true,
+        "military": true,
+        "pprRequired": false,
+        "notes": "joint-use: Ebbing ANGB shares the field with the civilian terminal"
+      }
+    ],
+    "links": {}
   }
 ]
