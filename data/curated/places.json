@@ -4403,5 +4403,175 @@
       }
     ],
     "links": {}
+  },
+  {
+    "id": "fort-smith-ar",
+    "name": "Fort Smith",
+    "state": "AR",
+    "lat": 35.3859,
+    "lon": -94.3985,
+    "kinds": [
+      "city"
+    ],
+    "activities": {
+      "live-music": 2,
+      "art": 3,
+      "food": 2,
+      "nightlife": 2,
+      "outdoors": 3,
+      "weird": 2
+    },
+    "blurb": "Old frontier town on the Arkansas River — the U.S. Marshals Museum, Garrison Avenue, and a downtown covered in murals from The Unexpected festival. Ebbing ANGB shares the field and hosts the foreign F-35 pilot training center.",
+    "airports": [
+      {
+        "icao": "KFSM",
+        "name": "Fort Smith Regional",
+        "lat": 35.3367,
+        "lon": -94.3675,
+        "driveMiles": 5,
+        "driveMinutes": 12,
+        "vanceApproved": true,
+        "military": true,
+        "pprRequired": false,
+        "notes": "joint-use: Ebbing ANGB shares the field with the civilian terminal"
+      }
+    ],
+    "links": {}
+  },
+  {
+    "id": "norman-ok",
+    "name": "Norman",
+    "state": "OK",
+    "lat": 35.2226,
+    "lon": -97.4395,
+    "kinds": [
+      "city"
+    ],
+    "activities": {
+      "live-music": 2,
+      "art": 2,
+      "food": 2,
+      "nightlife": 3,
+      "outdoors": 1,
+      "weird": 1
+    },
+    "blurb": "OU's home — SEC football at Owen Field is the headline, with Campus Corner and Main Street around it. Westheimer is the university's own airport, a few minutes from campus.",
+    "airports": [
+      {
+        "icao": "KOUN",
+        "name": "University of Oklahoma Westheimer",
+        "lat": 35.2455,
+        "lon": -97.4722,
+        "driveMiles": 4,
+        "driveMinutes": 10,
+        "vanceApproved": true,
+        "military": false,
+        "pprRequired": false,
+        "notes": ""
+      }
+    ],
+    "links": {}
+  },
+  {
+    "id": "stillwater-ok",
+    "name": "Stillwater",
+    "state": "OK",
+    "lat": 36.1156,
+    "lon": -97.0584,
+    "kinds": [
+      "city"
+    ],
+    "activities": {
+      "live-music": 3,
+      "art": 1,
+      "food": 2,
+      "nightlife": 3,
+      "outdoors": 1,
+      "weird": 2
+    },
+    "blurb": "Oklahoma State and the birthplace of Red Dirt music — Eskimo Joe's, the Strip, and Cowboys football at Boone Pickens Stadium. Barely a hop from Vance.",
+    "airports": [
+      {
+        "icao": "KSWO",
+        "name": "Stillwater Regional",
+        "lat": 36.1614,
+        "lon": -97.0858,
+        "driveMiles": 4,
+        "driveMinutes": 10,
+        "vanceApproved": true,
+        "military": false,
+        "pprRequired": false,
+        "notes": ""
+      }
+    ],
+    "links": {}
+  },
+  {
+    "id": "branson-mo",
+    "name": "Branson",
+    "state": "MO",
+    "lat": 36.6437,
+    "lon": -93.2185,
+    "kinds": [
+      "fun"
+    ],
+    "activities": {
+      "live-music": 4,
+      "art": 1,
+      "food": 2,
+      "nightlife": 2,
+      "outdoors": 4,
+      "weird": 4
+    },
+    "blurb": "The live-show capital of the Ozarks — the 76 Strip, Silver Dollar City, and Table Rock Lake. Branson Airport has the long runway; the downtown field is closer but short.",
+    "airports": [
+      {
+        "icao": "KBBG",
+        "name": "Branson Airport",
+        "lat": 36.5319,
+        "lon": -93.2006,
+        "driveMiles": 12,
+        "driveMinutes": 25,
+        "vanceApproved": true,
+        "military": false,
+        "pprRequired": false,
+        "notes": "downtown KPLK is closer but only 3,738 ft"
+      }
+    ],
+    "links": {}
+  },
+  {
+    "id": "hochatown-ok",
+    "name": "Hochatown / Broken Bow",
+    "state": "OK",
+    "lat": 34.1712,
+    "lon": -94.7511,
+    "kinds": [
+      "boutique"
+    ],
+    "activities": {
+      "live-music": 1,
+      "art": 1,
+      "food": 2,
+      "nightlife": 1,
+      "outdoors": 5,
+      "weird": 2
+    },
+    "blurb": "Cabin country in the Kiamichi foothills — Beavers Bend State Park, Broken Bow Lake and the Mountain Fork River, with breweries and a distillery in Hochatown itself.",
+    "airports": [
+      {
+        "icao": "4O4",
+        "name": "McCurtain County Regional",
+        "lat": 33.9093,
+        "lon": -94.8593,
+        "driveMiles": 25,
+        "driveMinutes": 32,
+        "vanceApproved": true,
+        "military": false,
+        "pprRequired": false,
+        "notes": "5,002 ft; Broken Bow Muni (90F) is closer but only 3,200 ft"
+      }
+    ],
+    "links": {}
   }
 ]
