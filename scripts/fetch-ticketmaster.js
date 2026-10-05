@@ -6,7 +6,7 @@
 //      window, for every state in the country. NOT a radius sweep:
 //      Discovery API results cap at 1,000/query and the footprint is huge,
 //      so state-by-state is the only way to get full coverage. Worst case
-//      (51 regions x 3 classifications x 5 pages) is ~765 requests, well
+//      (51 regions x 4 classifications x 5 pages) is ~1,020 requests, well
 //      inside the daily budget alongside the artist pass.
 //
 // Nationwide on purpose — the range slider goes up to ~2200nm (coast to
@@ -20,6 +20,7 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fetchJsonWithRetry, createRateLimiter } from "./lib/http.js";
+import { categorize } from "./lib/ticketmaster-map.js";
 
 const CURATED_DIR = path.resolve("data/curated");
 const CACHE_DIR = path.resolve(".cache");
@@ -35,41 +36,19 @@ const FOOTPRINT_STATES = [
 // Query values must be spelled the way Ticketmaster spells its own
 // classifications — this is a name match, not an enum. "arts&theatre"
 // (no spaces) does not match the real segment, "Arts & Theatre".
-const CLASSIFICATIONS = ["music", "sports", "arts & theatre"];
+//
+// "miscellaneous" is where Ticketmaster files food & drink, fairs and
+// festivals, and holiday events — the only Ticketmaster source for the Food
+// category. Its unmappable remainder (expos, lectures, psychics) is still
+// dropped as "misc" below.
+const CLASSIFICATIONS = ["music", "sports", "arts & theatre", "miscellaneous"];
 
 const limiter = createRateLimiter(2);
 
-// Keyed by segment name with punctuation and spacing stripped, because the
-// API returns "Arts & Theatre" and an exact-string map keyed "arts&theatre"
-// matched none of them: every arts event fell through to "misc" and main()
-// then dropped the lot. That silently cost the entire arts catalogue —
-// the generated feed carried 0 Ticketmaster art events against ~15.5k
-// concerts — so normalise before lookup and shout about anything unmapped
-// (see unmappedSegments below) rather than discarding it quietly.
-const SEGMENT_CATEGORY = {
-  music: "concert",
-  sports: "sports",
-  artstheatre: "art",
-  artstheater: "art", // US spelling, in case the segment is ever renamed
-};
-
-function normalizeSegment(name) {
-  return (name || "").toLowerCase().replace(/[^a-z]/g, "");
-}
-
-// segment name -> how many events fell through unmapped, for the summary
-// main() prints. A future segment rename should be obvious in the log
-// instead of quietly deleting a whole category again.
+// "segment / genre" -> how many events fell through unmapped, for the
+// summary main() prints. A future taxonomy rename should be obvious in the
+// log instead of quietly deleting a whole category again.
 const unmappedSegments = new Map();
-
-function classificationToCategory(segmentName) {
-  const mapped = SEGMENT_CATEGORY[normalizeSegment(segmentName)];
-  if (!mapped) {
-    const key = segmentName || "(no segment)";
-    unmappedSegments.set(key, (unmappedSegments.get(key) || 0) + 1);
-  }
-  return mapped || "misc";
-}
 
 // Venue capacity (used for the flagship/major/notable/local scale badge) is
 // almost never present, even via the dedicated venue-detail endpoint — a
@@ -96,7 +75,14 @@ function mapTicketmasterEvent(tmEvent, { placeId, attractionId } = {}) {
     startTime: dateInfo?.dateTime || null,
     placeId: placeId || null,
     venue: venue ? { name: venue.name, lat: Number(venue.location?.latitude), lon: Number(venue.location?.longitude) } : null,
-    category: classificationToCategory(tmEvent.classifications?.[0]?.segment?.name),
+    category: categorize(
+      {
+        segment: tmEvent.classifications?.[0]?.segment?.name,
+        genre: tmEvent.classifications?.[0]?.genre?.name,
+        title: tmEvent.name,
+      },
+      unmappedSegments
+    ),
     subcategory: tmEvent.classifications?.[0]?.genre?.name || null,
     scale: estimateScale(tmEvent),
     attendance: null,
@@ -217,7 +203,7 @@ async function main() {
   const deduped = Array.from(bySourceId.values());
 
   // "misc" is whatever Ticketmaster's own classification couldn't place
-  // into music/sports/arts&theatre — uncategorized noise the category
+  // into one of our categories (see lib/ticketmaster-map.js) — uncategorized noise the category
   // filter chips can't even target. Concerts, sports, and everything else
   // stay in: favorite-artist shows, pro sports, and legitimate touring acts
   // are all worth keeping, and venue capacity (the one signal that could
@@ -227,14 +213,14 @@ async function main() {
   console.log(`Deduped to ${deduped.length} events, dropped ${deduped.length - combined.length} uncategorized ("misc") listings.`);
 
   // Anything here was thrown away. A segment we *expect* to keep showing up
-  // in this list means SEGMENT_CATEGORY has drifted out of date — that is
+  // in this list means the maps in lib/ticketmaster-map.js have drifted — that is
   // exactly how the arts catalogue went missing.
   if (unmappedSegments.size) {
     const breakdown = Array.from(unmappedSegments.entries())
       .sort((a, b) => b[1] - a[1])
       .map(([name, n]) => `${name} (${n})`)
       .join(", ");
-    console.log(`Unmapped segments seen (pre-dedup): ${breakdown}`);
+    console.log(`Unmapped segment / genre pairs seen (pre-dedup): ${breakdown}`);
   }
 
   const kept = {};

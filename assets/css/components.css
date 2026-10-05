@@ -239,6 +239,9 @@ button.feed-row, button.place-card, button.weekend-card, button.show-row {
 .weekend-card .wk-primary { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; flex-wrap: wrap; }
 .weekend-card .wk-city { font-size: 1.2em; font-weight: 800; color: var(--accent); }
 .weekend-card .wk-event { color: #c7cbd4; font-size: 0.9em; }
+.weekend-card .wk-wx { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.weekend-card .wk-wx-day { font-size: 0.78em; color: var(--muted); background: var(--panel2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 2px 7px; white-space: nowrap; }
+.weekend-card .wk-wx-day.wk-wx-warn { color: var(--danger); border-color: var(--danger); }
 .weekend-card .wk-backups { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); display: flex; flex-direction: column; gap: 6px; }
 .weekend-card .wk-backup-row { font-size: 0.82em; color: var(--muted); display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
 .weekend-card .wk-backup-row b { color: var(--text); }

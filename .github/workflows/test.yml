@@ -1,0 +1,37 @@
+name: Test
+
+# Unit tests (node:test, no dependencies) plus a Playwright smoke test of
+# the site as it actually deploys — assembled, version-stamped, and served
+# under the /xc-gpt/ subpath. Runs on every PR, and deploy-pages.yml calls
+# it as a gate so nothing reaches the live site without passing.
+on:
+  pull_request: {}
+  workflow_call: {}
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Smoke test
+        run: npm run test:e2e

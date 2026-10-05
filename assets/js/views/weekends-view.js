@@ -1,7 +1,22 @@
 import { addDays, formatDateRange, formatFlightTime, toDateKey, decodeEntities, fridayOf, parseDate } from "../format.js";
 import { rankWeekendCandidates } from "../score.js";
+import { outlookForDays } from "../weather.js";
 
-export function renderWeekends(container, filtered, { places, config, overrides }, onSelect) {
+// Compact Fri-Sun outlook for the pick, once the weekend is inside the
+// 16-day forecast. Thunderstorm and icing days are called out because they
+// are the ones that cancel a T-6 cross-country.
+function weekendWeatherHtml(weather, friday) {
+  const days = outlookForDays(weather, [0, 1, 2].map((n) => toDateKey(addDays(friday, n))));
+  if (days.length === 0) return "";
+  const parts = days.map((d) => {
+    const flag = d.icing ? " · icing?" : d.thunder ? " · storms" : "";
+    const cls = d.icing || d.thunder ? " wk-wx-warn" : "";
+    return `<span class="wk-wx-day${cls}" title="${d.label}, low ${d.lo}°, ${d.precip}% precip">${d.dow} ${d.hi}° · ${d.precip}% precip${flag}</span>`;
+  });
+  return `<div class="wk-wx" aria-label="Weather outlook">${parts.join("")}</div>`;
+}
+
+export function renderWeekends(container, filtered, { places, config, overrides, weather = {} }, onSelect) {
   const { visibleEvents, dateRangeStart, dateRangeEnd } = filtered;
   const state = filtered.state;
   const placeById = new Map(places.map((p) => [p.id, p]));
@@ -76,6 +91,7 @@ export function renderWeekends(container, filtered, { places, config, overrides 
             <span style="color:var(--accent2);font-size:0.85em;">${formatFlightTime(primary.place.flightMinutes)}</span>
           </div>
           <div class="wk-event">${topEvents || (primary.note || "")}</div>
+          ${weekendWeatherHtml(weather[primary.place.id], friday)}
           ${backupsHtml}
         </button>`;
     })

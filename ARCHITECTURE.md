@@ -696,7 +696,7 @@ repository activity. Without it, a stretch of quiet days silently kills the auto
 ### 9.5 `refresh-weekly.yml` — Sundays
 
 Spotify artist sync · Ticketmaster attraction-id resolution for new artists · link health check
-(HEAD requests, flag 404s into `meta.linkHealth`) · prune events more than 30 days past.
+(HEAD requests, flag 404s into `meta.linkHealth`) · prune events that have already ended.
 
 ### 9.6 Secrets
 
@@ -821,8 +821,12 @@ Merge precedence, **field by field** — not whole-record:
 | Field | Winner |
 |---|---|
 | `description`, `scale`, `attendance` | curated |
-| `start`, `end`, `startTime`, `ticketUrl` | ticketmaster |
+| `start`, `end` | union of both ranges (earliest start, latest end) |
+| `startTime`, `ticketUrl` | ticketmaster |
 | `confidence` | highest available |
 | `id` | curated if present, else ticketmaster |
 
-Log every merge to `meta.dedupe` so a wrong match is diagnosable rather than invisible.
+Two Ticketmaster records only match on an identical normalized title (fuzzy matching is for
+reconciling *different* sources). Every merge is printed to the refresh job's log so a wrong
+match is diagnosable rather than invisible; `meta.dedupe` keeps only the counts, since meta.json
+is downloaded by every visitor.

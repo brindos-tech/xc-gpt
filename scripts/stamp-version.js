@@ -44,14 +44,24 @@ const MODULE_REF = /((?:from|import)\s*\(?\s*["'])(\.{1,2}\/[^"']+?\.js)(["'])/g
 // touched (a query string there would miss their cache and could 404).
 const HTML_REF = /((?:href|src)=")(assets\/[^"]+?\.(?:css|js))(")/g;
 
+// The data loader's version (see BUILD_VERSION in main.js) — so data/*.json
+// URLs change per deploy too, rather than per page load.
+const BUILD_PLACEHOLDER = "__BUILD_VERSION__";
+
 let moduleRefs = 0;
+let buildPlaceholders = 0;
 const jsFiles = (await walk(path.join(siteDir, "assets", "js"))).filter((f) => f.endsWith(".js"));
 for (const file of jsFiles) {
   const src = await readFile(file, "utf-8");
-  const out = src.replace(MODULE_REF, (_m, pre, spec, post) => {
-    moduleRefs++;
-    return `${pre}${spec}?v=${version}${post}`;
-  });
+  const out = src
+    .replace(MODULE_REF, (_m, pre, spec, post) => {
+      moduleRefs++;
+      return `${pre}${spec}?v=${version}${post}`;
+    })
+    .replaceAll(BUILD_PLACEHOLDER, () => {
+      buildPlaceholders++;
+      return version;
+    });
   if (out !== src) await writeFile(file, out);
 }
 
@@ -64,14 +74,15 @@ const stamped = html.replace(HTML_REF, (_m, pre, ref, post) => {
 });
 await writeFile(indexPath, stamped);
 
-if (htmlRefs === 0 || moduleRefs === 0) {
+if (htmlRefs === 0 || moduleRefs === 0 || buildPlaceholders === 0) {
   console.error(
-    `stamp-version: refusing a no-op stamp (index.html refs: ${htmlRefs}, module imports: ${moduleRefs}).\n` +
+    `stamp-version: refusing a no-op stamp (index.html refs: ${htmlRefs}, module imports: ${moduleRefs}, ` +
+      `${BUILD_PLACEHOLDER} placeholders: ${buildPlaceholders}).\n` +
       "Asset markup or import style probably changed — update the patterns in this script."
   );
   process.exit(1);
 }
 
 console.log(
-  `Stamped v=${version} across ${jsFiles.length} modules: ${htmlRefs} refs in index.html, ${moduleRefs} module imports.`
+  `Stamped v=${version} across ${jsFiles.length} modules: ${htmlRefs} refs in index.html, ${moduleRefs} module imports, ${buildPlaceholders} build placeholder(s).`
 );
