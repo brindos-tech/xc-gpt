@@ -1,5 +1,6 @@
 import { formatFlightTime, formatDateRange, decodeEntities, weatherCodeLabel, dowShort, parseDate } from "../format.js";
 import { eventScore } from "../score.js";
+import { ICING_TEMP_F, ICING_PRECIP_PCT } from "../weather.js";
 
 // The panel is a quick-glance summary, not the full agenda — cap it to the
 // best few events (see importance.js for what "best" means) and point
@@ -7,11 +8,6 @@ import { eventScore } from "../score.js";
 // in the window at a busy place.
 const HIGHLIGHT_CAP = 5;
 
-// Advisory only — not a substitute for a real briefing. Flags a day as a
-// possible icing setup when the low is at/near freezing and precip odds are
-// meaningful; this is a coarse heuristic, not a forecast product.
-const ICING_TEMP_F = 34;
-const ICING_PRECIP_PCT = 40;
 
 // `military` and `pprRequired` are separate facts and have to be read
 // separately: a joint-use field like KSPS is military *and* has an open
