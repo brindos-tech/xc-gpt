@@ -26,11 +26,15 @@ Two scheduled workflows regenerate `data/generated/`:
 
 A third publishes the site:
 
-- **`.github/workflows/deploy-pages.yml`** — on every push to `main`, assembles `index.html` + `assets/` + `data/` and runs `scripts/stamp-version.js` to append `?v=<short-sha>` to every local CSS/JS reference *and* to the relative imports inside each ES module, then deploys to Pages.
+- **`.github/workflows/deploy-pages.yml`** — on every push to `main`, and after every successful refresh run (their bot commits can't trigger a `push` workflow themselves), runs the test suite, then assembles `index.html` + `assets/` + `data/` and runs `scripts/stamp-version.js` to append `?v=<short-sha>` to every local CSS/JS reference *and* to the relative imports inside each ES module, then deploys to Pages.
 
   This exists because Pages serves everything with `Cache-Control: max-age=600` and gives you no way to override it, so a just-merged change could take ~10 minutes to appear — indistinguishable from a broken deploy. Stamping the whole module graph (not just the `main.js` entry point — a query string there doesn't propagate into its own `import "./store.js"` statements) makes each deploy a fresh set of URLs, so changes land immediately.
 
   **This requires Settings → Pages → Source = "GitHub Actions".** Left on "Deploy from a branch", this workflow fails at the deploy step while the old branch-based deploy keeps publishing unstamped assets.
+
+A fourth gates it:
+
+- **`.github/workflows/test.yml`** — unit tests (`npm run test:unit`, plain `node:test`) and a Playwright smoke test of the stamped site (`npm run test:e2e`). Runs on every PR and as the first job of every deploy. Locally: `npm ci && npx playwright install chromium && npm test`.
 
 Add these repo secrets (Settings → Secrets and variables → Actions):
 

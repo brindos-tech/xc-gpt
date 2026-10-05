@@ -3,8 +3,18 @@ name: Deploy to Pages
 # Replaces Pages' built-in "deploy from branch" so assets can be
 # cache-busted at deploy time (see scripts/stamp-version.js). Requires
 # Settings -> Pages -> Source = "GitHub Actions".
+#
+# Data refreshes need their own trigger. The refresh workflows commit with
+# the default GITHUB_TOKEN, and GitHub never starts a `push` workflow from a
+# GITHUB_TOKEN push, so with `push` alone the daily data commits landed on
+# main but never reached the live site — it only picked new data up when a
+# human merged something. `workflow_run` fires once each refresh finishes.
 on:
   push:
+    branches: [main]
+  workflow_run:
+    workflows: ["Refresh daily", "Refresh weekly"]
+    types: [completed]
     branches: [main]
   workflow_dispatch: {}
 
@@ -20,12 +30,21 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Same suite as .github/workflows/test.yml, run here too so a failing
+  # change can never reach the live site, whichever trigger fired.
+  test:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    uses: ./.github/workflows/test.yml
+
   deploy:
+    needs: test
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      # On workflow_run this checks out the newest commit on main — i.e. the
+      # data commit the refresh just pushed.
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
@@ -37,7 +56,7 @@ jobs:
       - name: Assemble site
         run: |
           mkdir -p _site
-          cp index.html _site/
+          cp index.html manifest.webmanifest sw.js _site/
           cp -r assets _site/
           cp -r data _site/
 
