@@ -62,10 +62,18 @@ async function checkUrl(url) {
     const broken = DEFINITELY_BROKEN_STATUSES.has(result.status);
     return { ok: !broken, status: result.status };
   } catch (err) {
-    // a hard network failure (DNS, connection refused, timeout) is a
-    // stronger signal than any HTTP-level response — bot-protection still
-    // completes the handshake and returns *something*, so this is more
-    // likely a genuinely dead domain.
+    // A timeout is NOT evidence of a dead link. Ticketmaster tarpits
+    // datacenter requests rather than refusing them — the 2026-10-04 sweep
+    // flagged 2,199 of 2,202 URLs this way, every one a ticketmaster.com
+    // page that loads fine in a browser. Same reasoning as the status-code
+    // rule above: inconclusive, so not flagged.
+    if (err.name === "AbortError" || err.name === "TimeoutError") {
+      return { ok: true, status: null, inconclusive: "timeout" };
+    }
+    // a hard network failure (DNS, connection refused) is a stronger
+    // signal than any HTTP-level response — bot-protection still completes
+    // the handshake and returns *something*, so this is more likely a
+    // genuinely dead domain.
     return { ok: false, status: null, error: err.message };
   }
 }
@@ -85,7 +93,9 @@ async function main() {
 
   const linkHealth = {};
   let brokenCount = 0;
+  let timedOut = 0;
   results.forEach((result, i) => {
+    if (result.inconclusive) timedOut++;
     if (!result.ok) {
       linkHealth[urlList[i]] = { ...result, checkedAt: new Date().toISOString() };
       brokenCount++;
@@ -96,7 +106,7 @@ async function main() {
   meta.linkHealth = linkHealth;
   await writeFile(path.join(GENERATED_DIR, "meta.json"), JSON.stringify(meta, null, 2));
 
-  console.log(`Checked ${urlList.length} URLs, ${brokenCount} flagged as broken (404/410/network-failure only).`);
+  console.log(`Checked ${urlList.length} URLs, ${brokenCount} flagged as broken (404/410/network-failure only), ${timedOut} timed out (not flagged).`);
 }
 
 main().catch((err) => {
