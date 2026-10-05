@@ -32,15 +32,32 @@ export function titleSimilarity(a, b) {
   return (2 * intersection) / (ba.size + bb.size || 1);
 }
 
-function daysBetween(dateA, dateB) {
-  const a = new Date(dateA).getTime();
-  const b = new Date(dateB).getTime();
-  return Math.abs(a - b) / 86400000;
+const DAY_MS = 86400000;
+
+/**
+ * Days of daylight between two events' date ranges — 0 when they overlap.
+ * Ranges, not start dates: a merged record spans every performance folded
+ * into it (see mergeEventPair), so the next night of a run has to be
+ * measured against where the run currently ends, not where it began.
+ */
+function gapDays(a, b) {
+  const aStart = Date.parse(a.start);
+  const aEnd = Date.parse(a.end || a.start);
+  const bStart = Date.parse(b.start);
+  const bEnd = Date.parse(b.end || b.start);
+  return Math.max(0, (bStart - aEnd) / DAY_MS, (aStart - bEnd) / DAY_MS);
 }
 
 export function isDuplicate(eventA, eventB, { titleThreshold = 0.75, dayTolerance = 1 } = {}) {
   if (eventA.placeId !== eventB.placeId) return false;
-  if (daysBetween(eventA.start, eventB.start) > dayTolerance) return false;
+  if (gapDays(eventA, eventB) > dayTolerance) return false;
+  // Two Ticketmaster listings are two separate Ticketmaster events unless
+  // they carry the same name — fuzzy matching within one source folds
+  // "Royals vs. Tigers" into "Royals vs. Twins" the next night. Fuzzy
+  // matching is for reconciling *different* sources' spellings of one event.
+  if (eventA.source === eventB.source && eventA.source === "ticketmaster") {
+    return normalizeTitle(eventA.title) === normalizeTitle(eventB.title);
+  }
   return titleSimilarity(eventA.title, eventB.title) >= titleThreshold;
 }
 
@@ -48,8 +65,6 @@ const FIELD_PRECEDENCE = {
   description: ["curated", "recurring", "ticketmaster"],
   scale: ["curated", "recurring", "ticketmaster"],
   attendance: ["curated", "recurring", "ticketmaster"],
-  start: ["ticketmaster", "curated", "recurring"],
-  end: ["ticketmaster", "curated", "recurring"],
   startTime: ["ticketmaster", "curated", "recurring"],
   ticketUrl: ["ticketmaster", "curated", "recurring"],
   url: ["ticketmaster", "curated", "recurring"],
@@ -72,6 +87,15 @@ export function mergeEventPair(a, b) {
     }
   }
 
+  // Dates are the union, never one side's: the merged record has to cover
+  // every night either side was on. Taking a single side's date turned a
+  // three-night run into whichever night happened to be merged last, and
+  // shrank a curated three-day festival to the one day Ticketmaster listed.
+  merged.start = a.start <= b.start ? a.start : b.start;
+  const aEnd = a.end || a.start;
+  const bEnd = b.end || b.start;
+  merged.end = aEnd >= bEnd ? aEnd : bEnd;
+
   merged.confidence =
     CONFIDENCE_RANK[a.confidence] >= CONFIDENCE_RANK[b.confidence] ? a.confidence : b.confidence;
   merged.id = a.source === "curated" ? a.id : b.source === "curated" ? b.id : a.id;
@@ -89,20 +113,35 @@ export function mergeEventPair(a, b) {
 export function dedupeEvents(events) {
   const result = [];
   const mergeLog = [];
-  const consumed = new Set();
 
-  for (let i = 0; i < events.length; i++) {
-    if (consumed.has(i)) continue;
-    let current = events[i];
-    for (let j = i + 1; j < events.length; j++) {
-      if (consumed.has(j)) continue;
-      if (isDuplicate(current, events[j])) {
-        mergeLog.push({ kept: current.title, mergedFrom: events[j].title, placeId: current.placeId });
-        current = mergeEventPair(current, events[j]);
-        consumed.add(j);
+  // Duplicates only ever share a placeId, so compare within each place
+  // rather than all-pairs across ~25k events, and in date order so a run of
+  // nightly performances folds together front to back.
+  const byPlace = new Map();
+  for (const ev of events) {
+    if (!byPlace.has(ev.placeId)) byPlace.set(ev.placeId, []);
+    byPlace.get(ev.placeId).push(ev);
+  }
+
+  for (const group of byPlace.values()) {
+    group.sort((a, b) => (a.start < b.start ? -1 : a.start > b.start ? 1 : 0));
+    const consumed = new Set();
+    for (let i = 0; i < group.length; i++) {
+      if (consumed.has(i)) continue;
+      let current = group[i];
+      for (let j = i + 1; j < group.length; j++) {
+        if (consumed.has(j)) continue;
+        // sorted by start: once a candidate starts too far past the
+        // current range's end, nothing later can overlap it either
+        if ((Date.parse(group[j].start) - Date.parse(current.end || current.start)) / DAY_MS > 1) break;
+        if (isDuplicate(current, group[j])) {
+          mergeLog.push({ kept: current.title, mergedFrom: group[j].title, placeId: current.placeId });
+          current = mergeEventPair(current, group[j]);
+          consumed.add(j);
+        }
       }
+      result.push(current);
     }
-    result.push(current);
   }
 
   return { events: result, mergeLog };

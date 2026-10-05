@@ -8,6 +8,8 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { dedupeEvents } from "./lib/dedupe.js";
+import { isAddOnListing } from "./lib/noise.js";
+import { toClientEvent, todayKey, isUpcoming } from "./lib/client-events.js";
 
 const CURATED_DIR = path.resolve("data/curated");
 const GENERATED_DIR = path.resolve("data/generated");
@@ -52,18 +54,24 @@ async function main() {
   // drop ticketmaster events whose venue didn't resolve to a known place
   // (strictPlaces default true per ARCHITECTURE.md §9.2)
   const droppedForUnknownPlace = ticketmasterEvents.filter((e) => !placeIds.has(e.placeId));
-  const validTicketmasterEvents = ticketmasterEvents.filter((e) => placeIds.has(e.placeId));
+  const placedTicketmasterEvents = ticketmasterEvents.filter((e) => placeIds.has(e.placeId));
+  const addOnListings = placedTicketmasterEvents.filter((e) => isAddOnListing(e.title));
+  const validTicketmasterEvents = placedTicketmasterEvents.filter((e) => !isAddOnListing(e.title));
 
   const combined = [...seedEvents, ...recurringEvents, ...validTicketmasterEvents];
   const { events: deduped, mergeLog } = dedupeEvents(combined);
 
-  // prune events more than 30 days in the past
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - 30);
-  const pruned = deduped.filter((e) => new Date(e.end || e.start) >= cutoff);
+  // Nothing that has already finished: the page only ever looks forward
+  // from today, so past events were pure download weight.
+  const today = todayKey();
+  const pruned = deduped
+    .filter((e) => isUpcoming(e, today))
+    .sort((a, b) => (a.start < b.start ? -1 : a.start > b.start ? 1 : 0))
+    .map(toClientEvent);
 
   await mkdir(GENERATED_DIR, { recursive: true });
-  await writeFile(path.join(GENERATED_DIR, "events.json"), JSON.stringify(pruned, null, 2));
+  // Minified on purpose — this is the largest file every visitor downloads.
+  await writeFile(path.join(GENERATED_DIR, "events.json"), JSON.stringify(pruned));
 
   const meta = {
     buildId: `build-${Date.now()}`,
@@ -78,14 +86,18 @@ async function main() {
       spotify: previousMeta?.sources?.spotify ?? { status: "not_yet_run", lastSuccess: null },
       recurring: { status: "ok", lastSuccess: new Date().toISOString() },
     },
-    dedupe: mergeLog,
+    // Counts only. The full merge log ran to ~9k entries (1.4 MB) inside a
+    // file the page downloads on every visit; the CI log has the detail.
+    dedupe: { merges: mergeLog.length, addOnListingsDropped: addOnListings.length },
     linkHealth: previousMeta?.linkHealth ?? {},
   };
   await writeFile(path.join(GENERATED_DIR, "meta.json"), JSON.stringify(meta, null, 2));
 
   console.log(
-    `Merged ${combined.length} raw events -> ${pruned.length} after dedupe/prune (${mergeLog.length} merges, ${droppedForUnknownPlace.length} dropped for unknown place).`
+    `Merged ${combined.length} raw events -> ${pruned.length} after dedupe/prune (${mergeLog.length} merges, ${droppedForUnknownPlace.length} dropped for unknown place, ${addOnListings.length} add-on listings dropped).`
   );
+  for (const m of mergeLog.slice(0, 25)) console.log(`  merged "${m.mergedFrom}" into "${m.kept}" (${m.placeId})`);
+  if (mergeLog.length > 25) console.log(`  ...and ${mergeLog.length - 25} more merges`);
 }
 
 main().catch((err) => {

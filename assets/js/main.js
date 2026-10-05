@@ -14,10 +14,26 @@ import { createDetailPanel } from "./views/detail-panel.js";
 
 const DATA_BASE = "data";
 
+// Replaced with the deploy's commit SHA by scripts/stamp-version.js. Every
+// data refresh is its own deploy, so the SHA changes exactly when the data
+// does: repeat visits get a cheap 304 instead of re-downloading the event
+// file, and a new deploy is never masked by a cached copy. Left unstamped
+// (local dev), fall back to a fresh fetch every load.
+const BUILD_VERSION = "__BUILD_VERSION__";
+const DATA_VERSION = BUILD_VERSION.startsWith("__") ? String(Date.now()) : BUILD_VERSION;
+
 async function loadJson(path) {
-  const res = await fetch(`${DATA_BASE}/${path}?v=${Date.now()}`);
+  const res = await fetch(`${DATA_BASE}/${path}?v=${DATA_VERSION}`);
   if (!res.ok) throw new Error(`Failed to load ${path}: ${res.status}`);
   return res.json();
+}
+
+// Installable app + offline fallback for the last-loaded data (see sw.js).
+// Registered after load so it never competes with the first render.
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch((err) => console.warn("Service worker not registered:", err));
+  });
 }
 
 async function boot() {
@@ -205,7 +221,7 @@ async function boot() {
     if (state.view === "artists")
       renderArtists(document.getElementById("artistsInner"), filtered, { artists, meta, places }, selectPlace);
     if (state.view === "weekends")
-      renderWeekends(document.getElementById("weekendsInner"), filtered, { places, config, overrides }, selectPlace);
+      renderWeekends(document.getElementById("weekendsInner"), filtered, { places, config, overrides, weather }, selectPlace);
 
     if (state.selectedPlaceId) {
       const place = places.find((p) => p.id === state.selectedPlaceId);
