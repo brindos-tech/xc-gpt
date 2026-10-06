@@ -36,6 +36,12 @@ const TITLE_CATEGORY = [
   [/\b(bbq|barbecue|chili cook-?off|food (truck|wine) festival|wine festival|beer festival|crawfish festival)\b/i, "food"],
 ];
 
+/** Category implied by an event's title alone, or null. Shared with SeatGeek. */
+export function categoryFromTitle(title) {
+  for (const [re, category] of TITLE_CATEGORY) if (re.test(title || "")) return category;
+  return null;
+}
+
 export function normalizeName(name) {
   return (name || "").toLowerCase().replace(/[^a-z]/g, "");
 }
@@ -46,7 +52,8 @@ export function normalizeName(name) {
  *   that fell through to "misc", for the fetch script's summary log
  */
 export function categorize({ segment, genre, title }, unmapped) {
-  for (const [re, category] of TITLE_CATEGORY) if (re.test(title || "")) return category;
+  const byTitle = categoryFromTitle(title);
+  if (byTitle) return byTitle;
   const byGenre = GENRE_CATEGORY[normalizeName(genre)];
   if (byGenre) return byGenre;
   const bySegment = SEGMENT_CATEGORY[normalizeName(segment)];

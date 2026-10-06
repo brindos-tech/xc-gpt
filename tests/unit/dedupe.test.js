@@ -60,3 +60,22 @@ test("events at different places never merge", () => {
   const { events } = dedupeEvents([tm("a", "Annie", "2026-10-01"), tm("b", "Annie", "2026-10-01", { placeId: "tucson-az" })]);
   assert.equal(events.length, 2);
 });
+
+test("the same show on Ticketmaster and SeatGeek merges, keeping SeatGeek's scale", () => {
+  const sg = { ...tm("sg-1", "Hadestown", "2026-12-04"), source: "seatgeek", scale: "major", url: "https://sg/1" };
+  const { events } = dedupeEvents([tm("tm-1", "HADESTOWN", "2026-12-04"), sg]);
+  assert.equal(events.length, 1);
+  assert.equal(events[0].scale, "major");
+  assert.equal(events[0].url, "https://x/tm-1");
+});
+
+test("a feed's copy merged into a curated record stays curated", () => {
+  const rec = {
+    id: "rec-x-2026", title: "State Fair of Texas", start: "2026-09-25", end: "2026-10-18", placeId: "phoenix-az",
+    source: "recurring", recurringId: "x", category: "fair", scale: "flagship", confidence: "confirmed", url: "",
+  };
+  const { events } = dedupeEvents([tm("t", "State Fair of Texas", "2026-09-24"), rec]);
+  assert.equal(events.length, 1);
+  assert.equal(events[0].source, "recurring");
+  assert.equal(events[0].recurringId, "x");
+});

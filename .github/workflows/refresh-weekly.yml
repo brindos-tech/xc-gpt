@@ -34,11 +34,16 @@ jobs:
           TICKETMASTER_API_KEY: ${{ secrets.TICKETMASTER_API_KEY }}
         run: node scripts/resolve-attractions.js
 
+      # Every source merge.js reads has to be re-fetched here: the caches
+      # don't survive between runs, and any feed skipped would drop out of
+      # events.json until the next daily refresh.
       - name: Rebuild generated data with any new artist matches
         env:
           TICKETMASTER_API_KEY: ${{ secrets.TICKETMASTER_API_KEY }}
+          SEATGEEK_CLIENT_ID: ${{ secrets.SEATGEEK_CLIENT_ID }}
         run: |
           node scripts/fetch-ticketmaster.js
+          node scripts/fetch-seatgeek.js
           node scripts/expand-recurring.js
           node scripts/merge.js
           node scripts/validate.js

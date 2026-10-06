@@ -39,3 +39,9 @@ test("an event stays until its last day has passed", () => {
 test("todayKey uses the local calendar date", () => {
   assert.equal(todayKey(new Date(2026, 0, 9, 23, 59)), "2026-01-09");
 });
+
+test("hand-picked events are flagged curated", () => {
+  assert.equal(toClientEvent({ ...full, source: "recurring", recurringId: "fair" }).curated, true);
+  assert.equal(toClientEvent({ ...full, source: "curated" }).curated, true);
+  assert.equal(toClientEvent(full).curated, undefined);
+});

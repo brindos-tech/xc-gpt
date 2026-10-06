@@ -42,3 +42,8 @@ test("a locked override wins only when it is within range", () => {
   assert.equal(rankWeekendCandidates(friday, weekendEvents, places, scoring, override, 1000)[0].place.id, "far");
   assert.equal(rankWeekendCandidates(friday, weekendEvents, places, scoring, override, 600)[0].place.id, "near");
 });
+
+test("curated events are highlights whatever their category", () => {
+  assert.equal(isHighlightEvent({ category: "festival", curated: true }), true);
+  assert.equal(isHighlightEvent({ category: "festival" }), false);
+});

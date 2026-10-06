@@ -27,6 +27,13 @@ jobs:
           TICKETMASTER_API_KEY: ${{ secrets.TICKETMASTER_API_KEY }}
         run: node scripts/fetch-ticketmaster.js
 
+      # Spaced under the free tier's hourly limit, so this step takes a
+      # while (~10-20 min); see the header of fetch-seatgeek.js.
+      - name: Fetch SeatGeek events
+        env:
+          SEATGEEK_CLIENT_ID: ${{ secrets.SEATGEEK_CLIENT_ID }}
+        run: node scripts/fetch-seatgeek.js
+
       - name: Fetch weather
         run: node scripts/fetch-weather.js
 

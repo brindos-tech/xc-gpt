@@ -74,6 +74,10 @@ export function isProOrSecSportsEvent(title) {
 }
 
 export function isHighlightEvent(event) {
+  // Hand-picked events (curated seed + recurring.json) were chosen because
+  // they're worth the flight — a rodeo, a state fair, a marquee festival —
+  // so the feed-noise rules below don't apply to them.
+  if (event.curated) return true;
   if (event.category === "concert" || event.category === "festival") {
     return !!event.isFavoriteArtist;
   }
