@@ -388,5 +388,1041 @@
         "end": "2027-01-01"
       }
     }
+  },
+  {
+    "id": "national-western-stock-show",
+    "title": "National Western Stock Show & Rodeo",
+    "placeId": "denver-co",
+    "category": "rodeo",
+    "scale": "flagship",
+    "attendance": null,
+    "description": "16 days of rodeo, livestock and horse shows — the West's biggest stock show since 1906.",
+    "url": "https://nationalwestern.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 1,
+      "weekday": 6,
+      "nth": 2,
+      "durationDays": 16
+    },
+    "confirmed": {
+      "2027": {
+        "start": "2027-01-09",
+        "end": "2027-01-24"
+      }
+    }
+  },
+  {
+    "id": "fort-worth-stock-show",
+    "title": "Fort Worth Stock Show & Rodeo",
+    "placeId": "fort-worth-tx",
+    "category": "rodeo",
+    "scale": "flagship",
+    "attendance": null,
+    "description": "Three-plus weeks of PRCA rodeo at Dickies Arena and stock show in the Will Rogers complex.",
+    "url": "https://www.fwssr.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 1,
+      "weekday": 5,
+      "nth": 3,
+      "durationDays": 23
+    },
+    "confirmed": {
+      "2027": {
+        "start": "2027-01-15",
+        "end": "2027-02-06"
+      }
+    }
+  },
+  {
+    "id": "san-antonio-stock-show",
+    "title": "San Antonio Stock Show & Rodeo",
+    "placeId": "san-antonio-tx",
+    "category": "rodeo",
+    "scale": "flagship",
+    "attendance": null,
+    "description": "18 days of rodeo and concerts at the Frost Bank Center grounds.",
+    "url": "https://www.sarodeo.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 2,
+      "weekday": 4,
+      "nth": 2,
+      "durationDays": 18
+    },
+    "confirmed": {
+      "2027": {
+        "start": "2027-02-11",
+        "end": "2027-02-28"
+      }
+    }
+  },
+  {
+    "id": "rodeohouston",
+    "title": "RodeoHouston",
+    "placeId": "houston-tx",
+    "category": "rodeo",
+    "scale": "flagship",
+    "attendance": null,
+    "description": "Houston Livestock Show and Rodeo — the world's largest, with a headline concert after every performance.",
+    "url": "https://www.rodeohouston.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 3,
+      "weekday": 2,
+      "nth": 1,
+      "durationDays": 20
+    },
+    "confirmed": {
+      "2027": {
+        "start": "2027-03-02",
+        "end": "2027-03-21"
+      }
+    }
+  },
+  {
+    "id": "tucson-rodeo",
+    "title": "La Fiesta de los Vaqueros Rodeo",
+    "placeId": "tucson-az",
+    "category": "rodeo",
+    "scale": "major",
+    "attendance": null,
+    "description": "Tucson's PRCA rodeo, with the world's longest non-motorized parade on the Thursday.",
+    "url": "https://www.tucsonrodeo.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 2,
+      "weekday": 6,
+      "nth": 3,
+      "durationDays": 9
+    },
+    "confirmed": {
+      "2027": {
+        "start": "2027-02-20",
+        "end": "2027-02-28"
+      }
+    }
+  },
+  {
+    "id": "cheyenne-frontier-days",
+    "title": "Cheyenne Frontier Days",
+    "placeId": "cheyenne-wy",
+    "category": "rodeo",
+    "scale": "flagship",
+    "attendance": null,
+    "description": "The \"Daddy of 'em All\" — ten days of rodeo, night shows and an air-show flyover tradition.",
+    "url": "https://www.cfdrodeo.com",
+    "rule": {
+      "type": "confirmed-only"
+    },
+    "confirmed": {
+      "2027": {
+        "start": "2027-07-23",
+        "end": "2027-08-01"
+      }
+    }
+  },
+  {
+    "id": "national-finals-rodeo",
+    "title": "Wrangler National Finals Rodeo",
+    "placeId": "las-vegas-nv",
+    "category": "rodeo",
+    "scale": "flagship",
+    "attendance": null,
+    "description": "Ten nights of pro rodeo's championship at the Thomas & Mack Center.",
+    "url": "https://www.nfrexperience.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 12,
+      "weekday": 4,
+      "nth": 1,
+      "durationDays": 10
+    },
+    "confirmed": {
+      "2026": {
+        "start": "2026-12-03",
+        "end": "2026-12-12"
+      }
+    }
+  },
+  {
+    "id": "prescott-frontier-days",
+    "title": "Prescott Frontier Days — World's Oldest Rodeo",
+    "placeId": "phoenix-prescott-az",
+    "category": "rodeo",
+    "scale": "major",
+    "attendance": null,
+    "description": "Running since 1888, the week of the Fourth of July.",
+    "url": "https://worldsoldestrodeo.com",
+    "rule": {
+      "type": "confirmed-only"
+    },
+    "confirmed": {
+      "2027": {
+        "start": "2027-06-28",
+        "end": "2027-07-04"
+      }
+    }
+  },
+  {
+    "id": "black-hills-stock-show",
+    "title": "Black Hills Stock Show & Rodeo",
+    "placeId": "rapid-city-sd",
+    "category": "rodeo",
+    "scale": "major",
+    "attendance": null,
+    "description": "Nine days of rodeo and stock show at The Monument.",
+    "url": "https://www.blackhillsstockshow.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 1,
+      "weekday": 5,
+      "nth": -1,
+      "durationDays": 9
+    },
+    "confirmed": {
+      "2027": {
+        "start": "2027-01-29",
+        "end": "2027-02-06"
+      }
+    }
+  },
+  {
+    "id": "international-finals-rodeo",
+    "title": "International Finals Rodeo",
+    "placeId": "guthrie-ok",
+    "category": "rodeo",
+    "scale": "major",
+    "attendance": null,
+    "description": "IPRA championship finals at the Lazy E Arena, Thursday–Sunday before MLK Day.",
+    "url": "https://www.ipra-rodeo.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 1,
+      "weekday": 1,
+      "nth": 3,
+      "durationDays": 4,
+      "offsetDays": -4
+    }
+  },
+  {
+    "id": "state-fair-of-texas",
+    "title": "State Fair of Texas",
+    "placeId": "dallas-tx",
+    "category": "fair",
+    "scale": "flagship",
+    "attendance": null,
+    "description": "24 days at Fair Park — Big Tex, fried everything, and the Red River Rivalry weekend.",
+    "url": "https://bigtex.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 9,
+      "weekday": 5,
+      "nth": -1,
+      "durationDays": 24
+    },
+    "confirmed": {
+      "2026": {
+        "start": "2026-09-25",
+        "end": "2026-10-18"
+      }
+    }
+  },
+  {
+    "id": "oklahoma-state-fair",
+    "title": "Oklahoma State Fair",
+    "placeId": "oklahoma-city-ok",
+    "category": "fair",
+    "scale": "flagship",
+    "attendance": null,
+    "description": "Eleven days at the OKC Fairgrounds, with a PRCA rodeo and nightly concerts.",
+    "url": "https://okstatefair.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 9,
+      "weekday": 1,
+      "nth": 1,
+      "durationDays": 11,
+      "offsetDays": 10
+    },
+    "confirmed": {
+      "2027": {
+        "start": "2027-09-16",
+        "end": "2027-09-26"
+      }
+    }
+  },
+  {
+    "id": "tulsa-state-fair",
+    "title": "Tulsa State Fair",
+    "placeId": "tulsa-ok",
+    "category": "fair",
+    "scale": "major",
+    "attendance": null,
+    "description": "Eleven days at Expo Square, starting the week after the Oklahoma State Fair closes.",
+    "url": "https://www.tulsastatefair.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 9,
+      "weekday": 1,
+      "nth": 1,
+      "durationDays": 11,
+      "offsetDays": 24
+    },
+    "confirmed": {
+      "2026": {
+        "start": "2026-10-01",
+        "end": "2026-10-11"
+      }
+    }
+  },
+  {
+    "id": "kansas-state-fair",
+    "title": "Kansas State Fair (Hutchinson)",
+    "placeId": "wichita-ks",
+    "category": "fair",
+    "scale": "major",
+    "attendance": null,
+    "description": "Ten days in Hutchinson, ~40 mi northwest of Wichita — fly into KHUT.",
+    "url": "https://www.kansasstatefair.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 9,
+      "weekday": 1,
+      "nth": 1,
+      "durationDays": 10,
+      "offsetDays": 4
+    }
+  },
+  {
+    "id": "arkansas-state-fair",
+    "title": "Arkansas State Fair",
+    "placeId": "little-rock-ar",
+    "category": "fair",
+    "scale": "major",
+    "attendance": null,
+    "description": "Ten days at the State Fairgrounds in Little Rock, mid-October.",
+    "url": "https://www.arkansasstatefair.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 10,
+      "weekday": 5,
+      "nth": 2,
+      "durationDays": 10
+    },
+    "confirmed": {
+      "2026": {
+        "start": "2026-10-16",
+        "end": "2026-10-25"
+      }
+    }
+  },
+  {
+    "id": "new-mexico-state-fair",
+    "title": "New Mexico State Fair",
+    "placeId": "albuquerque-nm",
+    "category": "fair",
+    "scale": "major",
+    "attendance": null,
+    "description": "Eleven days at Expo New Mexico, with a PRCA rodeo.",
+    "url": "https://statefair.exponm.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 9,
+      "weekday": 1,
+      "nth": 1,
+      "durationDays": 11,
+      "offsetDays": 3
+    }
+  },
+  {
+    "id": "iowa-state-fair",
+    "title": "Iowa State Fair",
+    "placeId": "des-moines-ia",
+    "category": "fair",
+    "scale": "flagship",
+    "attendance": null,
+    "description": "The quintessential Midwest fair — butter cow, Grandstand concerts, ~1M visitors.",
+    "url": "https://www.iowastatefair.org",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 9,
+      "weekday": 1,
+      "nth": 1,
+      "durationDays": 11,
+      "offsetDays": -25
+    },
+    "confirmed": {
+      "2027": {
+        "start": "2027-08-12",
+        "end": "2027-08-22"
+      }
+    }
+  },
+  {
+    "id": "minnesota-state-fair",
+    "title": "Minnesota State Fair",
+    "placeId": "minneapolis-mn",
+    "category": "fair",
+    "scale": "flagship",
+    "attendance": null,
+    "description": "The Great Minnesota Get-Together — the twelve days ending on Labor Day.",
+    "url": "https://www.mnstatefair.org",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 9,
+      "weekday": 1,
+      "nth": 1,
+      "durationDays": 12,
+      "offsetDays": -11
+    },
+    "confirmed": {
+      "2027": {
+        "start": "2027-08-26",
+        "end": "2027-09-06"
+      }
+    }
+  },
+  {
+    "id": "arizona-state-fair",
+    "title": "Arizona State Fair",
+    "placeId": "phoenix-az",
+    "category": "fair",
+    "scale": "major",
+    "attendance": null,
+    "description": "Open Thursdays–Sundays only through the run.",
+    "url": "https://azstatefair.com",
+    "rule": {
+      "type": "confirmed-only"
+    },
+    "confirmed": {
+      "2026": {
+        "start": "2026-10-01",
+        "end": "2026-11-01"
+      }
+    }
+  },
+  {
+    "id": "colorado-state-fair",
+    "title": "Colorado State Fair (Pueblo)",
+    "placeId": "colorado-springs-co",
+    "category": "fair",
+    "scale": "major",
+    "attendance": null,
+    "description": "Eleven days in Pueblo, ~40 mi south of Colorado Springs, ending on Labor Day.",
+    "url": "https://coloradostatefair.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 9,
+      "weekday": 1,
+      "nth": 1,
+      "durationDays": 11,
+      "offsetDays": -10
+    }
+  },
+  {
+    "id": "mardi-gras",
+    "title": "Mardi Gras (parade weekend through Fat Tuesday)",
+    "placeId": "new-orleans-la",
+    "category": "festival",
+    "scale": "flagship",
+    "attendance": null,
+    "description": "Endymion on Saturday, Bacchus Sunday, Zulu and Rex on Fat Tuesday.",
+    "url": "https://www.mardigrasneworleans.com",
+    "rule": {
+      "type": "confirmed-only"
+    },
+    "confirmed": {
+      "2027": {
+        "start": "2027-02-05",
+        "end": "2027-02-09"
+      },
+      "2028": {
+        "start": "2028-02-25",
+        "end": "2028-02-29"
+      }
+    }
+  },
+  {
+    "id": "jazz-fest-wk1",
+    "title": "New Orleans Jazz & Heritage Festival — Weekend One",
+    "placeId": "new-orleans-la",
+    "category": "festival",
+    "scale": "flagship",
+    "attendance": null,
+    "description": "Fourteen stages at the Fair Grounds Race Course.",
+    "url": "https://www.nojazzfest.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 5,
+      "weekday": 0,
+      "nth": 1,
+      "durationDays": 4,
+      "offsetDays": -10
+    },
+    "confirmed": {
+      "2027": {
+        "start": "2027-04-22",
+        "end": "2027-04-25"
+      }
+    }
+  },
+  {
+    "id": "jazz-fest-wk2",
+    "title": "New Orleans Jazz & Heritage Festival — Weekend Two",
+    "placeId": "new-orleans-la",
+    "category": "festival",
+    "scale": "flagship",
+    "attendance": null,
+    "description": "Fourteen stages at the Fair Grounds Race Course.",
+    "url": "https://www.nojazzfest.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 5,
+      "weekday": 0,
+      "nth": 1,
+      "durationDays": 4,
+      "offsetDays": -3
+    },
+    "confirmed": {
+      "2027": {
+        "start": "2027-04-29",
+        "end": "2027-05-02"
+      }
+    }
+  },
+  {
+    "id": "sxsw",
+    "title": "SXSW",
+    "placeId": "austin-tx",
+    "category": "festival",
+    "scale": "flagship",
+    "attendance": null,
+    "description": "Music, film and interactive — the whole city for a week in March.",
+    "url": "https://www.sxsw.com",
+    "rule": {
+      "type": "confirmed-only"
+    },
+    "confirmed": {
+      "2027": {
+        "start": "2027-03-15",
+        "end": "2027-03-21"
+      }
+    }
+  },
+  {
+    "id": "fiesta-san-antonio",
+    "title": "Fiesta San Antonio",
+    "placeId": "san-antonio-tx",
+    "category": "festival",
+    "scale": "flagship",
+    "attendance": null,
+    "description": "Eleven days of parades (the River Parade, Battle of Flowers) and NIOSA.",
+    "url": "https://fiestasanantonio.org",
+    "rule": {
+      "type": "confirmed-only"
+    },
+    "confirmed": {
+      "2027": {
+        "start": "2027-04-15",
+        "end": "2027-04-25"
+      }
+    }
+  },
+  {
+    "id": "memphis-in-may-bbq",
+    "title": "World Championship Barbecue Cooking Contest",
+    "placeId": "memphis-tn",
+    "category": "food",
+    "scale": "major",
+    "attendance": null,
+    "description": "Memphis in May's barbecue contest in Tom Lee Park, Wednesday–Saturday.",
+    "url": "https://memphisinmay.org",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 5,
+      "weekday": 6,
+      "nth": 3,
+      "durationDays": 4,
+      "offsetDays": -3
+    }
+  },
+  {
+    "id": "wurstfest",
+    "title": "Wurstfest (New Braunfels)",
+    "placeId": "san-antonio-tx",
+    "category": "food",
+    "scale": "major",
+    "attendance": null,
+    "description": "Ten days of German food and beer in New Braunfels, ~30 mi northeast of San Antonio.",
+    "url": "https://www.wurstfest.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 11,
+      "weekday": 5,
+      "nth": 1,
+      "durationDays": 10
+    },
+    "confirmed": {
+      "2026": {
+        "start": "2026-11-06",
+        "end": "2026-11-15"
+      }
+    }
+  },
+  {
+    "id": "texas-renaissance-festival",
+    "title": "Texas Renaissance Festival",
+    "placeId": "houston-tx",
+    "category": "festival",
+    "scale": "major",
+    "attendance": null,
+    "description": "Weekends plus Black Friday in Todd Mission, ~55 mi northwest of Houston.",
+    "url": "https://www.texrenfest.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 11,
+      "weekday": 4,
+      "nth": 4,
+      "durationDays": 51,
+      "offsetDays": -47
+    },
+    "confirmed": {
+      "2026": {
+        "start": "2026-10-10",
+        "end": "2026-11-29"
+      }
+    }
+  },
+  {
+    "id": "scarborough-renaissance-festival",
+    "title": "Scarborough Renaissance Festival",
+    "placeId": "dallas-tx",
+    "category": "festival",
+    "scale": "major",
+    "attendance": null,
+    "description": "Weekends plus Memorial Day in Waxahachie, ~30 mi south of Dallas.",
+    "url": "https://www.srfestival.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 5,
+      "weekday": 1,
+      "nth": -1,
+      "durationDays": 52,
+      "offsetDays": -51
+    }
+  },
+  {
+    "id": "kerrville-folk-festival",
+    "title": "Kerrville Folk Festival",
+    "placeId": "fredericksburg-tx",
+    "category": "festival",
+    "scale": "notable",
+    "attendance": null,
+    "description": "Eighteen days of songwriters at Quiet Valley Ranch, ~25 mi from Fredericksburg.",
+    "url": "https://www.kerrvillefolkfestival.org",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 5,
+      "weekday": 1,
+      "nth": -1,
+      "durationDays": 18,
+      "offsetDays": -4
+    }
+  },
+  {
+    "id": "roswell-ufo-festival",
+    "title": "Roswell UFO Festival",
+    "placeId": "roswell-nm",
+    "category": "festival",
+    "scale": "notable",
+    "attendance": null,
+    "description": "Fourth of July weekend, marking the 1947 incident.",
+    "url": "https://ufofestivalroswell.com",
+    "rule": {
+      "type": "fixed-month-day",
+      "month": 7,
+      "day": 2,
+      "durationDays": 3
+    }
+  },
+  {
+    "id": "okc-festival-of-the-arts",
+    "title": "Festival of the Arts",
+    "placeId": "oklahoma-city-ok",
+    "category": "art",
+    "scale": "major",
+    "attendance": null,
+    "description": "Arts Council OKC's spring festival in Bicentennial Park, Thursday–Sunday.",
+    "url": "https://artscouncilokc.com/festival-of-the-arts",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 4,
+      "weekday": 0,
+      "nth": -1,
+      "durationDays": 4,
+      "offsetDays": -3
+    }
+  },
+  {
+    "id": "bentonville-film-festival",
+    "title": "Bentonville Film Festival",
+    "placeId": "bentonville-ar",
+    "category": "art",
+    "scale": "notable",
+    "attendance": null,
+    "description": "A week of screenings, starting the third Monday of June.",
+    "url": "https://bentonvillefilm.org",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 6,
+      "weekday": 1,
+      "nth": 3,
+      "durationDays": 7
+    }
+  },
+  {
+    "id": "longs-peak-highland-festival",
+    "title": "Longs Peak Scottish-Irish Highland Festival",
+    "placeId": "estes-park-co",
+    "category": "festival",
+    "scale": "notable",
+    "attendance": null,
+    "description": "Highland games, pipe bands and sheepdog trials the weekend after Labor Day.",
+    "url": "https://www.scotfest.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 9,
+      "weekday": 1,
+      "nth": 1,
+      "durationDays": 3,
+      "offsetDays": 4
+    }
+  },
+  {
+    "id": "cherry-creek-arts-festival",
+    "title": "Cherry Creek Arts Festival",
+    "placeId": "denver-co",
+    "category": "art",
+    "scale": "major",
+    "attendance": null,
+    "description": "Juried outdoor art show over the Fourth of July weekend.",
+    "url": "https://www.cherryarts.org",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 7,
+      "weekday": 5,
+      "nth": 1,
+      "durationDays": 3
+    }
+  },
+  {
+    "id": "fredericksburg-oktoberfest",
+    "title": "Fredericksburg Oktoberfest",
+    "placeId": "fredericksburg-tx",
+    "category": "food",
+    "scale": "notable",
+    "attendance": null,
+    "description": "German food, beer and music on the Marktplatz, first weekend of October.",
+    "url": "https://www.oktoberfestinfbg.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 10,
+      "weekday": 5,
+      "nth": 1,
+      "durationDays": 3
+    }
+  },
+  {
+    "id": "eaa-airventure",
+    "title": "EAA AirVenture Oshkosh",
+    "placeId": "green-bay-wi",
+    "category": "outdoors",
+    "scale": "flagship",
+    "attendance": null,
+    "description": "The world's biggest fly-in, ~40 nm southwest of Green Bay. Flying in to KOSH means following the AirVenture NOTAM.",
+    "url": "https://www.eaa.org/airventure",
+    "rule": {
+      "type": "confirmed-only"
+    },
+    "confirmed": {
+      "2027": {
+        "start": "2027-07-26",
+        "end": "2027-08-01"
+      }
+    }
+  },
+  {
+    "id": "sun-n-fun",
+    "title": "SUN 'n FUN Aerospace Expo",
+    "placeId": "tampa-fl",
+    "category": "outdoors",
+    "scale": "flagship",
+    "attendance": null,
+    "description": "Six days of airshows and exhibits at Lakeland Linder (KLAL), ~30 mi east of Tampa.",
+    "url": "https://www.flysnf.org",
+    "rule": {
+      "type": "confirmed-only"
+    },
+    "confirmed": {
+      "2027": {
+        "start": "2027-04-06",
+        "end": "2027-04-11"
+      }
+    }
+  },
+  {
+    "id": "wings-over-houston",
+    "title": "Wings Over Houston Airshow",
+    "placeId": "houston-tx",
+    "category": "outdoors",
+    "scale": "major",
+    "attendance": null,
+    "description": "Warbirds plus a military jet team at Ellington Airport (KEFD).",
+    "url": "https://wingsoverhouston.com",
+    "rule": {
+      "type": "fixed-month-day",
+      "month": 10,
+      "day": 16,
+      "durationDays": 2
+    },
+    "confirmed": {
+      "2026": {
+        "start": "2026-10-30",
+        "end": "2026-11-01"
+      }
+    }
+  },
+  {
+    "id": "chicago-air-water-show",
+    "title": "Chicago Air & Water Show",
+    "placeId": "chicago-il",
+    "category": "outdoors",
+    "scale": "flagship",
+    "attendance": null,
+    "description": "Free lakefront show off North Avenue Beach, running since 1959.",
+    "url": "https://www.chicago.gov/city/en/depts/dca/supp_info/air_and_watershow.html",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 8,
+      "weekday": 6,
+      "nth": 3,
+      "durationDays": 2
+    }
+  },
+  {
+    "id": "seafair-air-show",
+    "title": "Boeing Seafair Air Show",
+    "placeId": "seattle-wa",
+    "category": "outdoors",
+    "scale": "flagship",
+    "attendance": null,
+    "description": "Blue Angels over Lake Washington, Seafair weekend.",
+    "url": "https://www.seafair.org",
+    "rule": {
+      "type": "confirmed-only"
+    },
+    "confirmed": {
+      "2027": {
+        "start": "2027-07-30",
+        "end": "2027-08-01"
+      }
+    }
+  },
+  {
+    "id": "sf-fleet-week",
+    "title": "San Francisco Fleet Week Air Show",
+    "placeId": "san-francisco-ca",
+    "category": "outdoors",
+    "scale": "flagship",
+    "attendance": null,
+    "description": "Over the bay along the Marina, the weekend before Columbus Day.",
+    "url": "https://fleetweeksf.org",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 10,
+      "weekday": 1,
+      "nth": 2,
+      "durationDays": 3,
+      "offsetDays": -3
+    },
+    "confirmed": {
+      "2026": {
+        "start": "2026-10-09",
+        "end": "2026-10-11"
+      }
+    }
+  },
+  {
+    "id": "miami-air-sea-show",
+    "title": "Hyundai Air & Sea Show",
+    "placeId": "miami-fl",
+    "category": "outdoors",
+    "scale": "major",
+    "attendance": null,
+    "description": "Free beachfront show on Miami Beach, Memorial Day weekend.",
+    "url": "https://usairandseashow.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 5,
+      "weekday": 1,
+      "nth": -1,
+      "durationDays": 2,
+      "offsetDays": -2
+    }
+  },
+  {
+    "id": "nas-pensacola-homecoming",
+    "title": "Blue Angels Homecoming Air Show",
+    "placeId": "pensacola-fl",
+    "category": "outdoors",
+    "scale": "flagship",
+    "attendance": null,
+    "description": "The Blues' season finale at their home field, NAS Pensacola.",
+    "url": "https://www.naspensacolaairshow.org",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 11,
+      "weekday": 5,
+      "nth": 1,
+      "durationDays": 2
+    },
+    "confirmed": {
+      "2026": {
+        "start": "2026-11-06",
+        "end": "2026-11-07"
+      },
+      "2027": {
+        "start": "2027-11-05",
+        "end": "2027-11-06"
+      }
+    }
+  },
+  {
+    "id": "pensacola-beach-air-show",
+    "title": "Pensacola Beach Air Show",
+    "placeId": "pensacola-fl",
+    "category": "outdoors",
+    "scale": "major",
+    "attendance": null,
+    "description": "Blue Angels over the Gulf, main show Saturday of \"Blues Week\".",
+    "url": "https://www.visitpensacolabeach.com",
+    "rule": {
+      "type": "confirmed-only"
+    },
+    "confirmed": {
+      "2027": {
+        "start": "2027-07-17",
+        "end": "2027-07-17"
+      }
+    }
+  },
+  {
+    "id": "cleveland-air-show",
+    "title": "Cleveland National Air Show",
+    "placeId": "cleveland-oh",
+    "category": "outdoors",
+    "scale": "major",
+    "attendance": null,
+    "description": "Labor Day weekend at Burke Lakefront Airport.",
+    "url": "https://www.clevelandairshow.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 9,
+      "weekday": 1,
+      "nth": 1,
+      "durationDays": 3,
+      "offsetDays": -2
+    }
+  },
+  {
+    "id": "thunder-over-louisville",
+    "title": "Thunder Over Louisville",
+    "placeId": "louisville-ky",
+    "category": "outdoors",
+    "scale": "flagship",
+    "attendance": null,
+    "description": "Airshow and the continent's largest annual fireworks show, opening the Kentucky Derby Festival.",
+    "url": "https://www.thunderoverlouisville.org",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 5,
+      "weekday": 6,
+      "nth": 1,
+      "durationDays": 1,
+      "offsetDays": -14
+    }
+  },
+  {
+    "id": "kentucky-derby",
+    "title": "Kentucky Oaks & Kentucky Derby",
+    "placeId": "louisville-ky",
+    "category": "sports",
+    "scale": "flagship",
+    "attendance": null,
+    "description": "Oaks on Friday, the Derby on the first Saturday in May at Churchill Downs.",
+    "url": "https://www.kentuckyderby.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 5,
+      "weekday": 6,
+      "nth": 1,
+      "durationDays": 2,
+      "offsetDays": -1
+    },
+    "confirmed": {
+      "2027": {
+        "start": "2027-04-30",
+        "end": "2027-05-01"
+      }
+    }
+  },
+  {
+    "id": "indianapolis-500",
+    "title": "Indianapolis 500",
+    "placeId": "indianapolis-in",
+    "category": "sports",
+    "scale": "flagship",
+    "attendance": null,
+    "description": "Sunday of Memorial Day weekend at Indianapolis Motor Speedway.",
+    "url": "https://www.indianapolismotorspeedway.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 5,
+      "weekday": 1,
+      "nth": -1,
+      "durationDays": 1,
+      "offsetDays": -1
+    },
+    "confirmed": {
+      "2027": {
+        "start": "2027-05-30",
+        "end": "2027-05-30"
+      }
+    }
+  },
+  {
+    "id": "sturgis-rally",
+    "title": "Sturgis Motorcycle Rally",
+    "placeId": "rapid-city-sd",
+    "category": "festival",
+    "scale": "flagship",
+    "attendance": null,
+    "description": "Ten days in the Black Hills, ~25 mi northwest of Rapid City.",
+    "url": "https://www.sturgismotorcyclerally.com",
+    "rule": {
+      "type": "nth-weekday-of-month",
+      "month": 8,
+      "weekday": 5,
+      "nth": 1,
+      "durationDays": 10
+    },
+    "confirmed": {
+      "2027": {
+        "start": "2027-08-06",
+        "end": "2027-08-15"
+      }
+    }
   }
 ]

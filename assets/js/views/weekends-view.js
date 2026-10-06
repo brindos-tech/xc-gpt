@@ -42,9 +42,13 @@ export function renderWeekends(container, filtered, { places, config, overrides,
   const cardsHtml = fridays
     .map((friday) => {
       const sunday = addDays(friday, 2);
+      // Anything running on Fri-Sun, not just what starts then: the second
+      // and third weekends of a three-week stock show or a state fair are
+      // as good a reason to go as the first.
       const weekendEvents = visibleEvents.filter((ev) => {
-        const evStart = new Date(ev.start);
-        return evStart >= addDays(friday, -0) && evStart <= addDays(sunday, 1);
+        const evStart = parseDate(ev.start);
+        const evEnd = parseDate(ev.end || ev.start);
+        return evStart <= sunday && evEnd >= friday;
       });
 
       // override dates are keyed by the event's own start date (often the
