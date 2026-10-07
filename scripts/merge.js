@@ -25,10 +25,11 @@ async function readJsonIfExists(filePath, fallback = []) {
 }
 
 async function main() {
-  const [seedEvents, recurringEvents, ticketmasterEvents, artists, places, previousMeta] = await Promise.all([
+  const [seedEvents, recurringEvents, ticketmasterEvents, seatgeekEvents, artists, places, previousMeta] = await Promise.all([
     readJsonIfExists(path.join(CURATED_DIR, "events.seed.json")),
     readJsonIfExists(path.join(CACHE_DIR, "recurring-expanded.json")),
     readJsonIfExists(path.join(CACHE_DIR, "ticketmaster.json")),
+    readJsonIfExists(path.join(CACHE_DIR, "seatgeek.json")),
     readJsonIfExists(path.join(CURATED_DIR, "artists.json")),
     readJsonIfExists(path.join(CURATED_DIR, "places.json")),
     readJsonIfExists(path.join(GENERATED_DIR, "meta.json"), null),
@@ -51,6 +52,19 @@ async function main() {
     }
   }
 
+  // SeatGeek has no attraction ids to resolve, so match its performer
+  // names against the favorite artists by name instead.
+  const artistIdByName = new Map(artists.map((a) => [a.name.toLowerCase(), a.id]));
+  for (const ev of seatgeekEvents) {
+    const matched = (ev.performerNames || []).map((n) => artistIdByName.get(n.toLowerCase())).filter(Boolean);
+    if (matched.length) {
+      ev.artistIds = matched;
+      ev.isFavoriteArtist = true;
+    }
+  }
+  const validSeatgeekEvents = seatgeekEvents.filter((e) => placeIds.has(e.placeId) && !isAddOnListing(e.title));
+  const seatgeekAddOns = seatgeekEvents.filter((e) => placeIds.has(e.placeId) && isAddOnListing(e.title)).length;
+
   // drop ticketmaster events whose venue didn't resolve to a known place
   // (strictPlaces default true per ARCHITECTURE.md §9.2)
   const droppedForUnknownPlace = ticketmasterEvents.filter((e) => !placeIds.has(e.placeId));
@@ -58,7 +72,7 @@ async function main() {
   const addOnListings = placedTicketmasterEvents.filter((e) => isAddOnListing(e.title));
   const validTicketmasterEvents = placedTicketmasterEvents.filter((e) => !isAddOnListing(e.title));
 
-  const combined = [...seedEvents, ...recurringEvents, ...validTicketmasterEvents];
+  const combined = [...seedEvents, ...recurringEvents, ...validTicketmasterEvents, ...validSeatgeekEvents];
   const { events: deduped, mergeLog } = dedupeEvents(combined);
 
   // Nothing that has already finished: the page only ever looks forward
@@ -83,18 +97,23 @@ async function main() {
         lastSuccess: ticketmasterEvents.length ? new Date().toISOString() : previousMeta?.sources?.ticketmaster?.lastSuccess ?? null,
         droppedForUnknownPlace: droppedForUnknownPlace.length,
       },
+      seatgeek: {
+        status: seatgeekEvents.length ? "ok" : "not_run_or_empty",
+        lastSuccess: seatgeekEvents.length ? new Date().toISOString() : previousMeta?.sources?.seatgeek?.lastSuccess ?? null,
+        events: validSeatgeekEvents.length,
+      },
       spotify: previousMeta?.sources?.spotify ?? { status: "not_yet_run", lastSuccess: null },
       recurring: { status: "ok", lastSuccess: new Date().toISOString() },
     },
     // Counts only. The full merge log ran to ~9k entries (1.4 MB) inside a
     // file the page downloads on every visit; the CI log has the detail.
-    dedupe: { merges: mergeLog.length, addOnListingsDropped: addOnListings.length },
+    dedupe: { merges: mergeLog.length, addOnListingsDropped: addOnListings.length + seatgeekAddOns },
     linkHealth: previousMeta?.linkHealth ?? {},
   };
   await writeFile(path.join(GENERATED_DIR, "meta.json"), JSON.stringify(meta, null, 2));
 
   console.log(
-    `Merged ${combined.length} raw events -> ${pruned.length} after dedupe/prune (${mergeLog.length} merges, ${droppedForUnknownPlace.length} dropped for unknown place, ${addOnListings.length} add-on listings dropped).`
+    `Merged ${combined.length} raw events -> ${pruned.length} after dedupe/prune (${mergeLog.length} merges, ${droppedForUnknownPlace.length} dropped for unknown place, ${addOnListings.length + seatgeekAddOns} add-on listings dropped, ${validSeatgeekEvents.length} from SeatGeek).`
   );
   for (const m of mergeLog.slice(0, 25)) console.log(`  merged "${m.mergedFrom}" into "${m.kept}" (${m.placeId})`);
   if (mergeLog.length > 25) console.log(`  ...and ${mergeLog.length - 25} more merges`);

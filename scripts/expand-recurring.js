@@ -38,6 +38,11 @@ function addDays(date, n) {
   return d;
 }
 
+function localDate(key) {
+  const [y, m, d] = key.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
 function toDateKey(date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -48,8 +53,12 @@ function toDateKey(date) {
 function expandRule(rule, year) {
   switch (rule.type) {
     case "nth-weekday-of-month": {
-      const start = nthWeekdayOfMonth(year, rule.month, rule.weekday, rule.nth);
-      if (!start) return null;
+      // offsetDays anchors to a holiday-style weekday: Labor Day is the 1st
+      // Monday of September, so "the Friday after Labor Day" is
+      // { month: 9, weekday: 1, nth: 1, offsetDays: 4 }.
+      const anchor = nthWeekdayOfMonth(year, rule.month, rule.weekday, rule.nth);
+      if (!anchor) return null;
+      const start = addDays(anchor, rule.offsetDays || 0);
       return { start, end: addDays(start, rule.durationDays - 1) };
     }
     case "fixed-month-day": {
@@ -94,8 +103,10 @@ export function expandRecurring(recurring, { today = new Date(), horizonMonthsBa
       let start, end, confidence;
 
       if (confirmed) {
-        start = new Date(confirmed.start);
-        end = new Date(confirmed.end || confirmed.start);
+        // local-calendar parse: new Date("2026-08-15") is UTC midnight,
+        // which toDateKey's local getters read as Aug 14 anywhere west of UTC
+        start = localDate(confirmed.start);
+        end = localDate(confirmed.end || confirmed.start);
         confidence = "confirmed";
       } else {
         const expanded = expandRule(r.rule, year);

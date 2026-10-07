@@ -74,6 +74,12 @@ export function isProOrSecSportsEvent(title) {
 }
 
 export function isHighlightEvent(event) {
+  // Hand-picked festivals, fairs, rodeos and air shows (curated seed +
+  // recurring.json) were chosen because they're worth the flight, so the
+  // favorite-artist rule below — meant to filter feed noise — doesn't apply
+  // to them. Hand-entered concerts and games still go through the normal
+  // favorite-artist / pro-or-SEC test.
+  if (event.curated && event.category !== "concert" && event.category !== "sports") return true;
   if (event.category === "concert" || event.category === "festival") {
     return !!event.isFavoriteArtist;
   }

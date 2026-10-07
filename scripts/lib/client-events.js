@@ -25,6 +25,9 @@ export function toClientEvent(ev) {
   if (ev.artistIds?.length) out.artistIds = ev.artistIds;
   if (ev.isFavoriteArtist) out.isFavoriteArtist = true;
   if (ev.recurringId) out.recurringId = ev.recurringId;
+  // Hand-picked (seed or recurring) rather than pulled from a feed — the
+  // page treats these as highlights whatever their category (importance.js).
+  if (ev.source === "curated" || ev.source === "recurring") out.curated = true;
   // Hand-written descriptions are worth searching on; Ticketmaster's are
   // overwhelmingly will-call / bag-policy / age-limit text that is the same
   // for every show at a venue.

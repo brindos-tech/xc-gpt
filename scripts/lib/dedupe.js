@@ -48,27 +48,34 @@ function gapDays(a, b) {
   return Math.max(0, (bStart - aEnd) / DAY_MS, (aStart - bEnd) / DAY_MS);
 }
 
+// Machine feeds whose own listings are each a distinct event (see below).
+const TICKETING_FEEDS = new Set(["ticketmaster", "seatgeek"]);
+
 export function isDuplicate(eventA, eventB, { titleThreshold = 0.75, dayTolerance = 1 } = {}) {
   if (eventA.placeId !== eventB.placeId) return false;
   if (gapDays(eventA, eventB) > dayTolerance) return false;
-  // Two Ticketmaster listings are two separate Ticketmaster events unless
+  // Two listings from the same ticketing feed are two separate events unless
   // they carry the same name — fuzzy matching within one source folds
   // "Royals vs. Tigers" into "Royals vs. Twins" the next night. Fuzzy
   // matching is for reconciling *different* sources' spellings of one event.
-  if (eventA.source === eventB.source && eventA.source === "ticketmaster") {
+  if (eventA.source === eventB.source && TICKETING_FEEDS.has(eventA.source)) {
     return normalizeTitle(eventA.title) === normalizeTitle(eventB.title);
   }
   return titleSimilarity(eventA.title, eventB.title) >= titleThreshold;
 }
 
 const FIELD_PRECEDENCE = {
-  description: ["curated", "recurring", "ticketmaster"],
-  scale: ["curated", "recurring", "ticketmaster"],
-  attendance: ["curated", "recurring", "ticketmaster"],
-  startTime: ["ticketmaster", "curated", "recurring"],
-  ticketUrl: ["ticketmaster", "curated", "recurring"],
-  url: ["ticketmaster", "curated", "recurring"],
+  description: ["curated", "recurring", "ticketmaster", "seatgeek"],
+  // SeatGeek before Ticketmaster: its scale comes from a real popularity
+  // score, Ticketmaster's is "local" for nearly everything
+  scale: ["curated", "recurring", "seatgeek", "ticketmaster"],
+  attendance: ["curated", "recurring", "ticketmaster", "seatgeek"],
+  startTime: ["ticketmaster", "seatgeek", "curated", "recurring"],
+  ticketUrl: ["ticketmaster", "seatgeek", "curated", "recurring"],
+  url: ["ticketmaster", "seatgeek", "curated", "recurring"],
 };
+
+const SOURCE_RANK = { curated: 4, recurring: 3, ticketmaster: 2, seatgeek: 1 };
 
 const CONFIDENCE_RANK = { confirmed: 3, "annual-estimate": 2, unconfirmed: 1 };
 
@@ -99,6 +106,10 @@ export function mergeEventPair(a, b) {
   merged.confidence =
     CONFIDENCE_RANK[a.confidence] >= CONFIDENCE_RANK[b.confidence] ? a.confidence : b.confidence;
   merged.id = a.source === "curated" ? a.id : b.source === "curated" ? b.id : a.id;
+  // The merged record is as hand-picked as its most curated half — records
+  // are folded in date order, so `a` can easily be the feed's copy.
+  merged.source = SOURCE_RANK[b.source] > SOURCE_RANK[a.source] ? b.source : a.source;
+  merged.recurringId = a.recurringId || b.recurringId || null;
   merged.artistIds = Array.from(new Set([...(a.artistIds || []), ...(b.artistIds || [])]));
   merged.isFavoriteArtist = a.isFavoriteArtist || b.isFavoriteArtist;
 

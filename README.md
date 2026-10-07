@@ -21,7 +21,7 @@ Then open `http://localhost:8000`. (Node isn't required to run the site — only
 
 Two scheduled workflows regenerate `data/generated/`:
 
-- **`.github/workflows/refresh-daily.yml`** — pulls Ticketmaster events, weather, expands `recurring.json`, merges, validates, commits.
+- **`.github/workflows/refresh-daily.yml`** — pulls Ticketmaster and SeatGeek events, weather, expands `recurring.json`, merges, validates, commits.
 - **`.github/workflows/refresh-weekly.yml`** — syncs Spotify top artists, resolves new Ticketmaster attraction IDs, rebuilds, checks link health.
 
 A third publishes the site:
@@ -41,6 +41,7 @@ Add these repo secrets (Settings → Secrets and variables → Actions):
 | Secret | Used by |
 |---|---|
 | `TICKETMASTER_API_KEY` | daily + weekly |
+| `SEATGEEK_CLIENT_ID` | daily (free key from seatgeek.com/account/develop) |
 | `SPOTIFY_CLIENT_ID` | weekly |
 | `SPOTIFY_CLIENT_SECRET` | weekly |
 | `SPOTIFY_REFRESH_TOKEN` | weekly |

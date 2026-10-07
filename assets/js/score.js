@@ -1,5 +1,6 @@
 // Relevance scoring — pure functions, all weights read from config.scoring.
 import { isHighlightEvent } from "./importance.js";
+import { parseDate } from "./format.js";
 
 // A non-favorite concert or a non-pro/non-SEC sports game contributes
 // nothing to a place or weekend's ranking — see importance.js. They can
@@ -91,6 +92,8 @@ export function rankPlacesByActivity(places, eventsByPlace, activityKey, scoring
  * eventsByWeekend: Map<fridayKey, Event[]>
  * overrides: { "YYYY-MM-DD": { placeId, note } }
  */
+const CONTINUING_WEIGHT = 0.5;
+
 export function rankWeekendCandidates(friday, weekendEvents, places, scoring, override, rangeNm) {
   const placesById = new Map(places.map((p) => [p.id, p]));
   const byPlace = new Map();
@@ -98,14 +101,30 @@ export function rankWeekendCandidates(friday, weekendEvents, places, scoring, ov
   for (const ev of weekendEvents) {
     const place = placesById.get(ev.placeId);
     if (!place) continue;
-    const s = eventScore(ev, place, scoring);
+    // Half weight for an event already under way before this Friday: the
+    // later weekends of a three-week stock show still count, but something
+    // that only happens this weekend (Mardi Gras) should be able to beat it
+    // instead of the same pick repeating week after week.
+    const continuing = parseDate(ev.start) < friday;
+    const s = eventScore(ev, place, scoring) * (continuing ? CONTINUING_WEIGHT : 1);
     if (!byPlace.has(ev.placeId)) {
-      byPlace.set(ev.placeId, { place, score: 0, events: [] });
+      byPlace.set(ev.placeId, { place, score: 0, events: [], scores: [] });
     }
     const entry = byPlace.get(ev.placeId);
     entry.events.push(ev);
-    entry.score += s;
-    if (entry.events.length > 1) entry.score += s * 0.1; // small stacking bonus
+    entry.scores.push(s);
+  }
+
+  // A weekend is as good as its best reason to go, plus a little for what
+  // else is on. Summing every event at full weight let volume win: a big
+  // city with thirty club comedy shows outscored a flagship air show or
+  // rodeo, because each of those small events counts as a highlight.
+  const STACKING_WEIGHT = 0.15;
+  for (const entry of byPlace.values()) {
+    const best = Math.max(...entry.scores);
+    const rest = entry.scores.reduce((a, b) => a + b, 0) - best;
+    entry.score = best + STACKING_WEIGHT * Math.min(rest, best * 2);
+    delete entry.scores;
   }
 
   // best-scoring event first within each place, so the "topEvents" summary
