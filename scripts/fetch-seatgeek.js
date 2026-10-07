@@ -29,7 +29,9 @@ const CLIENT_ID = process.env.SEATGEEK_CLIENT_ID;
 const REQUESTS_PER_HOUR = Number(process.env.SEATGEEK_REQUESTS_PER_HOUR || 900);
 const MAX_REQUESTS = Number(process.env.SEATGEEK_MAX_REQUESTS || 850);
 const PER_PAGE = 250;
-const MAX_PAGES_PER_PLACE = 4;
+// 3 pages x 133 places stays under ~400 requests (~27 min at the hourly
+// rate below); with popularity sort those are each city's top events.
+const MAX_PAGES_PER_PLACE = 3;
 const DAYS_AHEAD = 90;
 // 40 nm ~ 46 statute miles; SeatGeek's range is in miles
 const RADIUS = "46mi";
@@ -57,7 +59,14 @@ function isoNoMs(d) {
   return d.toISOString().split(".")[0];
 }
 
-async function fetchAroundPlace(place, places, unmapped) {
+// Most popular first. SeatGeek caps how many events one request returns
+// (whatever per_page asks for), and a big city has thousands in 90 days, so
+// the pages we can afford should be the ones worth flying to — not just
+// the next few days in date order. Falls back to the API's default order if
+// this sort is ever rejected.
+let sortParam = "&sort=score.desc";
+
+async function fetchAroundPlace(place, places, unmapped, stats) {
   const now = new Date();
   const end = new Date(now);
   end.setDate(end.getDate() + DAYS_AHEAD);
@@ -71,7 +80,7 @@ async function fetchAroundPlace(place, places, unmapped) {
       `${API_BASE}/events?client_id=${encodeURIComponent(CLIENT_ID)}` +
       `&lat=${place.lat}&lon=${place.lon}&range=${RADIUS}` +
       `&datetime_utc.gte=${isoNoMs(now)}&datetime_utc.lte=${isoNoMs(end)}` +
-      `&per_page=${PER_PAGE}&page=${page}`;
+      `&per_page=${PER_PAGE}&page=${page}${sortParam}`;
     let data;
     try {
       data = await fetchJsonWithRetry(url);
@@ -79,6 +88,12 @@ async function fetchAroundPlace(place, places, unmapped) {
       // A rejected key fails every request the same way — stop the run
       // rather than spend the whole budget (and ~15 min) proving it.
       if (err.status === 401 || err.status === 403) throw new AuthError(err.message.replace(CLIENT_ID, "***"));
+      if (err.status === 400 && sortParam) {
+        console.warn(`SeatGeek rejected ${sortParam.slice(1)}; continuing in default order.`);
+        sortParam = "";
+        page--;
+        continue;
+      }
       console.warn(`SeatGeek fetch failed near ${place.id} page ${page}: ${err.message.replace(CLIENT_ID, "***")}`);
       break;
     }
@@ -92,8 +107,19 @@ async function fetchAroundPlace(place, places, unmapped) {
       const nearest = nearestPlace(lat, lon, places);
       if (nearest) out.push(mapSeatGeekEvent(ev, nearest.id, unmapped));
     }
+    // Page by what the API actually returned, not what was asked for: it
+    // silently caps per_page, and treating a short page as the last one
+    // stopped every city after its first page (New York: Oct 7-9 only).
+    // (meta.per_page may echo the request rather than the cap, so the
+    // number of events actually returned is the page size that counts.)
     const total = data.meta?.total ?? 0;
-    if (events.length < PER_PAGE || page * PER_PAGE >= total) break;
+    const pageSize = events.length;
+    if (page === 1) {
+      stats.available += total;
+      stats.pageSize = pageSize;
+    }
+    stats.fetched += events.length;
+    if (events.length === 0 || page * pageSize >= total) break;
   }
   return { events: out, capped: false };
 }
@@ -108,11 +134,12 @@ async function main() {
   const unmapped = new Map();
   const byId = new Map();
   let capped = false;
+  const stats = { available: 0, fetched: 0, pageSize: null };
 
   for (const place of places) {
     let result;
     try {
-      result = await fetchAroundPlace(place, places, unmapped);
+      result = await fetchAroundPlace(place, places, unmapped, stats);
     } catch (err) {
       if (!(err instanceof AuthError)) throw err;
       // Not a build failure: merge.js runs without SeatGeek, as it does
@@ -130,7 +157,7 @@ async function main() {
 
   const all = Array.from(byId.values());
   const kept = all.filter((ev) => ev.category !== "misc" && ev.start);
-  console.log(`SeatGeek: ${requestCount} requests, ${all.length} unique events near curated places, kept ${kept.length}.`);
+  console.log(`SeatGeek: ${requestCount} requests (page size ${stats.pageSize}), ${stats.fetched} of ${stats.available} listed events fetched, ${all.length} unique near curated places, kept ${kept.length}.`);
 
   const byCategory = {};
   for (const ev of kept) byCategory[ev.category] = (byCategory[ev.category] || 0) + 1;
