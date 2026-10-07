@@ -23,7 +23,7 @@ import { greatCircleNm } from "../assets/js/geo.js";
 
 const CURATED_DIR = path.resolve("data/curated");
 const CACHE_DIR = path.resolve(".cache");
-const API_BASE = "https://api.seatgeek.com/2";
+const API_BASE = process.env.SEATGEEK_API_BASE || "https://api.seatgeek.com/2"; // override for tests
 const CLIENT_ID = process.env.SEATGEEK_CLIENT_ID;
 
 const REQUESTS_PER_HOUR = Number(process.env.SEATGEEK_REQUESTS_PER_HOUR || 900);
@@ -37,6 +37,8 @@ const ATTACH_NM = 40;
 
 const limiter = createRateLimiter(REQUESTS_PER_HOUR / 3600);
 let requestCount = 0;
+
+class AuthError extends Error {}
 
 function nearestPlace(lat, lon, places) {
   let best = null;
@@ -74,6 +76,9 @@ async function fetchAroundPlace(place, places, unmapped) {
     try {
       data = await fetchJsonWithRetry(url);
     } catch (err) {
+      // A rejected key fails every request the same way — stop the run
+      // rather than spend the whole budget (and ~15 min) proving it.
+      if (err.status === 401 || err.status === 403) throw new AuthError(err.message.replace(CLIENT_ID, "***"));
       console.warn(`SeatGeek fetch failed near ${place.id} page ${page}: ${err.message.replace(CLIENT_ID, "***")}`);
       break;
     }
@@ -105,7 +110,16 @@ async function main() {
   let capped = false;
 
   for (const place of places) {
-    const result = await fetchAroundPlace(place, places, unmapped);
+    let result;
+    try {
+      result = await fetchAroundPlace(place, places, unmapped);
+    } catch (err) {
+      if (!(err instanceof AuthError)) throw err;
+      // Not a build failure: merge.js runs without SeatGeek, as it does
+      // with no key at all. The ::warning:: prefix surfaces it on the run.
+      console.log(`::warning::SeatGeek rejected SEATGEEK_CLIENT_ID — check the repo secret. ${err.message}`);
+      process.exit(0);
+    }
     for (const ev of result.events) if (!byId.has(ev.id)) byId.set(ev.id, ev);
     if (result.capped) {
       capped = true;

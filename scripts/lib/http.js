@@ -63,10 +63,16 @@ export async function fetchJsonWithRetry(url, options = {}, { retries = 3, baseD
         continue;
       }
 
-      // non-retryable 4xx
+      // non-retryable 4xx — marked so the catch below rethrows it instead
+      // of retrying a request that will fail the same way every time (a bad
+      // API key otherwise costs four requests and ~7s of backoff per call)
       const body = await res.text().catch(() => "");
-      throw new Error(`HTTP ${res.status} from ${url}: ${body.slice(0, 300)}`);
+      const err = new Error(`HTTP ${res.status} from ${url}: ${body.slice(0, 300)}`);
+      err.status = res.status;
+      err.retryable = false;
+      throw err;
     } catch (err) {
+      if (err.retryable === false) throw err;
       lastError = err;
       if (attempt < retries) {
         await sleep(baseDelayMs * Math.pow(2, attempt));
