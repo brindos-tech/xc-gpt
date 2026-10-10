@@ -1,17 +1,17 @@
 {
-  "buildId": "build-1791551499359",
-  "buildAt": "2026-10-09T13:11:39.359Z",
-  "eventCount": 33322,
+  "buildId": "build-1791635392593",
+  "buildAt": "2026-10-10T12:29:52.593Z",
+  "eventCount": 33072,
   "sources": {
     "ticketmaster": {
       "status": "ok",
-      "lastSuccess": "2026-10-09T13:11:39.359Z",
-      "droppedForUnknownPlace": 104
+      "lastSuccess": "2026-10-10T12:29:52.593Z",
+      "droppedForUnknownPlace": 102
     },
     "seatgeek": {
       "status": "ok",
-      "lastSuccess": "2026-10-09T13:11:39.359Z",
-      "events": 18786
+      "lastSuccess": "2026-10-10T12:29:52.593Z",
+      "events": 18654
     },
     "spotify": {
       "status": "ok",
@@ -20,12 +20,12 @@
     },
     "recurring": {
       "status": "ok",
-      "lastSuccess": "2026-10-09T13:11:39.359Z"
+      "lastSuccess": "2026-10-10T12:29:52.593Z"
     }
   },
   "dedupe": {
-    "merges": 23119,
-    "addOnListingsDropped": 358
+    "merges": 23018,
+    "addOnListingsDropped": 350
   },
   "linkHealth": {
     "https://www.unionstagepresents.com/shows/teen-jesus-and-the-jean-teasers-08-nov": {
