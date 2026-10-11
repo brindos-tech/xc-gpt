@@ -1,48 +1,92 @@
 {
-  "buildId": "build-1791722591092",
-  "buildAt": "2026-10-11T12:43:11.092Z",
-  "eventCount": 32690,
+  "buildId": "build-1791728239558",
+  "buildAt": "2026-10-11T14:17:19.559Z",
+  "eventCount": 32680,
   "sources": {
     "ticketmaster": {
       "status": "ok",
-      "lastSuccess": "2026-10-11T12:43:11.092Z",
+      "lastSuccess": "2026-10-11T14:17:19.559Z",
       "droppedForUnknownPlace": 100
     },
     "seatgeek": {
       "status": "ok",
-      "lastSuccess": "2026-10-11T12:43:11.092Z",
-      "events": 18658
+      "lastSuccess": "2026-10-11T14:17:19.559Z",
+      "events": 18669
     },
     "spotify": {
       "status": "ok",
-      "lastSuccess": "2026-10-04T13:07:24.757Z",
+      "lastSuccess": "2026-10-11T13:54:03.584Z",
       "message": "Synced 50 top artists."
     },
     "recurring": {
       "status": "ok",
-      "lastSuccess": "2026-10-11T12:43:11.092Z"
+      "lastSuccess": "2026-10-11T14:17:19.559Z"
     }
   },
   "dedupe": {
-    "merges": 22909,
+    "merges": 22893,
     "addOnListingsDropped": 342
   },
   "linkHealth": {
-    "https://www.unionstagepresents.com/shows/teen-jesus-and-the-jean-teasers-08-nov": {
+    "https://www.turntableindy.com/events/t3-10-14-2026-indianapolis": {
       "ok": false,
       "status": 404,
-      "checkedAt": "2026-10-04T13:29:43.480Z"
+      "checkedAt": "2026-10-11T14:28:00.353Z"
+    },
+    "https://trapkaraoke.com/events/memphis-10-17": {
+      "ok": false,
+      "status": 404,
+      "checkedAt": "2026-10-11T14:28:00.354Z"
+    },
+    "https://www.drphillipscenter.org/show/adrian-uribe-jchy": {
+      "ok": false,
+      "status": null,
+      "error": "fetch failed",
+      "checkedAt": "2026-10-11T14:28:00.354Z"
+    },
+    "https://trapkaraoke.com/events/440-chestnut-st-nashville-tn-37203": {
+      "ok": false,
+      "status": 404,
+      "checkedAt": "2026-10-11T14:28:00.354Z"
+    },
+    "https://www.drphillipscenter.org/events/tickets/2026/daniel-sloss": {
+      "ok": false,
+      "status": null,
+      "error": "fetch failed",
+      "checkedAt": "2026-10-11T14:28:00.355Z"
     },
     "https://www.turntableindy.com/events/gavn-10-31-2026-indianapolis": {
       "ok": false,
       "status": 404,
-      "checkedAt": "2026-10-04T13:29:43.480Z"
+      "checkedAt": "2026-10-11T14:28:00.355Z"
     },
     "https://selectaseat.com/blippi": {
       "ok": false,
       "status": null,
       "error": "fetch failed",
-      "checkedAt": "2026-10-04T13:29:43.481Z"
+      "checkedAt": "2026-10-11T14:28:00.355Z"
+    },
+    "https://www.unionstagepresents.com/shows/teen-jesus-and-the-jean-teasers-08-nov": {
+      "ok": false,
+      "status": 404,
+      "checkedAt": "2026-10-11T14:28:00.355Z"
+    },
+    "https://www.blackhillsstockshow.com": {
+      "ok": false,
+      "status": null,
+      "error": "fetch failed",
+      "checkedAt": "2026-10-11T14:28:00.357Z"
+    },
+    "https://usairandseashow.com": {
+      "ok": false,
+      "status": null,
+      "error": "fetch failed",
+      "checkedAt": "2026-10-11T14:28:00.357Z"
+    },
+    "https://www.chicago.gov/city/en/depts/dca/supp_info/air_and_watershow.html": {
+      "ok": false,
+      "status": 404,
+      "checkedAt": "2026-10-11T14:28:00.357Z"
     }
   }
 }
