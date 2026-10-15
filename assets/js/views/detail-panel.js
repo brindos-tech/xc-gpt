@@ -133,6 +133,7 @@ export function createDetailPanel({ store, meta, config }) {
           .map((ev) => {
             const badge = ev.confidence !== "confirmed" ? `<span class="badge estimate">est.</span>` : "";
             const fav = ev.isFavoriteArtist ? `<span class="badge favorite">★</span>` : "";
+            const prBadge = ev.pr ? `<span class="badge pr" title="${ev.pr.replace(/"/g, "&quot;")}">PR</span>` : "";
             const linkUrl = ev.url || ev.ticketUrl;
             const flagged = linkUrl && linkHealth[linkUrl];
             const link = linkUrl
@@ -140,7 +141,7 @@ export function createDetailPanel({ store, meta, config }) {
                 ? `<span class="badge broken-link" title="This link looked dead the last time we checked (${flagged.status ?? "network error"}).">link may be dead</span>`
                 : `<a class="dp-event-link" href="${linkUrl}" target="_blank" rel="noopener noreferrer">event page ↗</a>`
               : "";
-            return `<div class="dp-event-row"><b>${formatDateRange(ev.start, ev.end)}</b> — ${decodeEntities(ev.title)} ${fav}${badge} ${link}</div>`;
+            return `<div class="dp-event-row"><b>${formatDateRange(ev.start, ev.end)}</b> — ${decodeEntities(ev.title)} ${prBadge}${fav}${badge} ${link}${ev.pr ? `<div class="dp-pr">${ev.pr}</div>` : ""}</div>`;
           })
           .join("")
       : `<div class="dp-event-row" style="color:var(--muted)">No events in the current window.</div>`;

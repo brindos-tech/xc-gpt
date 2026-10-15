@@ -44,9 +44,18 @@ jobs:
         run: |
           node scripts/fetch-ticketmaster.js
           node scripts/fetch-seatgeek.js
+          node scripts/fetch-mlb-promotions.js
           node scripts/expand-recurring.js
           node scripts/merge.js
           node scripts/validate.js
+
+      # Each part runs only if its key is set; see the header of the script.
+      - name: PR leads sweep (web search + DVIDS)
+        env:
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
+          DVIDS_API_KEY: ${{ secrets.DVIDS_API_KEY }}
+        run: node scripts/fetch-pr-leads.js
 
       - name: Check link health
         run: node scripts/check-links.js

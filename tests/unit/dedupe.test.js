@@ -79,3 +79,17 @@ test("a feed's copy merged into a curated record stays curated", () => {
   assert.equal(events[0].source, "recurring");
   assert.equal(events[0].recurringId, "x");
 });
+
+test("cross-feed titles where one contains the other merge on the same day", () => {
+  const sg = { ...tm("sg-1", "Independence Bowl", "2026-12-22"), source: "seatgeek" };
+  assert.equal(dedupeEvents([tm("t", "Radiance Technologies Independence Bowl", "2026-12-22"), sg]).events.length, 1);
+  // ...but not a one-word overlap, and not within one feed
+  const sg2 = { ...tm("sg-2", "Annie", "2026-12-22"), source: "seatgeek" };
+  assert.equal(dedupeEvents([tm("t2", "Annie Lennox", "2026-12-22"), sg2]).events.length, 2);
+  assert.equal(dedupeEvents([tm("a", "Holiday Bowl", "2026-12-28"), tm("b", "Holiday Bowl San Diego Fan Fest", "2026-12-28")]).events.length, 2);
+});
+
+test("cross-feed game titles in a different order merge", () => {
+  const sg = { ...tm("sg-9", "UTSA Roadrunners v Navy", "2026-10-17"), source: "seatgeek", category: "sports" };
+  assert.equal(dedupeEvents([tm("t9", "Navy Midshipmen at UTSA Roadrunners Football", "2026-10-17", { category: "sports" }), sg]).events.length, 1);
+});
