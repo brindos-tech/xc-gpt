@@ -93,3 +93,11 @@ test("visible events are in date order", () => {
   const starts = visibleEvents.map((e) => e.start);
   assert.deepEqual(starts, [...starts].sort());
 });
+
+test("the PR chip admits tagged events from any category", () => {
+  const tagged = [...events, ev("airshow", "near", "2026-10-17", { category: "outdoors", pr: "Air show — static display or flyover" })];
+  const { visibleEvents } = applyFilters(places(), tagged, baseState({ categories: new Set(["pr"]) }), config);
+  assert.deepEqual(ids(visibleEvents), ["airshow"]);
+  const withFood = applyFilters(places(), tagged, baseState({ categories: new Set(["pr", "food"]) }), config);
+  assert.deepEqual(ids(withFood.visibleEvents), ["airshow", "food-fest"]);
+});

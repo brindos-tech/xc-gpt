@@ -71,9 +71,12 @@ test("SeatGeek fetch pages past a silently capped page size, most popular first"
         env: { ...process.env, SEATGEEK_CLIENT_ID: "k", SEATGEEK_API_BASE: url, SEATGEEK_REQUESTS_PER_HOUR: "3600000" },
       });
       const places = JSON.parse(readFileSync("data/curated/places.json", "utf-8")).length;
-      assert.equal(seen.length, places * 3, stdout);
-      assert.deepEqual([...new Set(seen.map((p) => p.get("page")))].sort(), ["1", "2", "3"]);
-      assert.ok(seen.every((p) => p.get("sort") === "score.desc"));
+      const perPlace = seen.filter((p) => p.has("lat"));
+      assert.equal(perPlace.length, places * 3, stdout);
+      assert.deepEqual([...new Set(perPlace.map((p) => p.get("page")))].sort(), ["1", "2", "3"]);
+      assert.ok(perPlace.every((p) => p.get("sort") === "score.desc"));
+      // then the nationwide PR keyword sweep
+      assert.ok(seen.some((p) => p.get("q") === "air show"));
       assert.match(stdout, /page size 100/);
     }
   );

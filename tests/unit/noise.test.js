@@ -33,3 +33,9 @@ test("real events that merely share a word are kept", () => {
     assert.equal(isAddOnListing(title), false, title);
   }
 });
+
+test("garage and pregame-party add-ons", () => {
+  assert.equal(isAddOnListing("FIFTH THIRD GARAGE: Dallas Stars v Winnipeg Jets"), true);
+  assert.equal(isAddOnListing("Vrbo Fiesta Bowl | Club '71 Pregame Party"), true);
+  assert.equal(isAddOnListing("Garage Band Night"), false);
+});

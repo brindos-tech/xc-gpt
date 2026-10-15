@@ -61,7 +61,20 @@ export function isDuplicate(eventA, eventB, { titleThreshold = 0.75, dayToleranc
   if (eventA.source === eventB.source && TICKETING_FEEDS.has(eventA.source)) {
     return normalizeTitle(eventA.title) === normalizeTitle(eventB.title);
   }
-  return titleSimilarity(eventA.title, eventB.title) >= titleThreshold;
+  if (titleSimilarity(eventA.title, eventB.title) >= titleThreshold) return true;
+  // Different feeds often name the same event at different lengths and in
+  // a different order — "Independence Bowl" vs "Radiance Technologies
+  // Independence Bowl", "UTSA Roadrunners v Navy" vs "Navy Midshipmen at
+  // UTSA Roadrunners Football". On the same day at the same place, every
+  // word of one title (two words or more) appearing in the other is the
+  // same event.
+  if (eventA.source !== eventB.source && eventA.start === eventB.start) {
+    const wa = new Set(normalizeTitle(eventA.title).split(" ").filter(Boolean));
+    const wb = new Set(normalizeTitle(eventB.title).split(" ").filter(Boolean));
+    const [small, big] = wa.size <= wb.size ? [wa, wb] : [wb, wa];
+    if (small.size >= 2 && [...small].every((w) => big.has(w))) return true;
+  }
+  return false;
 }
 
 const FIELD_PRECEDENCE = {
@@ -110,6 +123,7 @@ export function mergeEventPair(a, b) {
   // are folded in date order, so `a` can easily be the feed's copy.
   merged.source = SOURCE_RANK[b.source] > SOURCE_RANK[a.source] ? b.source : a.source;
   merged.recurringId = a.recurringId || b.recurringId || null;
+  merged.pr = a.pr || b.pr || null;
   merged.artistIds = Array.from(new Set([...(a.artistIds || []), ...(b.artistIds || [])]));
   merged.isFavoriteArtist = a.isFavoriteArtist || b.isFavoriteArtist;
 

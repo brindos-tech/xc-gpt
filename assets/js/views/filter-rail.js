@@ -42,7 +42,12 @@ export function createFilterRail({ store, config }) {
     .map((o) => `<button class="chip" data-origin="${o.id}">${o.name} (${o.icao})</button>`)
     .join("");
 
-  categoryChips.innerHTML = CATEGORIES.map((c) => `<button class="chip" data-cat="${c}">${c}</button>`).join("");
+  // "pr" isn't an event category but a tag (see scripts/lib/pr.js) — it
+  // rides in this row because it filters the same way: show events that
+  // have it. Its chip explains itself on hover.
+  categoryChips.innerHTML =
+    CATEGORIES.map((c) => `<button class="chip" data-cat="${c}">${c}</button>`).join("") +
+    `<button class="chip chip-pr" data-cat="pr" title="Possible PR opportunities: air shows (static display / flyover), military appreciation games, venues that have hosted flyovers, patriotic-holiday games">PR ops</button>`;
   activityChips.innerHTML = ACTIVITIES.map(
     (a) => `<button class="chip" data-act="${a.key}">${a.label}</button>`
   ).join("");

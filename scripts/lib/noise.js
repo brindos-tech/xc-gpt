@@ -23,6 +23,8 @@ const ADD_ON_PATTERNS = [
   /\bwait\s?list\b/i,
   /\bgift cards?\b/i,
   /\bshuttle\b/i,
+  /\b(garage|lot [a-z0-9]+)\s*:/i, // "FIFTH THIRD GARAGE: Dallas Stars v Winnipeg Jets"
+  /\bpre-?game party\b/i,
 ];
 
 export function isAddOnListing(title) {

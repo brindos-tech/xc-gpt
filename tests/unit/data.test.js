@@ -36,3 +36,23 @@ test("place ids are unique", () => {
   const ids = read("data/curated/places.json").map((p) => p.id);
   assert.equal(new Set(ids).size, ids.length);
 });
+
+test("pr-events.json entries are well-formed", () => {
+  const placeIds = new Set(read("data/curated/places.json").map((p) => p.id));
+  const ids = new Set();
+  for (const e of read("data/curated/pr-events.json")) {
+    assert.ok(!ids.has(e.id), `duplicate id ${e.id}`);
+    ids.add(e.id);
+    assert.ok(placeIds.has(e.placeId), `${e.id}: unknown place ${e.placeId}`);
+    assert.match(e.start, /^\d{4}-\d{2}-\d{2}$/, e.id);
+    assert.ok(e.reason && e.title, `${e.id}: needs a title and reason`);
+    if (e.match) new RegExp(e.match, "i"); // must compile
+  }
+});
+
+test("pr-venues.json entries are well-formed", () => {
+  for (const v of read("data/curated/pr-venues.json")) {
+    assert.ok(v.venue && v.note, JSON.stringify(v));
+    assert.ok(Array.isArray(v.aliases));
+  }
+});
