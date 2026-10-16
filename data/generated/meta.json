@@ -1,17 +1,17 @@
 {
-  "buildId": "build-1792063533120",
-  "buildAt": "2026-10-15T11:25:33.120Z",
-  "eventCount": 32434,
+  "buildId": "build-1792149694909",
+  "buildAt": "2026-10-16T11:21:34.909Z",
+  "eventCount": 32273,
   "sources": {
     "ticketmaster": {
       "status": "ok",
-      "lastSuccess": "2026-10-15T11:25:33.121Z",
+      "lastSuccess": "2026-10-16T11:21:34.909Z",
       "droppedForUnknownPlace": 104
     },
     "seatgeek": {
       "status": "ok",
-      "lastSuccess": "2026-10-15T11:25:33.121Z",
-      "events": 18716
+      "lastSuccess": "2026-10-16T11:21:34.909Z",
+      "events": 18689
     },
     "spotify": {
       "status": "ok",
@@ -20,12 +20,12 @@
     },
     "recurring": {
       "status": "ok",
-      "lastSuccess": "2026-10-15T11:25:33.121Z"
+      "lastSuccess": "2026-10-16T11:21:34.909Z"
     }
   },
   "dedupe": {
-    "merges": 23270,
-    "addOnListingsDropped": 337
+    "merges": 23142,
+    "addOnListingsDropped": 329
   },
   "linkHealth": {
     "https://www.turntableindy.com/events/t3-10-14-2026-indianapolis": {
