@@ -17,6 +17,18 @@ Then open `http://localhost:8000`. (Node isn't required to run the site — only
 - `data/curated/*.json` — hand-edited, source of truth (places, artists, seed events, recurring-event rules, weekend overrides). Edit these directly for anything a human decided.
 - `data/generated/*.json` — CI-written by the GitHub Actions workflows. Never hand-edit; a manual edit will be overwritten by the next scheduled run.
 
+## PR opportunities
+
+The **PR ops** chip (Category row) shows events where military aircraft could plausibly take part — air shows wanting static displays or flyovers, military appreciation / Salute to Service games, games at venues that have hosted military flyovers, patriotic-holiday games, bowl games and motorsport with flyover traditions. Each tagged event says why (`scripts/lib/pr.js`). Sources:
+
+- **Automatic tagging** of every Ticketmaster / SeatGeek / curated event, plus nationwide keyword sweeps of both APIs ("military appreciation", "salute to service", "air show"…).
+- **MLB / MiLB team promotions** from the public MLB Stats API (`scripts/fetch-mlb-promotions.js`, no key) — "Military Appreciation Night" and similar, for every pro and minor-league ballpark near a curated place.
+- **`data/curated/pr-events.json`** — hand-researched games and events (NFL Salute to Service, college military games, Army–Navy, military bowls). Each entry tags the matching listing, or is added as its own event when no feed lists it.
+- **`data/curated/pr-venues.json`** — venues with documented T-6 / military flyovers; outdoor games there are tagged.
+- **Weekly leads** (`scripts/fetch-pr-leads.js`, optional keys below): a web-search sweep and DVIDS flyover history, shown as an unverified link list above the feed while the chip is on.
+
+Tags flag *candidates*. Actual participation goes through the base's public affairs and the USAF Aerial Events process (requests ≥45 days out, typically 90–120), and there is no public feed of approved flyovers.
+
 ## GitHub Actions setup
 
 Two scheduled workflows regenerate `data/generated/`:
@@ -42,6 +54,8 @@ Add these repo secrets (Settings → Secrets and variables → Actions):
 |---|---|
 | `TICKETMASTER_API_KEY` | daily + weekly |
 | `SEATGEEK_CLIENT_ID` | daily (free key from seatgeek.com/account/develop) |
+| `TAVILY_API_KEY` *or* `BRAVE_API_KEY` | weekly PR leads web sweep (optional; free tiers cover it) |
+| `DVIDS_API_KEY` | weekly T-6 flyover history from DVIDS (optional; free key at api.dvidshub.net) |
 | `SPOTIFY_CLIENT_ID` | weekly |
 | `SPOTIFY_CLIENT_SECRET` | weekly |
 | `SPOTIFY_REFRESH_TOKEN` | weekly |

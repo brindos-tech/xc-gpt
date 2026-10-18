@@ -19,6 +19,7 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fetchJsonWithRetry, createRateLimiter } from "./lib/http.js";
 import { mapSeatGeekEvent } from "./lib/seatgeek-map.js";
+import { prTitleReason } from "./lib/pr.js";
 import { greatCircleNm } from "../assets/js/geo.js";
 
 const CURATED_DIR = path.resolve("data/curated");
@@ -36,6 +37,9 @@ const DAYS_AHEAD = 90;
 // 40 nm ~ 46 statute miles; SeatGeek's range is in miles
 const RADIUS = "46mi";
 const ATTACH_NM = 40;
+
+// Free-text sweep for PR opportunities (see lib/pr.js)
+const PR_KEYWORDS = ["air show", "airshow", "military appreciation", "salute to service", "armed forces", "veterans day"];
 
 const limiter = createRateLimiter(REQUESTS_PER_HOUR / 3600);
 let requestCount = 0;
@@ -155,8 +159,49 @@ async function main() {
     }
   }
 
+  // Nationwide free-text pass for PR opportunities — the per-place pass is
+  // sorted by popularity, so a small-town air show can fall off its pages.
+  if (!capped) {
+    let keywordEvents = 0;
+    for (const q of PR_KEYWORDS) {
+      for (let page = 1; page <= 2 && requestCount < MAX_REQUESTS; page++) {
+        await limiter();
+        requestCount++;
+        const now = new Date();
+        const end = new Date(now);
+        end.setDate(end.getDate() + DAYS_AHEAD);
+        const url =
+          `${API_BASE}/events?client_id=${encodeURIComponent(CLIENT_ID)}&q=${encodeURIComponent(q)}` +
+          `&datetime_utc.gte=${isoNoMs(now)}&datetime_utc.lte=${isoNoMs(end)}&per_page=${PER_PAGE}&page=${page}`;
+        let data;
+        try {
+          data = await fetchJsonWithRetry(url);
+        } catch (err) {
+          console.warn(`SeatGeek keyword "${q}" failed: ${err.message.replace(CLIENT_ID, "***")}`);
+          break;
+        }
+        const events = data.events || [];
+        for (const ev of events) {
+          const lat = Number(ev.venue?.location?.lat);
+          const lon = Number(ev.venue?.location?.lon);
+          if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+          const nearest = nearestPlace(lat, lon, places);
+          if (!nearest) continue;
+          const mapped = mapSeatGeekEvent(ev, nearest.id, unmapped);
+          if (!byId.has(mapped.id)) {
+            byId.set(mapped.id, mapped);
+            keywordEvents++;
+          }
+        }
+        if (events.length === 0 || page * events.length >= (data.meta?.total ?? 0)) break;
+      }
+    }
+    console.log(`SeatGeek PR keyword pass added ${keywordEvents} events.`);
+  }
+
   const all = Array.from(byId.values());
-  const kept = all.filter((ev) => ev.category !== "misc" && ev.start);
+  // misc is dropped, except PR candidates (air shows, military-themed events)
+  const kept = all.filter((ev) => (ev.category !== "misc" || prTitleReason(ev.title)) && ev.start);
   console.log(`SeatGeek: ${requestCount} requests (page size ${stats.pageSize}), ${stats.fetched} of ${stats.available} listed events fetched, ${all.length} unique near curated places, kept ${kept.length}.`);
 
   const byCategory = {};

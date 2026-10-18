@@ -1,0 +1,71 @@
+[
+  {
+    "venue": "Donald W. Reynolds Razorback Stadium",
+    "aliases": [
+      "Razorback Stadium",
+      "Reynolds Razorback"
+    ],
+    "note": "Sheppard T-6 4-ship, Oct 2022; Sheppard T-38s; pregame flyovers at every 2026 home game",
+    "sources": [
+      "https://arkansasrazorbacks.com/dont-miss-saturdays-pregame-flyover-2022",
+      "https://arkansasrazorbacks.com/carolina_pre_game_flyover_204828368",
+      "https://arkansasrazorbacks.com/whats-new-at-razorback-stadium-in-2026/"
+    ]
+  },
+  {
+    "venue": "Jones AT&T Stadium",
+    "aliases": [
+      "Jones Stadium"
+    ],
+    "note": "Laughlin T-6 4-ship, Texas Tech opener Aug 2025",
+    "sources": [
+      "https://www.dailytoreador.com/sports/behind-the-scenes-air-force-flies-over-raiderland/article_503ed05c-be0c-497e-8ef7-66311bee0fe9.html"
+    ]
+  },
+  {
+    "venue": "Kyle Field",
+    "aliases": [],
+    "note": "JBSA-Randolph T-38/T-6/T-1 formation, Nov 2023",
+    "sources": [
+      "https://www.aggienetwork.com/news/160225/time-change-for-mississippi-state-flyover-aggies-part-of-crew/"
+    ]
+  },
+  {
+    "venue": "David Booth Kansas Memorial Stadium",
+    "aliases": [
+      "Kansas Memorial Stadium",
+      "Booth Memorial Stadium"
+    ],
+    "note": "Vance T-38 flyovers 2022-23; B-2 flyover Sept 2026",
+    "sources": [
+      "https://news.ku.edu/2022/09/29/flyover-planned-homecoming-football-game-oct-1-practice-run-sept-30",
+      "https://lawrencekstimes.com/2026/09/02/flyovers-planned-26-season/"
+    ]
+  },
+  {
+    "venue": "Davis Wade Stadium",
+    "aliases": [
+      "Davis Wade"
+    ],
+    "note": "Columbus T-38 flyovers 2001, 2006, 2011",
+    "sources": [
+      "https://www.columbus.af.mil/News/Article-Display/Article/353563/air-power-roars-over-mississippi-state-game"
+    ]
+  },
+  {
+    "venue": "Notre Dame Stadium",
+    "aliases": [],
+    "note": "Columbus T-6 4-ship, Sept 2018",
+    "sources": [
+      "https://news.nd.edu/news/air-force-flyover-for-notre-dame-vs-ball-state-football-game/"
+    ]
+  },
+  {
+    "venue": "Whataburger Field",
+    "aliases": [],
+    "note": "NAS Corpus Christi T-6B 4-ship, Military Appreciation Day 2019",
+    "sources": [
+      "https://www.dvidshub.net/image/5398088/four-t-6b-texan-ii-aircraft-training-squadron-28-perform-flyover-above-whataburger-field"
+    ]
+  }
+]
