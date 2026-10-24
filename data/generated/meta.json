@@ -1,17 +1,17 @@
 {
-  "buildId": "build-1792755377714",
-  "buildAt": "2026-10-23T11:36:17.714Z",
-  "eventCount": 31213,
+  "buildId": "build-1792839271556",
+  "buildAt": "2026-10-24T10:54:31.556Z",
+  "eventCount": 30916,
   "sources": {
     "ticketmaster": {
       "status": "ok",
-      "lastSuccess": "2026-10-23T11:36:17.714Z",
-      "droppedForUnknownPlace": 104
+      "lastSuccess": "2026-10-24T10:54:31.556Z",
+      "droppedForUnknownPlace": 107
     },
     "seatgeek": {
       "status": "ok",
-      "lastSuccess": "2026-10-23T11:36:17.714Z",
-      "events": 18537
+      "lastSuccess": "2026-10-24T10:54:31.556Z",
+      "events": 18374
     },
     "spotify": {
       "status": "ok",
@@ -20,12 +20,12 @@
     },
     "recurring": {
       "status": "ok",
-      "lastSuccess": "2026-10-23T11:36:17.714Z"
+      "lastSuccess": "2026-10-24T10:54:31.556Z"
     }
   },
   "dedupe": {
-    "merges": 23431,
-    "addOnListingsDropped": 348
+    "merges": 23242,
+    "addOnListingsDropped": 338
   },
   "linkHealth": {
     "https://www.drphillipscenter.org/show/adrian-uribe-jchy": {
