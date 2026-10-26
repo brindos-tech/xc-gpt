@@ -10,6 +10,7 @@ import path from "node:path";
 import { dedupeEvents } from "./lib/dedupe.js";
 import { isAddOnListing } from "./lib/noise.js";
 import { toClientEvent, todayKey, isUpcoming } from "./lib/client-events.js";
+import { prReason, buildVenueIndex, applyPrOverlays } from "./lib/pr.js";
 
 const CURATED_DIR = path.resolve("data/curated");
 const GENERATED_DIR = path.resolve("data/generated");
@@ -33,6 +34,11 @@ async function main() {
     readJsonIfExists(path.join(CURATED_DIR, "artists.json")),
     readJsonIfExists(path.join(CURATED_DIR, "places.json")),
     readJsonIfExists(path.join(GENERATED_DIR, "meta.json"), null),
+  ]);
+  const [prVenues, curatedPrOverlays, mlbPrOverlays] = await Promise.all([
+    readJsonIfExists(path.join(CURATED_DIR, "pr-venues.json")),
+    readJsonIfExists(path.join(CURATED_DIR, "pr-events.json")),
+    readJsonIfExists(path.join(CACHE_DIR, "mlb-pr.json")),
   ]);
 
   const placeIds = new Set(places.map((p) => p.id));
@@ -73,7 +79,19 @@ async function main() {
   const validTicketmasterEvents = placedTicketmasterEvents.filter((e) => !isAddOnListing(e.title));
 
   const combined = [...seedEvents, ...recurringEvents, ...validTicketmasterEvents, ...validSeatgeekEvents];
-  const { events: deduped, mergeLog } = dedupeEvents(combined);
+
+  // PR-opportunity tags, per record and before dedupe: venue names (one of
+  // the signals) only exist on the feed records, and a merged record keeps
+  // either side's tag (see mergeEventPair).
+  const venueMatch = buildVenueIndex(prVenues);
+  for (const ev of combined) {
+    const reason = prReason(ev, { venueMatch });
+    if (reason) ev.pr = reason;
+  }
+
+  const { events: dedupedFeed, mergeLog } = dedupeEvents(combined);
+  const { added: prAdded, tagged: prTagged } = applyPrOverlays(dedupedFeed, [...curatedPrOverlays, ...mlbPrOverlays]);
+  const deduped = [...dedupedFeed, ...prAdded];
 
   // Nothing that has already finished: the page only ever looks forward
   // from today, so past events were pure download weight.
@@ -82,6 +100,8 @@ async function main() {
     .filter((e) => isUpcoming(e, today))
     .sort((a, b) => (a.start < b.start ? -1 : a.start > b.start ? 1 : 0))
     .map(toClientEvent);
+
+  const prCount = pruned.filter((e) => e.pr).length;
 
   await mkdir(GENERATED_DIR, { recursive: true });
   // Minified on purpose — this is the largest file every visitor downloads.
@@ -107,6 +127,7 @@ async function main() {
     },
     // Counts only. The full merge log ran to ~9k entries (1.4 MB) inside a
     // file the page downloads on every visit; the CI log has the detail.
+    pr: { tagged: prCount, fromCuratedList: prTagged + prAdded.length },
     dedupe: { merges: mergeLog.length, addOnListingsDropped: addOnListings.length + seatgeekAddOns },
     linkHealth: previousMeta?.linkHealth ?? {},
   };
@@ -115,6 +136,7 @@ async function main() {
   console.log(
     `Merged ${combined.length} raw events -> ${pruned.length} after dedupe/prune (${mergeLog.length} merges, ${droppedForUnknownPlace.length} dropped for unknown place, ${addOnListings.length + seatgeekAddOns} add-on listings dropped, ${validSeatgeekEvents.length} from SeatGeek).`
   );
+  console.log(`PR opportunities: ${prCount} tagged (${prTagged} matched + ${prAdded.length} added from pr-events.json / MLB promotions).`);
   for (const m of mergeLog.slice(0, 25)) console.log(`  merged "${m.mergedFrom}" into "${m.kept}" (${m.placeId})`);
   if (mergeLog.length > 25) console.log(`  ...and ${mergeLog.length - 25} more merges`);
 }

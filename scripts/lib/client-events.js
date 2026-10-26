@@ -28,6 +28,8 @@ export function toClientEvent(ev) {
   // Hand-picked (seed or recurring) rather than pulled from a feed — the
   // page treats these as highlights whatever their category (importance.js).
   if (ev.source === "curated" || ev.source === "recurring") out.curated = true;
+  // why this could be a PR opportunity (see lib/pr.js)
+  if (ev.pr) out.pr = ev.pr;
   // Hand-written descriptions are worth searching on; Ticketmaster's are
   // overwhelmingly will-call / bag-policy / age-limit text that is the same
   // for every show at a venue.

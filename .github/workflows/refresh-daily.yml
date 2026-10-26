@@ -34,6 +34,9 @@ jobs:
           SEATGEEK_CLIENT_ID: ${{ secrets.SEATGEEK_CLIENT_ID }}
         run: node scripts/fetch-seatgeek.js
 
+      - name: Fetch MLB/MiLB military promotions
+        run: node scripts/fetch-mlb-promotions.js
+
       - name: Fetch weather
         run: node scripts/fetch-weather.js
 

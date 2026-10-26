@@ -80,6 +80,9 @@ export function isHighlightEvent(event) {
   // to them. Hand-entered concerts and games still go through the normal
   // favorite-artist / pro-or-SEC test.
   if (event.curated && event.category !== "concert" && event.category !== "sports") return true;
+  // A PR opportunity (military appreciation game, air show, flyover venue)
+  // is worth surfacing whoever is playing.
+  if (event.pr) return true;
   if (event.category === "concert" || event.category === "festival") {
     return !!event.isFavoriteArtist;
   }

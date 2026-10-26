@@ -37,7 +37,7 @@ if ("serviceWorker" in navigator) {
 }
 
 async function boot() {
-  const [config, rawPlaces, artists, overrides, events, meta, weather] = await Promise.all([
+  const [config, rawPlaces, artists, overrides, events, meta, weather, prLeads] = await Promise.all([
     loadJson("curated/config.json"),
     loadJson("curated/places.json"),
     loadJson("curated/artists.json"),
@@ -45,6 +45,7 @@ async function boot() {
     loadJson("generated/events.json").catch(() => loadJson("curated/events.seed.json")),
     loadJson("generated/meta.json").catch(() => null),
     loadJson("generated/weather.json").catch(() => ({})),
+    loadJson("generated/pr-leads.json").catch(() => null),
   ]);
 
   // ---- derive place fields (computed, never authored — see ARCHITECTURE.md §5) ----
@@ -216,7 +217,9 @@ async function boot() {
 
     scrubber.redraw(state);
 
-    if (state.view === "feed") renderFeed(document.getElementById("feedInner"), filtered, places, selectPlace);
+    if (state.view === "feed") renderFeed(document.getElementById("feedInner"), filtered, places, selectPlace, {
+        prLeads: state.categories.has("pr") ? prLeads : null,
+      });
     if (state.view === "places") renderPlaces(document.getElementById("placesInner"), filtered, config, selectPlace);
     if (state.view === "artists")
       renderArtists(document.getElementById("artistsInner"), filtered, { artists, meta, places }, selectPlace);

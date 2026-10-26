@@ -53,7 +53,11 @@ export function applyFilters(places, events, state, config) {
   let visibleEvents = events.filter((ev) => {
     if (!visiblePlaceIds.has(ev.placeId)) return false;
     if (!eventOverlapsRange(ev, state.dateRange.start, state.dateRange.end)) return false;
-    if (state.categories.size > 0 && !state.categories.has(ev.category)) return false;
+    // "pr" is a tag, not a category: it admits any event carrying one,
+    // alongside whatever real categories are also selected
+    if (state.categories.size > 0 && !state.categories.has(ev.category) && !(ev.pr && state.categories.has("pr"))) {
+      return false;
+    }
     if (minScaleRank >= 0 && scaleOrder[ev.scale] < minScaleRank) return false;
     return true;
   });

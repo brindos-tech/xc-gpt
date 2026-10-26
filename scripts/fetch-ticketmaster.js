@@ -21,6 +21,7 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fetchJsonWithRetry, createRateLimiter } from "./lib/http.js";
 import { categorize } from "./lib/ticketmaster-map.js";
+import { prTitleReason } from "./lib/pr.js";
 
 const CURATED_DIR = path.resolve("data/curated");
 const CACHE_DIR = path.resolve(".cache");
@@ -171,6 +172,41 @@ async function fetchStateEvents(stateCode, classificationName, places) {
   return events;
 }
 
+// Nationwide keyword pass for PR opportunities (see lib/pr.js). These are
+// often filed under Miscellaneous or a segment the geographic pass doesn't
+// query, and there are few enough of them to sweep the whole country.
+const PR_KEYWORDS = ["air show", "airshow", "military appreciation", "salute to service", "armed forces", "veterans day", "military"];
+
+async function fetchKeywordEvents(keyword, places) {
+  const events = [];
+  const startDateTime = `${new Date().toISOString().split(".")[0]}Z`;
+  const endDate = new Date();
+  endDate.setDate(endDate.getDate() + 90);
+  const endDateTime = `${endDate.toISOString().split(".")[0]}Z`;
+  for (let page = 0; page < 3; page++) {
+    await limiter();
+    const url =
+      `${API_BASE}/events.json?apikey=${API_KEY}&countryCode=US&keyword=${encodeURIComponent(keyword)}` +
+      `&startDateTime=${startDateTime}&endDateTime=${endDateTime}&size=200&page=${page}`;
+    try {
+      const data = await fetchJsonWithRetry(url);
+      const pageEvents = data._embedded?.events || [];
+      for (const ev of pageEvents) {
+        const venue = ev._embedded?.venues?.[0];
+        const lat = Number(venue?.location?.latitude);
+        const lon = Number(venue?.location?.longitude);
+        const place = Number.isFinite(lat) && Number.isFinite(lon) ? await findNearestPlace(lat, lon, places) : null;
+        if (place) events.push(mapTicketmasterEvent(ev, { placeId: place.id }));
+      }
+      if (page + 1 >= (data.page?.totalPages ?? 1)) break;
+    } catch (err) {
+      console.warn(`Keyword pass failed for "${keyword}" page ${page}: ${err.message}`);
+      break;
+    }
+  }
+  return events;
+}
+
 async function main() {
   if (!API_KEY) {
     console.error("TICKETMASTER_API_KEY not set — skipping fetch, leaving .cache/ticketmaster.json untouched.");
@@ -195,9 +231,13 @@ async function main() {
   }
   console.log(`Geographic pass: ${geoEvents.length} events across ${FOOTPRINT_STATES.length} states.`);
 
+  const keywordEvents = [];
+  for (const keyword of PR_KEYWORDS) keywordEvents.push(...(await fetchKeywordEvents(keyword, places)));
+  console.log(`PR keyword pass: ${keywordEvents.length} events for ${PR_KEYWORDS.length} keywords.`);
+
   // dedupe by ticketmaster sourceId before caching (artist pass and geo pass overlap)
   const bySourceId = new Map();
-  for (const ev of [...artistEvents, ...geoEvents]) {
+  for (const ev of [...artistEvents, ...geoEvents, ...keywordEvents]) {
     if (!bySourceId.has(ev.sourceId)) bySourceId.set(ev.sourceId, ev);
   }
   const deduped = Array.from(bySourceId.values());
@@ -209,7 +249,9 @@ async function main() {
   // are all worth keeping, and venue capacity (the one signal that could
   // separate "big tour" from "bar show") isn't reliably present in
   // Ticketmaster's data to filter on further.
-  const combined = deduped.filter((ev) => ev.category !== "misc");
+  // ...except PR candidates (air shows, military-themed events), which are
+  // exactly what Ticketmaster tends to leave unclassified.
+  const combined = deduped.filter((ev) => ev.category !== "misc" || prTitleReason(ev.title));
   console.log(`Deduped to ${deduped.length} events, dropped ${deduped.length - combined.length} uncategorized ("misc") listings.`);
 
   // Anything here was thrown away. A segment we *expect* to keep showing up
