@@ -21,7 +21,9 @@ export function seatGeekCategory(event, unmapped) {
   const names = (event.taxonomies || []).map((t) => (t.name || "").toLowerCase());
   if (names.includes("parking") || event.type === "parking") return "misc";
 
-  const byTitle = categoryFromTitle(event.title);
+  // concerts stay concerts whatever the title says (a band called "Airshow")
+  const isConcert = event.type === "concert" || names.includes("concert");
+  const byTitle = isConcert ? null : categoryFromTitle(event.title);
   if (byTitle) return byTitle;
 
   for (const name of [event.type, ...names].filter(Boolean)) {

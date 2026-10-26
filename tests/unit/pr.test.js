@@ -107,3 +107,10 @@ test("hockey Thunderbirds and academy volleyball are not PR events; academy foot
   assert.equal(prReason(game("Air Force Falcons at UTEP Miners Womens Volleyball", { subcategory: "Volleyball" })), null);
   assert.equal(prReason(game("Tulsa Golden Hurricane Football vs. Army Black Knights Football")), "Service academy football game");
 });
+
+test("a band named Airshow is a concert, not an air show", async () => {
+  const { categorize } = await import("../../scripts/lib/ticketmaster-map.js");
+  assert.equal(categorize({ segment: "Music", genre: "Country", title: "Airshow & 65 North Pickers" }), "concert");
+  assert.equal(prReason({ title: "Airshow & 65 North Pickers", category: "concert", start: "2026-11-06" }), null);
+  assert.equal(categorize({ segment: "Miscellaneous", title: "Wings Over Houston Airshow" }), "outdoors");
+});
