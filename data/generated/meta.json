@@ -1,17 +1,17 @@
 {
-  "buildId": "build-1793191483542",
-  "buildAt": "2026-10-28T12:44:43.542Z",
-  "eventCount": 29066,
+  "buildId": "build-1793278453947",
+  "buildAt": "2026-10-29T12:54:13.947Z",
+  "eventCount": 28902,
   "sources": {
     "ticketmaster": {
       "status": "ok",
-      "lastSuccess": "2026-10-28T12:44:43.542Z",
+      "lastSuccess": "2026-10-29T12:54:13.947Z",
       "droppedForUnknownPlace": 102
     },
     "seatgeek": {
       "status": "ok",
-      "lastSuccess": "2026-10-28T12:44:43.542Z",
-      "events": 18492
+      "lastSuccess": "2026-10-29T12:54:13.947Z",
+      "events": 18469
     },
     "spotify": {
       "status": "ok",
@@ -20,7 +20,7 @@
     },
     "recurring": {
       "status": "ok",
-      "lastSuccess": "2026-10-28T12:44:43.542Z"
+      "lastSuccess": "2026-10-29T12:54:13.947Z"
     }
   },
   "pr": {
@@ -28,8 +28,8 @@
     "fromCuratedList": 28
   },
   "dedupe": {
-    "merges": 24892,
-    "addOnListingsDropped": 356
+    "merges": 24796,
+    "addOnListingsDropped": 366
   },
   "linkHealth": {
     "https://www.turntableindy.com/events/gavn-10-31-2026-indianapolis": {
