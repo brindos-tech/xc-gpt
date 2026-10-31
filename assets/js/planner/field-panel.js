@@ -19,6 +19,61 @@ function row(label, valueHtml) {
   return valueHtml ? `<div class="fp-row"><span>${label}</span><div>${valueHtml}</div></div>` : "";
 }
 
+const FUEL_CAP = 6;
+
+function hotelHtml(f, tripDate) {
+  if (!f.city) return "";
+  const h = hotelLinks(f.city, tripDate);
+  const night = tripDate.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return `<div class="fp-hotels">
+    <h5>Hotels · night of ${night}</h5>
+    <div class="fp-links">
+      <a href="${h.marriott}" target="_blank" rel="noopener noreferrer">Marriott · gov/mil rate ↗</a>
+      <a href="${h.hilton}" target="_blank" rel="noopener noreferrer">Hilton search ↗</a>
+      <a href="${h.hiltonGov}" target="_blank" rel="noopener noreferrer">Hilton gov/mil rates ↗</a>
+    </div>
+    <div class="muted small">One-night search for ${esc(f.city)}. Marriott is sent with the government (GOV) rate code. On Hilton, choose Government or Military under Special Rates after dates load. Availability and price aren’t checked here; bring orders/ID for the rate.</div>
+  </div>`;
+}
+
+function merchantRow(m) {
+  const tel = telHref(m.phone);
+  const tag = m.contract ? `<span class="badge best-match">DLA contract</span>` : m.onSite ? `<span class="badge">on-site</span>` : `<span class="badge">delivers</span>`;
+  return `<div class="fp-merchant">
+    <div><b>${esc(m.merchant)}</b> ${tag}</div>
+    <div class="muted small">${esc(m.fuels.join(", ") || "fuels not listed")}${m.phone ? ` · ${tel ? `<a href="${tel}">${esc(m.phone)}</a>` : esc(m.phone)}` : ""}${m.updated ? ` · updated ${esc(m.updated)}` : ""}</div>
+  </div>`;
+}
+
+/** AIR Card merchants: contract and on-site first; the long off-site tail folds away. */
+function merchantsHtml(f) {
+  const all = f.aircard || [];
+  if (!all.length) return "";
+  const head = all.filter((m) => m.contract || m.onSite);
+  const tail = all.filter((m) => !m.contract && !m.onSite);
+  return `<details class="fp-notes fp-merchants" ${head.length ? "open" : ""}>
+    <summary>AIR Card merchants (${all.length})</summary>
+    ${head.slice(0, FUEL_CAP).map(merchantRow).join("") || `<div class="muted small">No on-site merchant listed.</div>`}
+    ${tail.length ? `<details class="fp-more"><summary>${tail.length} off-site supplier${tail.length === 1 ? "" : "s"} (fuel delivered)</summary>${tail.slice(0, 12).map(merchantRow).join("")}</details>` : ""}
+    <div class="muted small">AIR Card merchant export — re-exported periodically; call to confirm before you go.</div>
+  </details>`;
+}
+
+const pad = (n) => String(n).padStart(2, "0");
+
+/** One-night search links for the field's city, arriving on the trip date. */
+export function hotelLinks(city, tripDate) {
+  const out = new Date(tripDate.getFullYear(), tripDate.getMonth(), tripDate.getDate() + 1);
+  const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const us = (d) => `${pad(d.getMonth() + 1)}/${pad(d.getDate())}/${d.getFullYear()}`;
+  const q = encodeURIComponent(city);
+  return {
+    marriott: `https://www.marriott.com/search/default.mi?searchType=InCity&destinationAddress.destination=${q}&fromDate=${encodeURIComponent(us(tripDate))}&toDate=${encodeURIComponent(us(out))}&numberOfRooms=1&numberOfGuests=1&clusterCode=GOV`,
+    hiltonGov: "https://www.hilton.com/en/p/government-military-rates",
+    hilton: `https://www.hilton.com/en/search/?query=${q}&arrivalDate=${iso(tripDate)}&departureDate=${iso(out)}&flexibleDates=false&numRooms=1&numAdults=1`,
+  };
+}
+
 export function fieldHtml(f, ctx) {
   const { origin, config, tripDate } = ctx;
   const distanceNm = greatCircleNm(origin, f);
@@ -41,7 +96,9 @@ export function fieldHtml(f, ctx) {
       ${approvalCell("Land", f.land)}${approvalCell("Fuel", f.fuel)}${approvalCell("RON", f.ron)}
     </div>
     ${row("FBO", f.fbo ? `${esc(f.fbo)}${f.fboPhone ? ` · ${tel ? `<a href="${tel}">${esc(f.fboPhone)}</a>` : esc(f.fboPhone)}` : ""}` : `<span class="muted">None listed${f.classification.startsWith("Military") ? " (military field — use base ops)" : ""}</span>`)}
-    ${row("Gov't fuel", `<span class="${gfc.known ? (gfc.has ? "ok-text" : "bad-text") : "muted"}">${esc(gfc.text)}</span>`)}
+    ${row("Gov't fuel", `<span class="${gfc.level === "contract" ? "ok-text" : gfc.level === "none" ? "bad-text" : gfc.level === "unknown" ? "muted" : ""}">${esc(gfc.text)}</span>`)}
+    ${gfc.conflict ? `<div class="fp-conflict">${esc(gfc.conflictText)}</div>` : ""}
+    ${merchantsHtml(f)}
     ${f.notes ? `<div class="fp-notes"><h5>Nav info list notes</h5><div>${esc(f.notes)}</div></div>` : ""}
     <div class="fp-facts">
       <h5>FAA data</h5>
@@ -57,6 +114,7 @@ export function fieldHtml(f, ctx) {
       <h5>GSA per diem · ${MONTHS[tripDate.getMonth()]}</h5>
       ${pd ? `<div class="fp-pd"><div><b>$${pd.lodging ?? "—"}</b><span>lodging / night</span></div><div><b>$${pd.meals ?? "—"}</b><span>meals &amp; incidentals</span></div></div><div class="muted small">${esc(pd.area)} · FY${pd.fy}${f.county ? ` · ${esc(f.county)} Co.` : ""}</div>` : `<div class="muted small">No FY${tripDate.getMonth() >= 9 ? tripDate.getFullYear() + 1 : tripDate.getFullYear()} rate found for this field's county.</div>`}
     </div>
+    ${hotelHtml(f, tripDate)}
     <div class="fp-links">
       <a href="https://www.airnav.com/airport/${encodeURIComponent(f.code)}" target="_blank" rel="noopener noreferrer">AirNav ↗</a>
       <a href="https://skyvector.com/airport/${encodeURIComponent(f.code)}" target="_blank" rel="noopener noreferrer">SkyVector ↗</a>

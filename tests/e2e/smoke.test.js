@@ -83,6 +83,8 @@ test("a field opens its sheet with FBO, status and per diem, and closes again", 
     assert.match(text, /Will Rogers/);
     assert.match(text, /AAR Aircraft Services/);
     assert.match(text, /GSA per diem/);
+    assert.match(text, /RON/);
+    assert.match(text, /AIR Card merchants/);
     assert.match(await page.evaluate(() => location.hash), /fld=KOKC/);
     // opening the sheet must not scroll the clipped map area sideways
     assert.equal(await page.evaluate(() => document.getElementById("viewSurface").scrollLeft), 0);
@@ -104,6 +106,8 @@ test("field list switch, quick filters and airspace toggles", async () => {
     assert.ok(pCount > 0 && pCount < navCount, `P-coded (${pCount}) is a subset of the list (${navCount})`);
 
     await page.click('[data-src="nav"]');
+    assert.equal(await page.locator('[data-ff="ron"], [data-ff="towered"]').count(), 0, "RON and Towered toggles are gone");
+    assert.match(await page.textContent('[data-ff="fuel"]'), /Fuel available/);
     await page.click('[data-ff="fuel"]');
     await page.waitForFunction((n) => document.querySelectorAll("#plannerMap [data-field]").length < n, navCount);
 
