@@ -92,3 +92,11 @@ test("airspace panel rows and tooltips", () => {
   const sr = { type: "SR", name: "SR-206", altitudes: "SFC to 1,500 AGL", scheduling: "97 OSS/OSK", hours: "0830-0230 Local" };
   assert.deepEqual(airspaceRows(sr).map(([k]) => k), ["Altitudes", "Hours", "Scheduling"]);
 });
+
+test("hotel links carry the city and one night from the trip date", async () => {
+  const { hotelLinks } = await import("../../assets/js/planner/field-panel.js");
+  const h = hotelLinks("Oklahoma City, OK", new Date(2026, 10, 30));
+  assert.match(h.marriott, /Oklahoma%20City%2C%20OK/);
+  assert.match(h.marriott, /fromDate=11%2F30%2F2026&toDate=12%2F01%2F2026/);
+  assert.match(h.hilton, /arrivalDate=2026-11-30&departureDate=2026-12-01/);
+});

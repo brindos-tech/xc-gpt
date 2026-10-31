@@ -21,6 +21,20 @@ function row(label, valueHtml) {
 
 const FUEL_CAP = 6;
 
+function hotelHtml(f, tripDate) {
+  if (!f.city) return "";
+  const h = hotelLinks(f.city, tripDate);
+  const night = tripDate.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return `<div class="fp-hotels">
+    <h5>Hotels · night of ${night}</h5>
+    <div class="fp-links">
+      <a href="${h.marriott}" target="_blank" rel="noopener noreferrer">Marriott ↗</a>
+      <a href="${h.hilton}" target="_blank" rel="noopener noreferrer">Hilton ↗</a>
+    </div>
+    <div class="muted small">Opens a one-night search for ${esc(f.city)}. Pick the government / military rate on the hotel’s site — availability and rate aren’t checked here.</div>
+  </div>`;
+}
+
 function merchantRow(m) {
   const tel = telHref(m.phone);
   const tag = m.contract ? `<span class="badge best-match">DLA contract</span>` : m.onSite ? `<span class="badge">on-site</span>` : `<span class="badge">delivers</span>`;
@@ -42,6 +56,20 @@ function merchantsHtml(f) {
     ${tail.length ? `<details class="fp-more"><summary>${tail.length} off-site supplier${tail.length === 1 ? "" : "s"} (fuel delivered)</summary>${tail.slice(0, 12).map(merchantRow).join("")}</details>` : ""}
     <div class="muted small">AIR Card merchant export — re-exported periodically; call to confirm before you go.</div>
   </details>`;
+}
+
+const pad = (n) => String(n).padStart(2, "0");
+
+/** One-night search links for the field's city, arriving on the trip date. */
+export function hotelLinks(city, tripDate) {
+  const out = new Date(tripDate.getFullYear(), tripDate.getMonth(), tripDate.getDate() + 1);
+  const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const us = (d) => `${pad(d.getMonth() + 1)}/${pad(d.getDate())}/${d.getFullYear()}`;
+  const q = encodeURIComponent(city);
+  return {
+    marriott: `https://www.marriott.com/search/default.mi?searchType=InCity&destinationAddress.destination=${q}&fromDate=${encodeURIComponent(us(tripDate))}&toDate=${encodeURIComponent(us(out))}&numberOfRooms=1&numberOfGuests=1&clusterCode=GOV`,
+    hilton: `https://www.hilton.com/en/search/?query=${q}&arrivalDate=${iso(tripDate)}&departureDate=${iso(out)}&flexibleDates=false&numRooms=1&numAdults=1`,
+  };
 }
 
 export function fieldHtml(f, ctx) {
@@ -84,6 +112,7 @@ export function fieldHtml(f, ctx) {
       <h5>GSA per diem · ${MONTHS[tripDate.getMonth()]}</h5>
       ${pd ? `<div class="fp-pd"><div><b>$${pd.lodging ?? "—"}</b><span>lodging / night</span></div><div><b>$${pd.meals ?? "—"}</b><span>meals &amp; incidentals</span></div></div><div class="muted small">${esc(pd.area)} · FY${pd.fy}${f.county ? ` · ${esc(f.county)} Co.` : ""}</div>` : `<div class="muted small">No FY${tripDate.getMonth() >= 9 ? tripDate.getFullYear() + 1 : tripDate.getFullYear()} rate found for this field's county.</div>`}
     </div>
+    ${hotelHtml(f, tripDate)}
     <div class="fp-links">
       <a href="https://www.airnav.com/airport/${encodeURIComponent(f.code)}" target="_blank" rel="noopener noreferrer">AirNav ↗</a>
       <a href="https://skyvector.com/airport/${encodeURIComponent(f.code)}" target="_blank" rel="noopener noreferrer">SkyVector ↗</a>
