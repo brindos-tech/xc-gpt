@@ -3,6 +3,7 @@
 // the events page's panel, with its own elements.
 import { formatFlightTime } from "../format.js";
 import { greatCircleNm, flightMinutes } from "../geo.js";
+import { CAT_NAMES, CAT_COLORS, ceilingText, visText, precipText, ICE_LABELS, THUN_LABELS } from "./wx-model.js";
 import { gfcStatus, perDiemFor, telHref, STATUS_LABELS, fieldStatus } from "./fields.js";
 import { airspaceRows, typeName } from "./airspace.js";
 import { esc } from "./html.js";
@@ -20,6 +21,25 @@ function row(label, valueHtml) {
 }
 
 const FUEL_CAP = 6;
+
+/** The model forecast at the field for the selected day (3-hourly, local time). */
+function forecastHtml(rows, tripDate) {
+  if (!rows) return "";
+  const day = tripDate.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+  const iceFlag = (r) => [r.lice ? `low ${ICE_LABELS[r.lice]}` : "", r.hice ? `high ${ICE_LABELS[r.hice]}` : ""].filter(Boolean).join(", ") || "—";
+  return `<div class="fp-wx">
+    <h5>Forecast at the field · ${esc(day)}</h5>
+    <div class="fp-wx-scroll"><table class="fp-wx-table">
+      <thead><tr><th>Local</th><th>Cat</th><th>Ceiling</th><th>Vis</th><th>Icing</th><th>TS</th><th>Precip</th><th>°F</th></tr></thead>
+      <tbody>${rows
+        .map(
+          (r) => `<tr><td>${esc(r.time)}</td><td><b style="color:${CAT_COLORS[r.cat]}">${CAT_NAMES[r.cat]}</b></td><td>${esc(ceilingText(r.ceil))}</td><td>${esc(visText(r.vis))}</td><td>${esc(iceFlag(r))}</td><td>${r.thun ? esc(THUN_LABELS[r.thun]) : "—"}</td><td>${esc(precipText(r.prec))}</td><td>${r.tF ?? "—"}</td></tr>`
+        )
+        .join("")}</tbody>
+    </table></div>
+    <div class="muted small">Model-derived estimate for the nearest grid point — a planning aid, not a weather brief. Get a standard briefing before you fly.</div>
+  </div>`;
+}
 
 function hotelHtml(f, tripDate) {
   if (!f.city) return "";
@@ -110,6 +130,7 @@ export function fieldHtml(f, ctx) {
       ${row("Hangar", f.hangar ? "Transient hangar available" : null)}
       ${row("Landing fee", f.landingFee === true ? "Yes" : f.landingFee === false ? "None listed" : null)}
     </div>
+    ${forecastHtml(ctx.wxRows, tripDate)}
     <div class="fp-perdiem">
       <h5>GSA per diem · ${MONTHS[tripDate.getMonth()]}</h5>
       ${pd ? `<div class="fp-pd"><div><b>$${pd.lodging ?? "—"}</b><span>lodging / night</span></div><div><b>$${pd.meals ?? "—"}</b><span>meals &amp; incidentals</span></div></div><div class="muted small">${esc(pd.area)} · FY${pd.fy}${f.county ? ` · ${esc(f.county)} Co.` : ""}</div>` : `<div class="muted small">No FY${tripDate.getMonth() >= 9 ? tripDate.getFullYear() + 1 : tripDate.getFullYear()} rate found for this field's county.</div>`}

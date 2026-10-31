@@ -1,6 +1,7 @@
 // Minimal state container. No framework, no two-way binding.
 import { DEFAULT_AIRSPACE } from "./planner/airspace.js";
 import { toDateKey } from "./format.js";
+import { DEFAULT_WX } from "./planner/wx-controller.js";
 
 function defaultState(config, today) {
   const horizonEnd = new Date(today);
@@ -24,7 +25,9 @@ function defaultState(config, today) {
     airspace: new Set(DEFAULT_AIRSPACE),
     selectedFieldId: null,
     selectedAirspaceId: null,
-    tripDate: toDateKey(today), // day of travel: per diem month now, weather overlays next
+    tripDate: toDateKey(today), // day of travel: drives weather, per diem month and hotel dates
+    wxLayers: new Set(DEFAULT_WX), // weather overlays on the planner map (empty = off)
+    wxTime: null, // ISO UTC step picked on the slider; null = default for the day
   };
 }
 

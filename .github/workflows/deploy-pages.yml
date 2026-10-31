@@ -13,7 +13,7 @@ on:
   push:
     branches: [main]
   workflow_run:
-    workflows: ["Refresh daily", "Refresh weekly", "Refresh fields & airspace"]
+    workflows: ["Refresh daily", "Refresh weekly", "Refresh fields & airspace", "Refresh weather"]
     types: [completed]
     branches: [main]
   workflow_dispatch: {}
@@ -47,6 +47,16 @@ jobs:
       # data commit the refresh just pushed.
       - uses: actions/checkout@v4
 
+      # Forecast grids live on their own branch (replaced every run, so they
+      # never bloat main's history). Missing branch = site ships without the
+      # weather overlays; the app hides the weather bar.
+      - name: Checkout weather data
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          ref: wx-data
+          path: _wx
+
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -59,6 +69,10 @@ jobs:
           cp index.html manifest.webmanifest sw.js _site/
           cp -r assets _site/
           cp -r data _site/
+          if [ -d _wx/wx ]; then
+            mkdir -p _site/data/generated
+            cp -r _wx/wx _site/data/generated/wx
+          fi
 
       - name: Stamp asset version
         run: node scripts/stamp-version.js _site "${GITHUB_SHA::8}"

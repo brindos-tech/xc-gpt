@@ -1,0 +1,52 @@
+name: Refresh weather
+
+# Twice a day (after the 00Z and 12Z GFS runs are out): 8-day gridded weather
+# for the planner's radar / icing / ceiling / flight-category overlays, from
+# Open-Meteo (scripts/fetch-wx.js). The output is NOT committed to main —
+# 3-hourly forecast files would bloat history — it is force-published as a
+# single commit on the `wx-data` branch, which deploy-pages.yml folds into the
+# site at deploy time. A finished run triggers a deploy.
+on:
+  schedule:
+    - cron: "43 5,17 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-wx
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # Cheap one-request check of the response shape; shows up in the log
+      # when the API changes.
+      - name: Probe Open-Meteo response shape
+        run: node scripts/fetch-wx.js --probe
+
+      - name: Build weather grid
+        run: node scripts/fetch-wx.js
+
+      - name: Publish to wx-data
+        run: |
+          set -e
+          tmp="$(mktemp -d)"
+          cp -r data/generated/wx "$tmp/wx"
+          git config user.name "xc-gpt-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git checkout --orphan wx-data-tmp
+          git rm -rf -q .
+          cp -r "$tmp/wx" wx
+          git add wx
+          git commit -q -m "weather data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push --force origin HEAD:wx-data
+          du -sh wx

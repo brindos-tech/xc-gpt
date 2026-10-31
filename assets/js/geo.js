@@ -83,3 +83,65 @@ export function planRoute(origin, dest, candidateFields, legRangeNm, reserveNm =
     feasible: true,
   };
 }
+
+// ---- distance from a point to GeoJSON geometry ----
+
+/** Flat nm coordinates around `o` — accurate enough at planning ranges. */
+function localNm(o) {
+  const k = Math.cos(toRad(o.lat)) * 60;
+  return ([lon, lat]) => [(lon - o.lon) * k, (lat - o.lat) * 60];
+}
+
+function distToSegment(a, b) {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  const len2 = dx * dx + dy * dy;
+  const t = len2 ? Math.max(0, Math.min(1, -(a[0] * dx + a[1] * dy) / len2)) : 0;
+  return Math.hypot(a[0] + t * dx, a[1] + t * dy);
+}
+
+function ringDistAndInside(ring) {
+  let d = Infinity;
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    d = Math.min(d, distToSegment(ring[j], ring[i]));
+    const [xi, yi] = ring[i];
+    const [xj, yj] = ring[j];
+    if (yi > 0 !== yj > 0 && 0 < ((xj - xi) * (0 - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return { d, inside };
+}
+
+/**
+ * Smallest distance (nm) from `origin` {lat, lon} to a GeoJSON geometry:
+ * 0 when the origin is inside a polygon, otherwise the distance to the
+ * nearest edge/line. Handles Polygon, MultiPolygon, LineString, MultiLineString
+ * and Point. Returns Infinity for anything else.
+ */
+export function distanceToGeometryNm(geometry, origin) {
+  if (!geometry) return Infinity;
+  const proj = localNm(origin);
+  const line = (coords) => {
+    const pts = coords.map(proj);
+    let d = pts.length === 1 ? Math.hypot(pts[0][0], pts[0][1]) : Infinity;
+    for (let i = 1; i < pts.length; i++) d = Math.min(d, distToSegment(pts[i - 1], pts[i]));
+    return d;
+  };
+  const polygon = (rings) => {
+    const outer = ringDistAndInside(rings[0].map(proj));
+    if (outer.inside) {
+      // inside a hole counts as outside
+      for (const hole of rings.slice(1)) if (ringDistAndInside(hole.map(proj)).inside) return Math.min(outer.d, ...rings.slice(1).map((h) => ringDistAndInside(h.map(proj)).d));
+      return 0;
+    }
+    return outer.d;
+  };
+  const { type, coordinates: c } = geometry;
+  if (type === "Point") return Math.hypot(...proj(c));
+  if (type === "LineString") return line(c);
+  if (type === "MultiLineString") return Math.min(...c.map(line));
+  if (type === "Polygon") return polygon(c);
+  if (type === "MultiPolygon") return Math.min(...c.map(polygon));
+  if (type === "GeometryCollection") return Math.min(...geometry.geometries.map((g) => distanceToGeometryNm(g, origin)));
+  return Infinity;
+}
