@@ -1,0 +1,17 @@
+# TEMPORARY — samples data sources for parser development; removed before merge.
+name: Probe sources
+on:
+  push:
+    branches: [claude/cloud-session-setup-i08vkf]
+    paths: [scripts/probe-sources.mjs, .github/workflows/probe.yml]
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node scripts/probe-sources.mjs
