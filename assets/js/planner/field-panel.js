@@ -109,7 +109,7 @@ export function createFieldPanel({ store }) {
     content.innerHTML = field ? fieldHtml(field, ctx) : airspaceHtml(airspace);
     content.scrollTop = 0;
     setOpen(true);
-    if (opening) closeBtn.focus();
+    if (opening) closeBtn.focus({ preventScroll: true }); // the sheet is still sliding in off-screen; a plain focus() scrolls the clipped map area sideways to reveal it
   }
 
   return { render, close };

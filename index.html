@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>XC GPT | Situational Awareness</title>
+<title>XC GPT | Nav Planner</title>
 <meta name="theme-color" content="#0f1115">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml">
@@ -18,13 +18,13 @@
 </head>
 <body>
 
-<div class="app">
+<div class="app" data-page="planner">
 
   <header class="app-header">
     <button class="rail-toggle-btn" id="railToggle" style="display:none;" aria-controls="filterRail" aria-expanded="false">☰ Filters</button>
     <h1>XC GPT <span class="accent">&#9992;</span></h1>
     <div class="header-search">
-      <input type="text" id="globalSearch" placeholder="Search places, events, artists&hellip;" autocomplete="off">
+      <input type="text" id="globalSearch" placeholder="Search fields, FBOs&hellip;" autocomplete="off">
     </div>
     <div class="freshness" id="freshnessReadout">
       <span class="source-dot ok" id="freshnessDot"></span>
@@ -55,33 +55,38 @@
       <div class="rail-section">
         <h3>Range from <span id="rangeOriginLabel">KEND</span></h3>
         <div class="range-readout"><span id="rangeValue">600</span><small> nm</small></div>
-        <div class="range-counts" id="rangeCounts">— places · — events</div>
+        <div class="range-counts" id="rangeCounts">loading…</div>
         <div class="range-slider-track">
           <input type="range" id="rangeSlider" min="50" max="1200" step="10" value="600">
         </div>
         <div class="range-marks" id="rangeMarks"></div>
       </div>
 
-      <div class="rail-section">
-        <h3>Rules</h3>
-        <div class="toggle-row">
-          <div>
-            <div class="toggle-label">West of the Mississippi only</div>
-            <span class="toggle-delta" id="westDelta"></span>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="westToggle">
-            <span class="slider"></span>
-          </label>
-        </div>
+      <!-- planner page -->
+      <div class="rail-section" data-page="planner">
+        <h3>Field list</h3>
+        <div class="seg-switch" id="fieldSourceSwitch" role="group" aria-label="Field list"></div>
+        <div class="rail-hint">Nav Info List: fields approved for Vance crews (28 Sep 26). P-coded: DoD-tenant and joint-use fields you can use without being on an approval list.</div>
       </div>
 
-      <div class="rail-section">
+      <div class="rail-section" data-page="planner">
+        <h3>Show only</h3>
+        <div class="chip-row" id="fieldFilterChips"></div>
+      </div>
+
+      <div class="rail-section" data-page="planner">
+        <h3>Airspace</h3>
+        <div id="airspaceToggles"></div>
+        <div class="rail-hint">FAA data with DoD FLIP AP/1A &amp; 1B scheduling details. Planning reference only.</div>
+      </div>
+
+      <!-- events page -->
+      <div class="rail-section" data-page="events">
         <h3>Category</h3>
         <div class="chip-row" id="categoryChips"></div>
       </div>
 
-      <div class="rail-section">
+      <div class="rail-section" data-page="events">
         <h3>Activity</h3>
         <div class="chip-row" id="activityChips"></div>
       </div>
@@ -92,21 +97,27 @@
 
     <div class="main-area">
       <div class="view-surface" id="viewSurface">
-        <div class="view-pane active" id="pane-map">
+        <div class="view-pane active" id="pane-planner">
+          <div id="plannerMap"></div>
+          <div class="map-legend planner-legend" id="plannerLegend"></div>
+        </div>
+        <div class="view-pane" id="pane-events">
           <div id="mapWrap"></div>
           <div class="map-legend" id="mapLegend"></div>
-          <div class="map-river-delta" id="riverDelta" style="display:none;"></div>
         </div>
-        <div class="view-pane" id="pane-feed"><div class="view-inner" id="feedInner"></div></div>
-        <div class="view-pane" id="pane-places"><div class="view-inner" id="placesInner"></div></div>
-        <div class="view-pane" id="pane-artists"><div class="view-inner" id="artistsInner"></div></div>
-        <div class="view-pane" id="pane-weekends"><div class="view-inner" id="weekendsInner"></div></div>
 
+        <!-- planner: field / airspace sheet -->
+        <div class="detail-backdrop" id="fieldBackdrop"></div>
+        <div class="detail-panel" id="fieldPanel" role="dialog" aria-label="Field details">
+          <button class="dp-close" id="fieldClose" aria-label="Close">&times;</button>
+          <div class="dp-scroll" id="fieldContent"></div>
+        </div>
+
+        <!-- events: place sheet -->
         <div class="detail-backdrop" id="detailBackdrop"></div>
-
         <div class="detail-panel" id="detailPanel" role="dialog" aria-label="Place details">
           <button class="dp-close" id="detailClose" aria-label="Close">&times;</button>
-          <div id="detailContent"></div>
+          <div class="dp-scroll" id="detailContent"></div>
         </div>
       </div>
 
@@ -116,11 +127,8 @@
   </div>
 
   <nav class="tab-bar" id="tabBar">
-    <button class="active" data-view="map">Map</button>
-    <button data-view="feed">Feed</button>
-    <button data-view="places">Places</button>
-    <button data-view="artists">Artists</button>
-    <button data-view="weekends">Weekend Recs</button>
+    <button class="active" data-view="planner">Planner</button>
+    <button data-view="events">Events</button>
   </nav>
 
 </div>
