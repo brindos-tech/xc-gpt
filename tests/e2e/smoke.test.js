@@ -111,6 +111,16 @@ test("field list switch, quick filters and airspace toggles", async () => {
     await page.click('[data-ff="fuel"]');
     await page.waitForFunction((n) => document.querySelectorAll("#plannerMap [data-field]").length < n, navCount);
 
+    // airspace outside the range ring is not drawn: shrinking the range lowers the MOA count
+    await page.waitForFunction(() => /^ · \d+$/.test(document.querySelector('[data-air-status="MOA"]')?.textContent || ""), null, { timeout: 15000 });
+    const moaWide = Number((await page.textContent('[data-air-status="MOA"]')).replace(/\D/g, ""));
+    await page.evaluate(() => {
+      const r = document.getElementById("rangeSlider");
+      r.value = 50;
+      r.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await page.waitForFunction((n) => Number(document.querySelector('[data-air-status="MOA"]').textContent.replace(/\D/g, "")) < n, moaWide, { timeout: 5000 });
+
     // IR/VR/SR are off by default; SR turns on and loads its file
     assert.equal(await page.isChecked('[data-air-toggle="SR"]'), false);
     assert.equal(await page.isChecked('[data-air-toggle="MOA"]'), true);

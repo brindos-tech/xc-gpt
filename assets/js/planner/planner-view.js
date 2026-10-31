@@ -5,6 +5,7 @@
 import { fieldStatus, STATUS_LABELS } from "./fields.js";
 import { AIRSPACE_LAYERS, airspaceTooltip } from "./airspace.js";
 import { esc } from "./html.js";
+import { distanceToGeometryNm } from "../geo.js";
 
 export const STATUS_COLORS = { go: "#3ddc97", check: "#e8c15e", nofuel: "#ff8a3d", no: "#e65a5a" };
 
@@ -23,15 +24,17 @@ export function createPlannerView({ config, origin, loadJson, onFieldClick, onAi
   const originMarker = L.circleMarker([origin.lat, origin.lon], { radius: 6, color: "#fff", fillColor: "#fff", fillOpacity: 1, weight: 2, renderer: pinRenderer })
     .bindTooltip(`${origin.name} (${origin.icao})`, { className: "map-tooltip" })
     .addTo(map);
+  let originPos = { lat: origin.lat, lon: origin.lon };
+  let rangeNm = config.defaults.rangeNm;
   const rangeCircle = L.circle([origin.lat, origin.lon], {
-    radius: config.defaults.rangeNm * 1852,
+    radius: rangeNm * 1852,
     color: "#ff8a3d", weight: 1.5, dashArray: "6,6", fill: false, opacity: 0.6, interactive: false, renderer: pinRenderer,
   }).addTo(map);
   const pinLayer = L.layerGroup().addTo(map);
 
   // ---- airspace ----
   const files = { sua: { url: "generated/airspace-sua.json", data: null, promise: null }, mtr: { url: "generated/airspace-mtr.json", data: null, promise: null } };
-  const groups = new Map(); // layer key -> L.layerGroup
+  const groups = new Map(); // layer key -> { group: L.layerGroup, entries: [{ lyr, geom, props, dist }], count }
   const featuresById = new Map();
   let wanted = new Set();
   let selectedAirspaceId = null;
@@ -57,20 +60,25 @@ export function createPlannerView({ config, origin, loadJson, onFieldClick, onAi
     try {
       const data = await loadFile(layer.file);
       if (groups.has(layer.key)) return;
-      const subset = { type: "FeatureCollection", features: data.features.filter((f) => layer.match(f.properties)) };
-      const group = L.geoJSON(subset, {
-        renderer: airspaceRenderer,
-        style: (f) => styleFor(layer, f.properties),
-        onEachFeature: (f, lyr) => {
-          lyr.bindTooltip(airspaceTooltip(f.properties), { className: "map-tooltip", sticky: true });
-          lyr.on("click", (e) => {
-            L.DomEvent.stopPropagation(e);
-            onAirspaceClick(f.properties.id);
-          });
-        },
-      });
-      groups.set(layer.key, group);
-      onAirspaceStatus(layer.key, `${subset.features.length}`);
+      const entries = data.features
+        .filter((f) => layer.match(f.properties))
+        .map((f) => ({
+          geom: f.geometry,
+          props: f.properties,
+          dist: distanceToGeometryNm(f.geometry, originPos),
+          lyr: L.geoJSON(f, {
+            renderer: airspaceRenderer,
+            style: () => styleFor(layer, f.properties),
+            onEachFeature: (feat, lyr) => {
+              lyr.bindTooltip(airspaceTooltip(feat.properties), { className: "map-tooltip", sticky: true });
+              lyr.on("click", (e) => {
+                L.DomEvent.stopPropagation(e);
+                onAirspaceClick(feat.properties.id);
+              });
+            },
+          }),
+        }));
+      groups.set(layer.key, { group: L.layerGroup(), entries });
       applyWanted();
     } catch (err) {
       console.warn(`Airspace ${layer.key} failed to load:`, err);
@@ -78,12 +86,20 @@ export function createPlannerView({ config, origin, loadJson, onFieldClick, onAi
     }
   }
 
+  /** Show only areas/routes with some part inside the range ring (the selected one always stays). */
   function applyWanted() {
     for (const layer of AIRSPACE_LAYERS) {
-      const group = groups.get(layer.key);
-      if (!group) continue;
-      if (wanted.has(layer.key)) group.addTo(map);
-      else map.removeLayer(group);
+      const g = groups.get(layer.key);
+      if (!g) continue;
+      g.group.clearLayers();
+      let count = 0;
+      for (const e of g.entries) {
+        if (e.dist <= rangeNm) count++;
+        if (e.dist <= rangeNm || e.props.id === selectedAirspaceId) g.group.addLayer(e.lyr);
+      }
+      onAirspaceStatus(layer.key, `${count}`);
+      if (wanted.has(layer.key)) g.group.addTo(map);
+      else map.removeLayer(g.group);
     }
   }
 
@@ -94,7 +110,8 @@ export function createPlannerView({ config, origin, loadJson, onFieldClick, onAi
     applyWanted();
     if (selectedId !== selectedAirspaceId) {
       selectedAirspaceId = selectedId;
-      for (const layer of AIRSPACE_LAYERS) groups.get(layer.key)?.eachLayer((l) => l.setStyle(styleFor(layer, l.feature.properties)));
+      for (const layer of AIRSPACE_LAYERS) groups.get(layer.key)?.entries.forEach((e) => e.lyr.setStyle(styleFor(layer, e.props)));
+      applyWanted();
     }
   }
 
@@ -142,6 +159,9 @@ export function createPlannerView({ config, origin, loadJson, onFieldClick, onAi
     originMarker.setLatLng([o.lat, o.lon]);
     originMarker.setTooltipContent(`${o.name} (${o.icao})`);
     rangeCircle.setLatLng([o.lat, o.lon]);
+    originPos = { lat: o.lat, lon: o.lon };
+    for (const g of groups.values()) for (const e of g.entries) e.dist = distanceToGeometryNm(e.geom, originPos);
+    applyWanted();
     map.flyTo([o.lat, o.lon], map.getZoom(), { duration: 0.6 });
   }
 
@@ -149,7 +169,12 @@ export function createPlannerView({ config, origin, loadJson, onFieldClick, onAi
     renderFields,
     setAirspace,
     setOrigin,
-    updateRange: (nm) => rangeCircle.setRadius(nm * 1852),
+    updateRange: (nm) => {
+      if (nm === rangeNm) return;
+      rangeNm = nm;
+      rangeCircle.setRadius(nm * 1852);
+      applyWanted();
+    },
     getAirspace: (id) => featuresById.get(id) || null,
     // an airspace id from a shared link needs its file loaded before it can be shown
     ensureAirspaceData: (id) => (id?.startsWith("MOA:") || /^[RWA]:/.test(id || "") ? loadFile("sua") : id ? loadFile("mtr") : Promise.resolve()),

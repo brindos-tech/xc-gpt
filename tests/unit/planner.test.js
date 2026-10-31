@@ -100,3 +100,20 @@ test("hotel links carry the city and one night from the trip date", async () => 
   assert.match(h.marriott, /fromDate=11%2F30%2F2026&toDate=12%2F01%2F2026/);
   assert.match(h.hilton, /arrivalDate=2026-11-30&departureDate=2026-12-01/);
 });
+
+test("distanceToGeometryNm: inside is 0, otherwise nearest edge", async () => {
+  const { distanceToGeometryNm } = await import("../../assets/js/geo.js");
+  const o = { lat: 36, lon: -97 };
+  const box = (dLat, dLon, size) => ({ type: "Polygon", coordinates: [[[-97 + dLon, 36 + dLat], [-97 + dLon + size, 36 + dLat], [-97 + dLon + size, 36 + dLat + size], [-97 + dLon, 36 + dLat + size], [-97 + dLon, 36 + dLat]]] });
+  assert.equal(distanceToGeometryNm(box(-1, -1, 2), o), 0);
+  // a box whose south edge is 1° (≈60 nm) north of the origin
+  const d = distanceToGeometryNm(box(1, -0.5, 1), o);
+  assert.ok(Math.abs(d - 60) < 1, `got ${d}`);
+  // an area wrapping the origin with a hole around it is outside
+  const donut = { type: "Polygon", coordinates: [box(-2, -2, 4).coordinates[0], box(-1, -1, 2).coordinates[0]] };
+  assert.ok(Math.abs(distanceToGeometryNm(donut, o) - Math.cos((36 * Math.PI) / 180) * 60) < 1); // nearest hole edge, 1° of longitude
+  // a route passing 30' east of the origin
+  const line = { type: "LineString", coordinates: [[-96.5, 35], [-96.5, 37]] };
+  assert.ok(Math.abs(distanceToGeometryNm(line, o) - 0.5 * Math.cos((36 * Math.PI) / 180) * 60) < 0.5);
+  assert.equal(distanceToGeometryNm(null, o), Infinity);
+});
