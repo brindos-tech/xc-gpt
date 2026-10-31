@@ -16,7 +16,7 @@ export const WX_LAYERS = [
   { key: "ceil", label: "Ceiling", title: "Forecast ceiling below 3,000 ft AGL" },
   { key: "thun", label: "Thunderstorms", title: "Possible / likely thunderstorms" },
 ];
-export const DEFAULT_WX = ["radar", "cat", "lice", "hice", "thun"];
+export const DEFAULT_WX = ["radar"];
 
 const RADAR_URL = "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/{z}/{x}/{y}.png?t={t}";
 const NOW_WINDOW_MS = 90 * 60 * 1000;
@@ -38,7 +38,7 @@ export function createWxController({ store, map, loadJson, today, onChange }) {
   const bar = document.getElementById("wxBar");
   let ready = false;
   let loading = false;
-  let collapsed = window.innerWidth < 700;
+  let collapsed = true; // starts as a small header; the arrow opens the controls
   let overlays = new Map(); // style key -> L.ImageOverlay
   let drawnKey = "";
   let radarLayer = null;

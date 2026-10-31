@@ -273,6 +273,7 @@
 .wx-summary { color: var(--muted); flex: 1; }
 .wx-collapse { background: none; border: 1px solid var(--border); color: var(--text); border-radius: var(--radius-sm); padding: 2px 9px; cursor: pointer; }
 .wx-body { margin-top: 8px; display: grid; gap: 8px; }
+.wx-body[hidden] { display: none; }
 .wx-days, .wx-layers { display: flex; flex-wrap: wrap; gap: 6px; }
 .wx-bar .chip { padding: 4px 10px; font-size: 0.95em; }
 .wx-bar .chip:disabled { opacity: 0.35; cursor: not-allowed; }

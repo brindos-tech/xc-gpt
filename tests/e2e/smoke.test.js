@@ -231,9 +231,14 @@ test("weather bar: day picker, time slider, overlays, field forecast", async () 
     assert.equal(await page.locator("[data-wx-day]").count(), 8);
     assert.match(await page.textContent("#wxDisclaimer"), /not a weather brief/);
 
-    // default overlays are on and drawn as map images
-    for (const k of ["radar", "cat", "lice", "hice", "thun"]) assert.equal(await page.locator(`[data-wx-layer="${k}"].active`).count(), 1, k);
-    assert.equal(await page.locator(`[data-wx-layer="ceil"].active`).count(), 0);
+    // starts small, with only radar on; opening it shows the controls
+    assert.equal(await page.isHidden("#wxBody"), true);
+    assert.equal(await page.locator("#wxBar [data-wx-layer].active").count(), 1);
+    await page.click("#wxCollapse");
+    assert.equal(await page.isVisible("#wxBody"), true);
+    assert.equal(await page.locator('[data-wx-layer="radar"].active').count(), 1);
+    // turning overlays on draws them as map images
+    for (const k of ["cat", "lice", "hice", "thun"]) await page.click(`[data-wx-layer="${k}"]`);
     await page.waitForFunction(() => document.querySelectorAll("#plannerMap .leaflet-wx-pane img").length >= 3);
 
     // picking a later day moves the whole app's trip date and the slider range
