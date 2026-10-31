@@ -90,18 +90,41 @@ export function parseMoaTable(text) {
   const lines = text.slice(start, end > 0 ? end : undefined).split("\n").slice(1);
   const rows = [];
   let cur = null;
-  for (const raw of lines) {
-    if (!raw.trim() || /^MOA NAME|^=====|^\s*\d+ UNITED STATES|^UNITED STATES \d+/.test(raw)) continue;
+  // Some pages of the table are indented a couple of spaces; measure each
+  // page's indent from its "MOA NAME" header and read lines relative to it.
+  let indent = 0;
+  for (let raw of lines) {
+    const header = raw.match(/^(\s*)MOA NAME/);
+    if (header) {
+      indent = header[1].length;
+      continue;
+    }
+    if (indent && raw.startsWith(" ".repeat(indent))) raw = raw.slice(indent);
+    if (!raw.trim() || /^=====|^\s*\d+ (UNITED STATES|MILITARY OPERATIONS AREAS)|^UNITED STATES \d+/.test(raw)) continue;
     const cols = raw.split(/\s{2,}/);
     const startsName = !/^\s/.test(raw);
-    if (startsName && (!cur || cur.done)) {
-      cur = { name: "", agency: [], location: [], phone: [], done: false };
+    // A line starting at column 0 that also has agency/location/phone
+    // columns is a new row; a bare name line continues an unfinished name
+    // ("AVON EAST, AVON EAST HIGH MOA," / "FL").
+    // A column-0 line continues the previous row's name only when that name
+    // is visibly unfinished: a lone state code ("FL"), a previous name ending
+    // in "&" or "," ("HOG A, HOG B &"), a line starting with "MOA" ("MOA,
+    // TX"), or a previous "X & Y" name without "MOA" yet ("CRYSTAL &
+    // CRYSTAL" / "NORTH MOA, TX"). Anything else starts a new row.
+    const first = cols[0] || "";
+    const prev = cur ? cur.name : "";
+    const stateOnly = /^[A-Z]{2}\s*$/.test(raw);
+    const continuesName =
+      startsName &&
+      cur &&
+      (stateOnly || /[&,]$/.test(prev) || /^MOA\b/.test(first) || (/&/.test(prev) && !/\bMOA\b/.test(prev) && /\bMOA\b/.test(first)));
+    if (startsName && !continuesName) {
+      cur = { name: "", agency: [], location: [], phone: [] };
       rows.push(cur);
     }
     if (!cur) continue;
     if (startsName) {
       cur.name = squash(`${cur.name} ${cols.shift()}`);
-      if (/, [A-Z]{2}$/.test(cur.name)) cur.done = true;
     } else cols.shift(); // leading blank from indentation
     // remaining columns: agency, location, phone — but continuation lines
     // only fill the columns they reach; phone continuations sit far right
@@ -125,7 +148,7 @@ export function parseMoaTable(text) {
     r.location = loc;
   }
   return rows.map((r) => ({
-    names: r.name.replace(/, [A-Z]{2}$/, ""),
+    names: r.name.replace(/, [A-Z]{2}$/, "").replace(/,$/, ""),
     state: (r.name.match(/, ([A-Z]{2})$/) || [])[1] || null,
     agency: squash(r.agency.join(" ")),
     location: squash(r.location.join(" ")),
