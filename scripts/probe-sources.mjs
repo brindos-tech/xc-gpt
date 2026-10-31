@@ -1,86 +1,55 @@
-// TEMPORARY: samples each candidate data source so parsers can be written
-// against real responses. Deleted before the PR.
-const out = (label, v) => console.log(`\n===== ${label} =====\n${typeof v === "string" ? v : JSON.stringify(v, null, 1)}`.slice(0, 6000));
-async function get(url, opts = {}) {
-  try {
-    const res = await fetch(url, opts);
-    const ct = res.headers.get("content-type") || "";
-    const acao = res.headers.get("access-control-allow-origin");
-    const buf = Buffer.from(await res.arrayBuffer());
-    return { status: res.status, ct, acao, size: buf.length, buf };
-  } catch (e) {
-    return { status: "ERR", error: String(e) };
-  }
+// TEMPORARY probe #2 — removed before the PR.
+const out = (label, v) => console.log(`\n===== ${label} =====\n${typeof v === "string" ? v : JSON.stringify(v, null, 1)}`.slice(0, 5000));
+async function get(url) {
+  try { const res = await fetch(url); const buf = Buffer.from(await res.arrayBuffer()); return { status: res.status, ct: res.headers.get("content-type"), size: buf.length, buf }; }
+  catch (e) { return { status: "ERR", error: String(e) }; }
 }
 const j = (r) => { try { return JSON.parse(r.buf.toString()); } catch { return null; } };
+const { execSync } = await import("node:child_process");
+const fs = await import("node:fs");
 
-// ---- ArcGIS org services (FAA ADDS)
-let r = await get("https://services6.arcgis.com/ssFJjBXIUyZDrSYZ/arcgis/rest/services?f=json");
-out("arcgis services", { status: r.status, services: (j(r)?.services || []).map((s) => `${s.name} (${s.type})`) });
-for (const svc of ["Special_Use_Airspace", "Military_Training_Routes", "US_Airport", "Runways"]) {
-  r = await get(`https://services6.arcgis.com/ssFJjBXIUyZDrSYZ/arcgis/rest/services/${svc}/FeatureServer/0?f=json`);
-  const meta = j(r);
-  out(`${svc} layer meta`, { status: r.status, name: meta?.name, geom: meta?.geometryType, maxRecordCount: meta?.maxRecordCount, fields: (meta?.fields || []).map((f) => f.name) });
-  r = await get(`https://services6.arcgis.com/ssFJjBXIUyZDrSYZ/arcgis/rest/services/${svc}/FeatureServer/0/query?where=1%3D1&outFields=*&resultRecordCount=2&returnGeometry=false&f=json`);
-  out(`${svc} sample`, { status: r.status, features: (j(r)?.features || []).map((f) => f.attributes) });
-  r = await get(`https://services6.arcgis.com/ssFJjBXIUyZDrSYZ/arcgis/rest/services/${svc}/FeatureServer/0/query?where=1%3D1&returnCountOnly=true&f=json`);
-  out(`${svc} count`, j(r));
-}
-r = await get("https://services6.arcgis.com/ssFJjBXIUyZDrSYZ/arcgis/rest/services/Special_Use_Airspace/FeatureServer/0/query?where=1%3D1&outFields=TYPE_CODE&returnDistinctValues=true&returnGeometry=false&f=json");
-out("SUA distinct TYPE_CODE", (j(r)?.features || []).map((f) => f.attributes));
-r = await get("https://services6.arcgis.com/ssFJjBXIUyZDrSYZ/arcgis/rest/services/Military_Training_Routes/FeatureServer/0/query?where=1%3D1&outFields=*&resultRecordCount=1&returnGeometry=true&outSR=4326&f=geojson");
-out("MTR geojson sample", { status: r.status, size: r.size, head: r.buf?.toString().slice(0, 1500) });
+let r = await get("https://services6.arcgis.com/ssFJjBXIUyZDrSYZ/arcgis/rest/services/MTRSegment/FeatureServer/0?f=json");
+out("MTRSegment meta", { status: r.status, name: j(r)?.name, geom: j(r)?.geometryType, fields: (j(r)?.fields || []).map((f) => f.name) });
+r = await get("https://services6.arcgis.com/ssFJjBXIUyZDrSYZ/arcgis/rest/services/MTRSegment/FeatureServer/0/query?where=1%3D1&outFields=*&resultRecordCount=3&returnGeometry=false&f=json");
+out("MTRSegment sample", (j(r)?.features || []).map((f) => f.attributes));
+r = await get("https://services6.arcgis.com/ssFJjBXIUyZDrSYZ/arcgis/rest/services/MTRSegment/FeatureServer/0/query?where=1%3D1&returnCountOnly=true&f=json");
+out("MTRSegment count", j(r));
+r = await get("https://services6.arcgis.com/ssFJjBXIUyZDrSYZ/arcgis/rest/services/MTRSegment/FeatureServer/0/query?where=1%3D1&outFields=*&resultRecordCount=1&outSR=4326&f=geojson");
+out("MTRSegment geojson", { status: r.status, head: r.buf?.toString().slice(0, 1200) });
+r = await get("https://services6.arcgis.com/ssFJjBXIUyZDrSYZ/arcgis/rest/services/Special_Use_Airspace/FeatureServer/0/query?where=TYPE_CODE%3D%27MOA%27&outFields=NAME&resultRecordCount=1&outSR=4326&f=geojson");
+out("SUA geojson", { status: r.status, head: r.buf?.toString().slice(0, 800) });
 
-// ---- NASR 28-day APT CSV
-const cycle = (d) => { const base = Date.UTC(2024, 0, 25); const n = Math.floor((d - base) / 86400000 / 28); return new Date(base + n * 28 * 86400000); };
-const mon = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-for (const back of [0, 1]) {
-  const c = cycle(Date.now() - back * 28 * 86400000);
-  const name = `${String(c.getUTCDate()).padStart(2, "0")}_${mon[c.getUTCMonth()]}_${c.getUTCFullYear()}_APT_CSV.zip`;
-  r = await get(`https://nfdc.faa.gov/webContent/28DaySub/extra/${name}`);
-  out(`NASR ${name}`, { status: r.status, ct: r.ct, size: r.size });
+const name = "29_Oct_2026";
+for (const f of ["MTR_CSV.zip", "MIL_OPS_CSV.zip"]) {
+  r = await get(`https://nfdc.faa.gov/webContent/28DaySub/extra/${name}_${f}`);
+  out(`NASR ${f}`, { status: r.status, size: r.size });
   if (r.status === 200) {
-    const fs = await import("node:fs");
-    fs.writeFileSync("/tmp/apt.zip", r.buf);
-    const { execSync } = await import("node:child_process");
-    console.log(execSync("cd /tmp && unzip -o -q apt.zip && ls -la /tmp/*.csv | head -30").toString());
-    for (const f of ["APT_BASE.csv", "APT_RWY.csv", "APT_ATT.csv"]) {
-      try { console.log(`--- ${f}\n` + execSync(`head -c 2500 /tmp/${f}`).toString()); } catch (e) { console.log(f, "missing"); }
-    }
-    console.log(execSync(`grep -m3 '"END"' /tmp/APT_BASE.csv || true`).toString());
-    break;
+    fs.mkdirSync(`/tmp/${f}`, { recursive: true });
+    fs.writeFileSync(`/tmp/${f}/x.zip`, r.buf);
+    console.log(execSync(`cd /tmp/${f} && unzip -o -q x.zip && ls -la && for c in *.csv; do echo "--- $c"; head -c 1500 "$c"; echo; done`).toString().slice(0, 9000));
   }
 }
+r = await get(`https://nfdc.faa.gov/webContent/28DaySub/extra/${name}_APT_CSV.zip`);
+fs.writeFileSync("/tmp/apt.zip", r.buf);
+console.log(execSync(`cd /tmp && unzip -o -q apt.zip && head -c 1200 APT_CON.csv; echo; grep -m2 '"END"\\|,"END",' APT_BASE.csv | head -c 3000; echo; awk -F'","' 'NR==1{for(i=1;i<=NF;i++) if($i ~ /FUEL_TYPES|CONTR_FUEL|OTHER_SERVICES|TWR_TYPE|LNDG_FEE|FACILITY_USE|OWNERSHIP/) print i, $i}' APT_BASE.csv; cut -d, -f1-3 APT_CSV_DATA_STRUCTURE.csv | head -3`).toString());
+console.log(execSync(`cd /tmp && python3 - <<'PY'
+import csv, collections
+rows = list(csv.DictReader(open('/tmp/APT_BASE.csv', newline='', encoding='latin-1')))
+c = collections.Counter(r['CONTR_FUEL_AVBL'] for r in rows); print('CONTR_FUEL_AVBL', c.most_common(6))
+c = collections.Counter(r['FACILITY_USE_CODE'] for r in rows); print('FACILITY_USE', c.most_common(6))
+c = collections.Counter(r['OWNERSHIP_TYPE_CODE'] for r in rows); print('OWNERSHIP', c.most_common(10))
+c = collections.Counter(r['TWR_TYPE_CODE'] for r in rows); print('TWR', c.most_common(10))
+ft = collections.Counter(t.strip() for r in rows for t in r['FUEL_TYPES'].split(',') if t.strip()); print('FUEL', ft.most_common(15))
+os_ = collections.Counter(t.strip() for r in rows for t in r['OTHER_SERVICES'].split(',') if t.strip()); print('OTHER', os_.most_common(20))
+for r in rows:
+  if r['ARPT_ID'] in ('END','OKC','SWO','WDG','CBM','DLF','SPS','PNC'):
+    print({k: r[k] for k in ('ARPT_ID','ICAO_ID','ARPT_NAME','CITY','COUNTY_NAME','STATE_CODE','FACILITY_USE_CODE','OWNERSHIP_TYPE_CODE','FUEL_TYPES','CONTR_FUEL_AVBL','TWR_TYPE_CODE','LNDG_FEE_FLAG','OTHER_SERVICES','TRNS_STRG_HGR_FLAG','PHONE_NO','MIL_LNDG_FLAG','JOINT_USE_FLAG')})
+PY`).toString());
 
-// ---- Open-Meteo multi-location, pressure levels, 8 days
-const lats = [36.34, 33.6, 29.36, 33.99].join(",");
-const lons = [-97.92, -88.44, -100.78, -98.49].join(",");
-const lv = [925, 850, 700, 600, 500, 400];
-const vars = ["visibility", "cloud_cover_low", "precipitation", "weather_code", "cape", "freezing_level_height",
-  ...lv.flatMap((p) => [`temperature_${p}hPa`, `relative_humidity_${p}hPa`, `cloud_cover_${p}hPa`, `geopotential_height_${p}hPa`])];
-r = await get(`https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&hourly=${vars.join(",")}&forecast_days=8&timezone=UTC`);
-const om = j(r);
-out("open-meteo multi", { status: r.status, size: r.size, isArray: Array.isArray(om), n: Array.isArray(om) ? om.length : null,
-  keys: Array.isArray(om) ? Object.keys(om[0].hourly) : om, len: Array.isArray(om) ? om[0].hourly.time.length : null,
-  vis: Array.isArray(om) ? om[0].hourly.visibility.slice(0, 5).concat(om[0].hourly.visibility.slice(-5)) : null,
-  cc850: Array.isArray(om) ? om[0].hourly.cloud_cover_850hPa.slice(150, 160) : null });
-
-// ---- radar tiles
-for (const u of ["https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/5/7/12.png",
-  "https://api.rainviewer.com/public/weather-maps.json"]) {
-  r = await get(u, { headers: { Origin: "https://brindos-tech.github.io" } });
-  out(`radar ${u}`, { status: r.status, ct: r.ct, acao: r.acao, size: r.size, head: r.ct.includes("json") ? r.buf.toString().slice(0, 600) : undefined });
-}
-
-// ---- aviationweather METAR (CORS check)
-r = await get("https://aviationweather.gov/api/data/metar?ids=KEND,KOKC&format=json", { headers: { Origin: "https://brindos-tech.github.io" } });
-out("awc metar", { status: r.status, acao: r.acao, head: r.buf?.toString().slice(0, 700) });
-
-// ---- GSA per diem
-for (const u of ["https://api.gsa.gov/travel/perdiem/v2/rates/conus/lodging/2027?api_key=DEMO_KEY",
-  "https://api.gsa.gov/travel/perdiem/v2/rates/conus/mie/2027?api_key=DEMO_KEY",
-  "https://api.gsa.gov/travel/perdiem/v2/rates/city/Enid/state/OK/year/2027?api_key=DEMO_KEY"]) {
-  r = await get(u);
-  const d = j(r);
-  out(`gsa ${u.split("/v2/")[1]}`, { status: r.status, size: r.size, sample: Array.isArray(d) ? d.slice(0, 2) : d });
+// Open-Meteo: how many locations per request?
+for (const n of [100, 300, 600]) {
+  const lat = Array.from({ length: n }, (_, i) => (30 + (i % 20) * 0.5).toFixed(2)).join(",");
+  const lon = Array.from({ length: n }, (_, i) => (-100 + Math.floor(i / 20) * 0.5).toFixed(2)).join(",");
+  r = await get(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_850hPa,relative_humidity_850hPa,cloud_cover_850hPa&forecast_days=8&timezone=UTC`);
+  out(`open-meteo n=${n}`, { status: r.status, size: r.size, head: r.status !== 200 ? r.buf?.toString().slice(0, 300) : undefined });
 }
