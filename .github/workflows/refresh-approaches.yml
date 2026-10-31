@@ -2,7 +2,7 @@ name: Refresh approaches
 
 # Instrument approaches per nav-list field from the FAA d-TPP metadata
 # (scripts/fetch-approaches.js). The data changes every 28 days, so weekly is
-# plenty; the commit only happens when something changed. A finished run
+# plenty (the file is d-TPP_Metafile.xml); the commit only happens when something changed. A finished run
 # triggers deploy-pages.yml.
 on:
   schedule:

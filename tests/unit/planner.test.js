@@ -240,3 +240,34 @@ test("wx-data: step lookup by local date, bilinear sampling inside coverage only
   // missing weather: init resolves false instead of throwing
   assert.equal(await createWxData(async () => { throw new Error("404"); }).init(), false);
 });
+
+// ---- approaches ----
+const ap = await import("../../assets/js/planner/approaches.js");
+
+test("approaches: chart names classify into training types", () => {
+  const c = (n) => [...ap.classifyApproach(n)].sort();
+  assert.deepEqual(c("ILS OR LOC RWY 17R"), ["ILS", "LOC"]);
+  assert.deepEqual(c("ILS RWY 35"), ["ILS"]);
+  assert.deepEqual(c("LOC RWY 8"), ["LOC"]);
+  assert.deepEqual(c("LOC/DME RWY 8"), ["LOC"]);
+  assert.deepEqual(c("LOC BC RWY 35"), ["LOCBC"]);
+  assert.deepEqual(c("LOC/DME BC RWY 17"), ["LOCBC"]);
+  assert.deepEqual(c("VOR/DME RWY 26"), ["VOR"]);
+  assert.deepEqual(c("VOR-A"), ["CIRCLING", "VOR"]);
+  assert.deepEqual(c("RNAV (GPS)-B"), ["CIRCLING", "RNAV"]);
+  assert.deepEqual(c("RNAV (GPS) Y RWY 17"), ["RNAV"]); // a letter before RWY is not circling-only
+  assert.deepEqual(c("TACAN RWY 31"), ["TACAN"]);
+  assert.deepEqual(c("NDB RWY 4"), ["NDB"]);
+  assert.deepEqual(ap.approachTypes(["VOR-A", "ILS RWY 35", "LOC BC RWY 17"]), ["ILS", "LOCBC", "VOR", "CIRCLING"]);
+});
+
+test("approaches: fields filter on ALL selected types", () => {
+  const withA = mergeFields(nav, facts, aircard, { airports: { KOKC: ["ILS RWY 35R", "LOC BC RWY 17L", "VOR-A"], KPNC: ["RNAV (GPS) RWY 17"] } });
+  const sel = (types) => selectFields(withA, state({ approachTypes: new Set(types) }), vance, config).fields.map((f) => f.code);
+  assert.ok(sel([]).includes("KOKC") && sel([]).includes("KPNC"), "no types selected = no filtering");
+  assert.deepEqual(sel(["LOCBC"]), ["KOKC"]);
+  assert.deepEqual(sel(["ILS", "LOCBC"]), ["KOKC"]);
+  assert.deepEqual(sel(["ILS", "RNAV"]), []);
+  assert.deepEqual(sel(["RNAV"]), ["KPNC"]);
+  assert.deepEqual(withA.find((f) => f.code === "KOKC").approachTypes, ["ILS", "LOCBC", "VOR", "CIRCLING"]);
+});

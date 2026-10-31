@@ -43,10 +43,13 @@ async function download() {
   const effective = airacCycle();
   const ids = [0, -1, 1].map((d) => dtppCycleId(new Date(effective.getTime() + d * 28 * DAY)));
   for (const id of ids) {
-    const url = `https://aeronav.faa.gov/d-tpp/${id}/xml_data/d-TPP_Metadata.xml`;
-    const res = await fetch(url);
-    console.log(`${url} -> HTTP ${res.status}`);
-    if (res.ok) return { id, xml: await res.text() };
+    // the FAA's notices call it d-TPP_Metafile.xml; older tooling used ..._Metadata.xml
+    for (const file of ["d-TPP_Metafile.xml", "d-TPP_Metadata.xml"]) {
+      const url = `https://aeronav.faa.gov/d-tpp/${id}/xml_data/${file}`;
+      const res = await fetch(url);
+      console.log(`${url} -> HTTP ${res.status}`);
+      if (res.ok) return { id, xml: await res.text() };
+    }
   }
   throw new Error("no d-TPP metadata found for this or the neighbouring cycles");
 }

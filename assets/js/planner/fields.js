@@ -2,18 +2,20 @@
 // (data/curated/navinfo.json) joined with the FAA/GSA facts built by
 // scripts/build-fields.js (data/generated/field-facts.json).
 import { greatCircleNm, flightMinutes } from "../geo.js";
+import { approachTypes, hasApproachTypes } from "./approaches.js";
 
 /**
  * Join the curated list with generated facts and the AIR Card merchant
  * export (data/curated/aircard.json); fields without a position can't be
  * mapped.
  */
-export function mergeFields(navinfo, factsFile, aircard) {
+export function mergeFields(navinfo, factsFile, aircard, approaches) {
   const facts = factsFile?.facts || {};
   const merchants = aircard?.airports || {};
+  const procedures = approaches?.airports || {};
   return navinfo.fields.map((f) => {
     const x = facts[f.code] || {};
-    return { ...f, ...x, id: f.code, aircard: merchants[f.code] || [], hasPosition: Number.isFinite(x.lat) && Number.isFinite(x.lon) };
+    return { ...f, ...x, id: f.code, aircard: merchants[f.code] || [], approaches: procedures[f.code] || [], approachTypes: approachTypes(procedures[f.code]), hasPosition: Number.isFinite(x.lat) && Number.isFinite(x.lon) };
   });
 }
 
@@ -56,6 +58,7 @@ export function selectFields(fields, state, origin, config) {
     if (!f.hasPosition) continue;
     if (state.fieldSource === "p" && !isPCoded(f)) continue;
     if (!filters.every((x) => x.test(f))) continue;
+    if (state.approachTypes?.size && !hasApproachTypes(f, state.approachTypes)) continue;
     if (!matchesSearch(f, state.search)) continue;
     const distanceNm = greatCircleNm(origin, f);
     const within = distanceNm <= state.rangeNm;

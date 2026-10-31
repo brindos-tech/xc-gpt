@@ -295,3 +295,7 @@
 .fp-wx-table { border-collapse: collapse; width: 100%; font-size: 0.8em; }
 .fp-wx-table th, .fp-wx-table td { padding: 4px 8px 4px 0; text-align: left; white-space: nowrap; border-bottom: 1px solid var(--border); }
 .fp-wx-table th { color: var(--muted); font-weight: 600; }
+
+.fp-approaches { margin-top: 10px; }
+.fp-approaches summary { font-size: 0.82em; }
+.fp-app-list { margin: 6px 0; padding-left: 18px; font-size: 0.84em; columns: 1; }
