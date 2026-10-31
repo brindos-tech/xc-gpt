@@ -1,0 +1,50 @@
+name: Refresh approaches
+
+# Instrument approaches per nav-list field from the FAA d-TPP metadata
+# (scripts/fetch-approaches.js). The data changes every 28 days, so weekly is
+# plenty; the commit only happens when something changed. A finished run
+# triggers deploy-pages.yml.
+on:
+  schedule:
+    - cron: "29 8 * * 1" # Mondays 08:29 UTC
+  workflow_dispatch: {}
+  push: # TEMPORARY — first run from the feature branch; remove before merge
+    branches: [claude/cloud-session-setup-i08vkf]
+    paths: [".github/workflows/refresh-approaches.yml"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-data
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Probe d-TPP shape
+        continue-on-error: true
+        run: node scripts/fetch-approaches.js --probe
+
+      - name: Build approaches
+        run: node scripts/fetch-approaches.js
+
+      - name: Commit if changed
+        run: |
+          git config user.name "xc-gpt-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/generated/approaches.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "chore: refresh approaches ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+            git pull --rebase origin "${GITHUB_REF_NAME}" || true
+            git push
+          fi
