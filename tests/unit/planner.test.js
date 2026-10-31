@@ -117,3 +117,107 @@ test("distanceToGeometryNm: inside is 0, otherwise nearest edge", async () => {
   assert.ok(Math.abs(distanceToGeometryNm(line, o) - 0.5 * Math.cos((36 * Math.PI) / 180) * 60) < 0.5);
   assert.equal(distanceToGeometryNm(null, o), Infinity);
 });
+
+// ---- weather model ----
+const wx = await import("../../assets/js/planner/wx-model.js");
+
+const lv = (tC, cc, gphM) => ({ tC, cc, gphM });
+const clearSky = [lv(10, 0, 110), lv(8, 0, 560), lv(5, 0, 1000), lv(2, 0, 1450), lv(-1, 0, 1950), lv(-8, 0, 3000), lv(-15, 0, 4200), lv(-25, 0, 5600), lv(-42, 0, 7200)];
+
+test("wx: clear sky is VFR with no icing or ceiling", () => {
+  const s = wx.deriveStep({ elevM: 300, t2mC: 15, rh2m: 40, visM: 24000, precipMm: 0, codes: [0], cape: 0, levels: clearSky });
+  assert.equal(s.ceil, wx.NO_CEILING);
+  assert.equal(s.lice + s.hice + s.thun, 0);
+  assert.equal(wx.flightCategory(s.ceil, s.vis), 0);
+  assert.equal(s.tF, 59);
+});
+
+test("wx: ceiling is the lowest cloudy level above ground; underground levels are ignored", () => {
+  // 1000 and 950 hPa are below a 600 m field, 900 hPa (~1000 m) is overcast: ceiling ≈ (1000-600) m ≈ 1,300 ft
+  const levels = clearSky.map((l, i) => (i === 2 ? lv(5, 90, 1000) : l));
+  const s = wx.deriveStep({ elevM: 600, t2mC: 15, rh2m: 60, visM: 16000, precipMm: 0, codes: [3], cape: 0, levels: [lv(12, 100, 110), lv(10, 100, 560), ...levels.slice(2)] });
+  assert.equal(s.ceil, 13);
+  assert.equal(wx.flightCategory(s.ceil, s.vis), 1); // MVFR
+});
+
+test("wx: flight category thresholds", () => {
+  assert.equal(wx.flightCategory(wx.NO_CEILING, 100), 0);
+  assert.equal(wx.flightCategory(30, 100), 1); // 3,000 ft is MVFR
+  assert.equal(wx.flightCategory(31, 100), 0);
+  assert.equal(wx.flightCategory(9, 100), 2);
+  assert.equal(wx.flightCategory(4, 100), 3);
+  assert.equal(wx.flightCategory(wx.NO_CEILING, 9), 3); // under 1 SM
+  assert.equal(wx.flightCategory(wx.NO_CEILING, 25), 2);
+});
+
+test("wx: low vs high icing split at 10,000 ft MSL", () => {
+  // cloudy and −10 °C at 700 hPa (~3,000 m = 9,800 ft) is low icing; at 600 hPa (~4,200 m = 13,800 ft) high
+  const low = clearSky.map((l, i) => (i === 5 ? lv(-8, 90, 3000) : l));
+  const a = wx.deriveStep({ elevM: 0, t2mC: 5, rh2m: 80, visM: 10000, precipMm: 0, codes: [3], cape: 0, levels: low });
+  assert.equal(a.lice, 2);
+  assert.equal(a.hice, 0);
+  const high = clearSky.map((l, i) => (i === 6 ? lv(-12, 60, 4200) : l));
+  const b = wx.deriveStep({ elevM: 0, t2mC: 5, rh2m: 80, visM: 10000, precipMm: 0, codes: [3], cape: 0, levels: high });
+  assert.equal(b.lice, 0);
+  assert.equal(b.hice, 1);
+  // too cold (−25 °C) or too warm is not icing
+  const cold = clearSky.map((l, i) => (i === 7 ? lv(-25, 100, 5600) : l));
+  assert.equal(wx.deriveStep({ elevM: 0, t2mC: 5, rh2m: 80, visM: 10000, precipMm: 0, codes: [3], cape: 0, levels: cold }).hice, 0);
+});
+
+test("wx: freezing rain, fog and thunder", () => {
+  const base = { elevM: 0, t2mC: -1, rh2m: 90, visM: 8000, precipMm: 1, cape: 0, levels: clearSky };
+  assert.equal(wx.deriveStep({ ...base, codes: [66] }).lice, 2);
+  const fog = wx.deriveStep({ ...base, t2mC: 4, rh2m: 99, visM: 400, precipMm: 0, codes: [45] });
+  assert.equal(fog.ceil, 2);
+  assert.equal(wx.flightCategory(fog.ceil, fog.vis), 3);
+  assert.equal(wx.deriveStep({ ...base, t2mC: 25, codes: [95] }).thun, 2);
+  assert.equal(wx.deriveStep({ ...base, t2mC: 25, codes: [61], cape: 1500, precipMm: 3 }).thun, 2);
+  assert.equal(wx.deriveStep({ ...base, t2mC: 25, codes: [61], cape: 600, precipMm: 1 }).thun, 1);
+  assert.equal(wx.deriveStep({ ...base, t2mC: 25, codes: [61], cape: 3000, precipMm: 0 }).thun, 0);
+});
+
+test("wx: grid covers the bases and marks only in-range cells", () => {
+  const origins = [{ lat: 36.3, lon: -97.9 }, { lat: 29.4, lon: -100.8 }];
+  const g = wx.makeGrid(origins, 300);
+  assert.equal(g.cov.length, g.nlat * g.nlon);
+  const inRange = g.cov.filter(Boolean).length;
+  assert.ok(inRange > 50 && inRange < g.cov.length, `${inRange} of ${g.cov.length}`);
+  // the cell nearest each base is covered
+  for (const o of origins) {
+    const r = Math.round((o.lat - g.lat0) / g.step);
+    const c = Math.round((o.lon - g.lon0) / g.step);
+    assert.equal(g.cov[r * g.nlon + c], 1);
+  }
+  const p = wx.gridPoint(g, g.nlon + 2);
+  assert.equal(p.lat, g.lat0 + 1);
+  assert.equal(p.lon, g.lon0 + 2);
+});
+
+test("wx: buildWxFiles produces per-date files whose layers line up with steps and cells", () => {
+  const times = Array.from({ length: 48 }, (_, h) => `2026-11-01T${String(h % 24).padStart(2, "0")}:00`.replace("2026-11-01", h < 24 ? "2026-11-01" : "2026-11-02"));
+  const hourly = { time: times, temperature_2m: times.map(() => 15), relative_humidity_2m: times.map(() => 50), visibility: times.map(() => 20000), precipitation: times.map(() => 0), weather_code: times.map(() => 0), cape: times.map(() => 0) };
+  for (const p of wx.LEVELS_HPA) {
+    hourly[`temperature_${p}hPa`] = times.map(() => -5);
+    hourly[`cloud_cover_${p}hPa`] = times.map(() => 0);
+    hourly[`geopotential_height_${p}hPa`] = times.map(() => 100 + (1000 - p) * 12);
+  }
+  // 850 hPa overcast at 08Z on the 2nd only
+  hourly.cloud_cover_850hPa = times.map((t) => (t === "2026-11-02T09:00" ? 100 : 0));
+  const grid = wx.makeGrid([{ lat: 36, lon: -98 }], 120);
+  const k = grid.cov.findIndex(Boolean);
+  const loc = { elevation: 300, hourly };
+  const files = wx.buildWxFiles({ grid, gridLocs: new Map([[k, loc]]), fieldLocs: new Map([["KEND", loc]]), times, model: "t", generatedAt: "now" });
+  assert.deepEqual(files.index.dates, ["2026-11-01", "2026-11-02"]);
+  assert.equal(files.index.steps.length, 16);
+  assert.equal(files.index.grid.cov.length, grid.nlat * grid.nlon);
+  const day2 = files.days["2026-11-02"];
+  assert.equal(day2.steps.length, 8);
+  assert.equal(day2.layers.ceil.length, 8);
+  assert.equal(day2.layers.ceil[0].length, grid.nlat * grid.nlon);
+  // step index 3 on the 2nd is 09Z: the fetched cell has a ceiling, unfetched cells have none
+  assert.ok(day2.layers.ceil[3][k] < wx.NO_CEILING);
+  assert.equal(day2.layers.ceil[3][k === 0 ? 1 : 0], wx.NO_CEILING);
+  assert.equal(files.fields.fields.KEND.ceil.length, 16);
+  assert.equal(files.fields.fields.KEND.tF[0], 59);
+});
