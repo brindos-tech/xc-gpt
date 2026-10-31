@@ -28,10 +28,11 @@ function hotelHtml(f, tripDate) {
   return `<div class="fp-hotels">
     <h5>Hotels · night of ${night}</h5>
     <div class="fp-links">
-      <a href="${h.marriott}" target="_blank" rel="noopener noreferrer">Marriott ↗</a>
-      <a href="${h.hilton}" target="_blank" rel="noopener noreferrer">Hilton ↗</a>
+      <a href="${h.marriott}" target="_blank" rel="noopener noreferrer">Marriott · gov/mil rate ↗</a>
+      <a href="${h.hilton}" target="_blank" rel="noopener noreferrer">Hilton search ↗</a>
+      <a href="${h.hiltonGov}" target="_blank" rel="noopener noreferrer">Hilton gov/mil rates ↗</a>
     </div>
-    <div class="muted small">Opens a one-night search for ${esc(f.city)}. Pick the government / military rate on the hotel’s site — availability and rate aren’t checked here.</div>
+    <div class="muted small">One-night search for ${esc(f.city)}. Marriott is sent with the government (GOV) rate code. On Hilton, choose Government or Military under Special Rates after dates load. Availability and price aren’t checked here; bring orders/ID for the rate.</div>
   </div>`;
 }
 
@@ -68,6 +69,7 @@ export function hotelLinks(city, tripDate) {
   const q = encodeURIComponent(city);
   return {
     marriott: `https://www.marriott.com/search/default.mi?searchType=InCity&destinationAddress.destination=${q}&fromDate=${encodeURIComponent(us(tripDate))}&toDate=${encodeURIComponent(us(out))}&numberOfRooms=1&numberOfGuests=1&clusterCode=GOV`,
+    hiltonGov: "https://www.hilton.com/en/p/government-military-rates",
     hilton: `https://www.hilton.com/en/search/?query=${q}&arrivalDate=${iso(tripDate)}&departureDate=${iso(out)}&flexibleDates=false&numRooms=1&numAdults=1`,
   };
 }
