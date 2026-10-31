@@ -1,55 +1,37 @@
-// TEMPORARY probe #2 — removed before the PR.
-const out = (label, v) => console.log(`\n===== ${label} =====\n${typeof v === "string" ? v : JSON.stringify(v, null, 1)}`.slice(0, 5000));
-async function get(url) {
-  try { const res = await fetch(url); const buf = Buffer.from(await res.arrayBuffer()); return { status: res.status, ct: res.headers.get("content-type"), size: buf.length, buf }; }
-  catch (e) { return { status: "ERR", error: String(e) }; }
+// TEMPORARY probe #3 — removed before the PR.
+const CLASSES = {"K01R": "Civil Airport (Non-P)", "1R8": "Civil Airport (Non-P)", "KBHM": "P (with DoD tenant)", "KOZR": "Military", "61A": "Unknown", "KSEM": "Unknown", "KDHN": "P (without DoD tenant)", "KAIV": "P (without DoD tenant)", "KCQF": "Unknown", "KHSV": "P (without DoD tenant)", "KJKA": "Unknown", "KMXF": "Military", "KBFM": "P (without DoD tenant)", "KMOB": "P (with DoD tenant)", "KMGM": "P (with DoD tenant)", "3M8": "Unlisted", "79J": "P (with DoD tenant)", "KTOI": "P (with DoD tenant)", "KTCL": "P (without DoD tenant)", "KLIT": "P (without DoD tenant)", "KFYV": "P (without DoD tenant)", "KFSM": "P (with DoD tenant)", "KLRF": "Military", "KMEZ": "P (without DoD tenant)", "KXNA": "P (without DoD tenant)", "KTXK": "P (without DoD tenant)", "KDMA": "Military", "KPHX": "P (with DoD tenant)", "KIWA": "P (without DoD tenant)", "KPRC": "Civil Airport (Non-P)", "KFHU": "MIL/CIV", "KTUS": "P (with DoD tenant)", "KNYL": "MIL/CIV", "KDAG": "P (with DoD tenant)", "KBAB": "Military", "KEDW": "Military", "KNJK": "Military", "KFAT": "P (with DoD tenant)", "KLAX": "P (with DoD tenant)", "KRIV": "MIL/CIV", "KMCC": "P (with DoD tenant)", "KNKX": "Military", "KNUQ": "Military", "KNLC": "Military", "KNZY": "Military", "KNTD": "Military", "KNID": "Military", "KNUC": "Military", "KNRS": "Military", "KONT": "P (with DoD tenant)", "KMHR": "P (with DoD tenant)", "KSUU": "Military", "KVBG": "Military", "KBKF": "Military", "KAPA": "P (without DoD tenant)", "KCFO": "P (without DoD tenant)", "KCOS": "P (with DoD tenant)", "KEGE": "P (with DoD tenant)", "KGJT": "P (without DoD tenant)", "KFLY": "P (without DoD tenant)", "KPUB": "P (without DoD tenant)", "KAFF": "Military", "KDOV": "MIL/CIV", "KILG": "P (with DoD tenant)", "KBKV": "P (with DoD tenant)", "KVQQ": "P (with DoD tenant)", "KVPS": "MIL/CIV", "KHRT": "Military", "KJAX": "P (with DoD tenant)", "KMCF": "Military", "KAGR": "Military", "KNRB": "Military", "KMLB": "Civil Airport (Non-P)", "KNIP": "Military", "KNQX": "Military", "KNPA": "Military", "KNFJ": "Military", "KNGS": "Military", "KNEN": "Military", "KOPF": "P (with DoD tenant)", "KMCO": "P (with DoD tenant)", "KPBI": "P (without DoD tenant)", "KCOF": "Military", "KPNS": "P (without DoD tenant)", "KSRQ": "P (without DoD tenant)", "KPIE": "P (with DoD tenant)", "KTLH": "P (without DoD tenant)", "KPAM": "Military", "KNSE": "Military", "KNDZ": "Military", "KWDR": "P (with DoD tenant)", "KPDK": "P (without DoD tenant)", "KMGE": "Military", "KSAV": "P (with DoD tenant)", "KSVN": "Military", "KMCN": "P (without DoD tenant)", "KVAD": "Military", "KMGR": "Unknown", "4J5": "Unknown", "KABY": "P (without DoD tenant)", "KTVI": "Unknown", "KVLD": "P (without DoD tenant)", "KLHW": "MIL/CIV", "KIKV": "P (with DoD tenant)", "KDVN": "P (with DoD tenant)", "KDSM": "P (with DoD tenant)", "KSUX": "P (with DoD tenant)", "KBOI": "P (with DoD tenant)", "KMUO": "Military", "KSPI": "P (with DoD tenant)", "KRFD": "P (without DoD tenant)", "KMLI": "P (without DoD tenant)", "KBLV": "MIL/CIV", "KMWA": "P (without DoD tenant)", "KEVV": "P (without DoD tenant)", "KFWA": "P (with DoD tenant)", "KGYY": "P (with DoD tenant)", "KIND": "P (without DoD tenant)", "KHUF": "P (with DoD tenant)", "KANY": "P (without DoD tenant)", "KFOE": "P (with DoD tenant)", "KGCK": "P (without DoD tenant)", "KHUT": "P (without DoD tenant)", "KLBL": "Civil Airport (Non-P)", "KIAB": "Military", "KIXD": "P (with DoD tenant)", "KSLN": "P (with DoD tenant)", "KFLV": "MIL/CIV", "KWLD": "Civil Airport (Non-P)", "KEGT": "Civil Airport (Non-P)", "KICT": "P (without DoD tenant)", "KLEX": "P (without DoD tenant)", "KHOP": "Military", "KSDF": "P (with DoD tenant)", "KARA": "P (without DoD tenant)", "KAEX": "P (with DoD tenant)", "KBAD": "Military", "KCWF": "P (without DoD tenant)", "KESF": "P (with DoD tenant)", "KNEW": "P (with DoD tenant)", "KMLU": "P (without DoD tenant)", "KNBG": "Military", "KSHV": "P (without DoD tenant)", "KBED": "P (with DoD tenant)", "KFMH": "Military", "KHGR": "P (with DoD tenant)", "KADW": "Military", "KNHK": "Military", "KNUI": "Military", "KBGR": "P (with DoD tenant)", "KAPN": "P (with DoD tenant)", "KTVC": "P (with DoD tenant)", "KGOV": "MIL/CIV", "KMTC": "Military", "KBTL": "P (with DoD tenant)", "KYIP": "Civil Airport (Non-P)", "KDLH": "P (with DoD tenant)", "KMSP": "P (with DoD tenant)", "KBBG": "Civil Airport (Non-P)", "KCGI": "P (without DoD tenant)", "KCOU": "P (without DoD tenant)", "KJEF": "P (with DoD tenant)", "KMKC": "Civil Airport (Non-P)", "KSTJ": "P (with DoD tenant)", "KSUS": "P (without DoD tenant)", "KTBN": "MIL/CIV", "KSZL": "Military", "KCBM": "Military", "KUBS": "P (without DoD tenant)", "KGTR": "P (without DoD tenant)", "KGWO": "P (without DoD tenant)", "KGNF": "Unknown", "KGPT": "P (with DoD tenant)", "KHKS": "P (with DoD tenant)", "M44": "Unknown", "KJAN": "P (with DoD tenant)", "KBIX": "Military", "KMEI": "P (with DoD tenant)", "KLMS": "Unknown", "KGLH": "P (without DoD tenant)", "KNMM": "Military", "KNJW": "Military", "KHSA": "P (without DoD tenant)", "KPQL": "P (without DoD tenant)", "KUTA": "Unknown", "KTUP": "P (with DoD tenant)", "KUOX": "Unknown", "KGTF": "P (with DoD tenant)", "KHLN": "P (with DoD tenant)", "KAVL": "P (without DoD tenant)", "KCLT": "P (with DoD tenant)", "KECG": "Military", "KGSO": "P (without DoD tenant)", "KRDU": "P (with DoD tenant)", "KGSB": "Military", "KVUJ": "P (with DoD tenant)", "KILM": "P (with DoD tenant)", "KBIS": "P (with DoD tenant)", "KRDR": "Military", "KFAR": "P (with DoD tenant)", "KMIB": "Military", "KGRI": "P (with DoD tenant)", "KLNK": "P (with DoD tenant)", "KOFF": "Military", "KPSM": "P (with DoD tenant)", "KNEL": "Military", "KABQ": "MIL/CIV", "KCVS": "Military", "KHMN": "Military", "KROW": "P (without DoD tenant)", "KSAF": "P (with DoD tenant)", "KINS": "Military", "KLAS": "P (without DoD tenant)", "KNFL": "Military", "KLSV": "Military", "KRTS": "P (with DoD tenant)", "KRNO": "P (with DoD tenant)", "KALB": "P (with DoD tenant)", "KROC": "P (with DoD tenant)", "KISP": "P (with DoD tenant)", "KIAG": "P (with DoD tenant)", "KSWF": "P (with DoD tenant)", "KSYR": "P (with DoD tenant)", "KLUK": "P (without DoD tenant)", "KCMH": "P (with DoD tenant)", "KLCK": "P (with DoD tenant)", "KTOL": "P (with DoD tenant)", "KFFO": "Military", "KLTS": "Military", "KAVK": "Civil Airport (Non-P)", "KADM": "P (without DoD tenant)", "KBVO": "Civil Airport (Non-P)", "KBKN": "Civil Airport (Non-P)", "92F": "Unlisted", "4O5": "Civil Airport (Non-P)", "KCHK": "Unlisted", "KCSM": "P (without DoD tenant)", "KRQO": "Civil Airport (Non-P)", "KWDG": "P (without DoD tenant)", "K6K4": "Civil Airport (Non-P)", "KGOK": "Civil Airport (Non-P)", "KFSI": "Military", "KCKA": "Military", "KLAW": "P (without DoD tenant)", "O53": "Civil Airport (Non-P)", "KMKO": "Civil Airport (Non-P)", "KPVJ": "Unlisted", "F22": "Civil Airport (Non-P)", "KPNC": "Civil Airport (Non-P)", "KSWO": "P (without DoD tenant)", "KTIK": "Military", "KTUL": "P (with DoD tenant)", "KOUN": "P (without DoD tenant)", "KEND": "Military", "KJWG": "Civil Airport (Non-P)", "KPWA": "P (without DoD tenant)", "KOKC": "P (with DoD tenant)", "KLMT": "P (with DoD tenant)", "KPDX": "P (with DoD tenant)", "KMDT": "P (with DoD tenant)", "KJST": "P (with DoD tenant)", "KPIT": "P (with DoD tenant)", "KOQU": "P (with DoD tenant)", "KCHS": "MIL/CIV", "KGYH": "P (without DoD tenant)", "KGSP": "P (without DoD tenant)", "KMMT": "Military", "KMYR": "P (without DoD tenant)", "KSSC": "Military", "KRCA": "Military", "KFSD": "P (with DoD tenant)", "KRAP": "P (with DoD tenant)", "KCHA": "P (with DoD tenant)", "KTYS": "P (with DoD tenant)", "KMKL": "P (with DoD tenant)", "KMEM": "P (with DoD tenant)", "KNQA": "P (without DoD tenant)", "KBNA": "P (with DoD tenant)", "KMQY": "P (with DoD tenant)", "KABI": "P (without DoD tenant)", "KBEA": "P (without DoD tenant)", "KBPG": "Unlisted", "0F2": "Unlisted", "KBRO": "Civil Airport (Non-P)", "KRWV": "Unlisted", "KCXO": "P (with DoD tenant)", "KCRP": "P (without DoD tenant)", "KCOT": "Unlisted", "KDWH": "P (without DoD tenant)", "KDRT": "P (without DoD tenant)", "KDTO": "P (without DoD tenant)", "24R": "Unlisted", "KCZT": "Unlisted", "KTPL": "P (without DoD tenant)", "KDYS": "Military", "KGGG": "P (without DoD tenant)", "KCLL": "P (without DoD tenant)", "KECU": "Unlisted", "KELP": "P (without DoD tenant)", "27R": "Unlisted", "KEFD": "P (with DoD tenant)", "KAFW": "P (without DoD tenant)", "KFTW": "P (with DoD tenant)", "KNFW": "Military", "KUVA": "Unlisted", "KGYB": "Unlisted", "KHDO": "P (without DoD tenant)", "2R9": "Unlisted", "KJCT": "Unlisted", "KNQI": "Military", "KSKF": "MIL/CIV", "KLRD": "P (without DoD tenant)", "KDLF": "Military", "KLBB": "P (without DoD tenant)", "KSJT": "P (without DoD tenant)", "5T9": "Unlisted", "T30": "Unlisted", "KMAF": "P (without DoD tenant)", "KNGP": "Military", "KNWL": "Military", "KGYI": "P (without DoD tenant)", "KPEZ": "Unlisted", "KRND": "Military", "49R": "Unlisted", "KAMA": "P (without DoD tenant)", "T20": "Unlisted", "KSAT": "P (without DoD tenant)", "KHYI": "Unlisted", "KSPS": "MIL/CIV", "84R": "Unlisted", "KSOA": "Unlisted", "88R": "Unlisted", "KSSF": "P (without DoD tenant)", "KCNW": "P (without DoD tenant)", "KTYR": "P (without DoD tenant)", "KHRL": "P (without DoD tenant)", "KVCT": "P (without DoD tenant)", "KACT": "P (without DoD tenant)", "KHIF": "Military", "KSLC": "P (with DoD tenant)", "U42": "P (with DoD tenant)", "KBKT": "MIL/CIV", "KNDY": "Military", "KLFI": "Military", "KNTU": "Military", "KNGU": "Military", "KRIC": "P (with DoD tenant)", "KTCM": "Military", "KNRA": "Military", "KPAE": "P (with DoD tenant)", "KGEG": "P (with DoD tenant)", "KNUW": "Military", "KMSN": "P (with DoD tenant)", "KMKE": "P (with DoD tenant)", "KGRB": "P (without DoD tenant)", "KLSE": "P (without DoD tenant)", "KCMY": "MIL/CIV", "KOSH": "P (with DoD tenant)", "KMRB": "P (with DoD tenant)", "KPKB": "P (with DoD tenant)", "KCKB": "P (with DoD tenant)", "KCRW": "P (with DoD tenant)", "KGUR": "MIL/CIV", "KCYS": "P (with DoD tenant)"};
+const get = async (u) => { const r = await fetch(u); return r.json(); };
+const base = "https://services6.arcgis.com/ssFJjBXIUyZDrSYZ/arcgis/rest/services";
+// all US airports with ICAO ids + DoD flags (paged)
+let feats = [], off = 0;
+while (true) {
+  const d = await get(`${base}/US_Airport/FeatureServer/0/query?where=COUNTRY%3D%27UNITED%20STATES%27&outFields=IDENT,ICAO_ID,DODHIFLIP,MIL_CODE,PRIVATEUSE,TYPE_CODE,IAPEXISTS&returnGeometry=false&resultOffset=${off}&resultRecordCount=1000&f=json`);
+  feats.push(...(d.features || []).map((f) => f.attributes));
+  if (!d.exceededTransferLimit) break;
+  off += 1000;
 }
-const j = (r) => { try { return JSON.parse(r.buf.toString()); } catch { return null; } };
+console.log("airports fetched", feats.length);
+const byId = new Map();
+for (const a of feats) { if (a.ICAO_ID) byId.set(a.ICAO_ID, a); byId.set(a.IDENT, a); if (a.IDENT && a.IDENT.length === 3) byId.set("K" + a.IDENT, a); }
+const tally = {};
+for (const [code, cls] of Object.entries(CLASSES)) {
+  const a = byId.get(code) || byId.get(code.replace(/^K/, ""));
+  const k = `${cls} | DODHIFLIP=${a ? a.DODHIFLIP : "?"} | MIL=${a ? a.MIL_CODE : "?"}`;
+  tally[k] = (tally[k] || 0) + 1;
+}
+console.log(JSON.stringify(Object.entries(tally).sort(), null, 1));
+const dod = feats.filter((a) => a.DODHIFLIP === 1);
+console.log("DODHIFLIP=1 total", dod.length, "by MIL_CODE", JSON.stringify(dod.reduce((m, a) => (m[a.MIL_CODE] = (m[a.MIL_CODE] || 0) + 1, m), {})));
+// MTR route types
+for (const f of ["ROUTETYPE", "MTR_TYPE"]) {
+  const d = await get(`${base}/MTRSegment/FeatureServer/0/query?where=1%3D1&outFields=${f}&returnDistinctValues=true&returnGeometry=false&f=json`);
+  console.log("MTRSegment distinct", f, JSON.stringify((d.features || []).map((x) => x.attributes[f])));
+}
+for (const t of [0, 1, 2]) {
+  const d = await get(`${base}/MTRSegment/FeatureServer/0/query?where=MTR_TYPE%3D${t}&outFields=IDENT,ROUTETYPE&returnDistinctValues=true&resultRecordCount=8&returnGeometry=false&f=json`);
+  console.log("MTR_TYPE", t, JSON.stringify((d.features || []).map((x) => x.attributes)));
+}
 const { execSync } = await import("node:child_process");
-const fs = await import("node:fs");
-
-let r = await get("https://services6.arcgis.com/ssFJjBXIUyZDrSYZ/arcgis/rest/services/MTRSegment/FeatureServer/0?f=json");
-out("MTRSegment meta", { status: r.status, name: j(r)?.name, geom: j(r)?.geometryType, fields: (j(r)?.fields || []).map((f) => f.name) });
-r = await get("https://services6.arcgis.com/ssFJjBXIUyZDrSYZ/arcgis/rest/services/MTRSegment/FeatureServer/0/query?where=1%3D1&outFields=*&resultRecordCount=3&returnGeometry=false&f=json");
-out("MTRSegment sample", (j(r)?.features || []).map((f) => f.attributes));
-r = await get("https://services6.arcgis.com/ssFJjBXIUyZDrSYZ/arcgis/rest/services/MTRSegment/FeatureServer/0/query?where=1%3D1&returnCountOnly=true&f=json");
-out("MTRSegment count", j(r));
-r = await get("https://services6.arcgis.com/ssFJjBXIUyZDrSYZ/arcgis/rest/services/MTRSegment/FeatureServer/0/query?where=1%3D1&outFields=*&resultRecordCount=1&outSR=4326&f=geojson");
-out("MTRSegment geojson", { status: r.status, head: r.buf?.toString().slice(0, 1200) });
-r = await get("https://services6.arcgis.com/ssFJjBXIUyZDrSYZ/arcgis/rest/services/Special_Use_Airspace/FeatureServer/0/query?where=TYPE_CODE%3D%27MOA%27&outFields=NAME&resultRecordCount=1&outSR=4326&f=geojson");
-out("SUA geojson", { status: r.status, head: r.buf?.toString().slice(0, 800) });
-
-const name = "29_Oct_2026";
-for (const f of ["MTR_CSV.zip", "MIL_OPS_CSV.zip"]) {
-  r = await get(`https://nfdc.faa.gov/webContent/28DaySub/extra/${name}_${f}`);
-  out(`NASR ${f}`, { status: r.status, size: r.size });
-  if (r.status === 200) {
-    fs.mkdirSync(`/tmp/${f}`, { recursive: true });
-    fs.writeFileSync(`/tmp/${f}/x.zip`, r.buf);
-    console.log(execSync(`cd /tmp/${f} && unzip -o -q x.zip && ls -la && for c in *.csv; do echo "--- $c"; head -c 1500 "$c"; echo; done`).toString().slice(0, 9000));
-  }
-}
-r = await get(`https://nfdc.faa.gov/webContent/28DaySub/extra/${name}_APT_CSV.zip`);
-fs.writeFileSync("/tmp/apt.zip", r.buf);
-console.log(execSync(`cd /tmp && unzip -o -q apt.zip && head -c 1200 APT_CON.csv; echo; grep -m2 '"END"\\|,"END",' APT_BASE.csv | head -c 3000; echo; awk -F'","' 'NR==1{for(i=1;i<=NF;i++) if($i ~ /FUEL_TYPES|CONTR_FUEL|OTHER_SERVICES|TWR_TYPE|LNDG_FEE|FACILITY_USE|OWNERSHIP/) print i, $i}' APT_BASE.csv; cut -d, -f1-3 APT_CSV_DATA_STRUCTURE.csv | head -3`).toString());
-console.log(execSync(`cd /tmp && python3 - <<'PY'
-import csv, collections
-rows = list(csv.DictReader(open('/tmp/APT_BASE.csv', newline='', encoding='latin-1')))
-c = collections.Counter(r['CONTR_FUEL_AVBL'] for r in rows); print('CONTR_FUEL_AVBL', c.most_common(6))
-c = collections.Counter(r['FACILITY_USE_CODE'] for r in rows); print('FACILITY_USE', c.most_common(6))
-c = collections.Counter(r['OWNERSHIP_TYPE_CODE'] for r in rows); print('OWNERSHIP', c.most_common(10))
-c = collections.Counter(r['TWR_TYPE_CODE'] for r in rows); print('TWR', c.most_common(10))
-ft = collections.Counter(t.strip() for r in rows for t in r['FUEL_TYPES'].split(',') if t.strip()); print('FUEL', ft.most_common(15))
-os_ = collections.Counter(t.strip() for r in rows for t in r['OTHER_SERVICES'].split(',') if t.strip()); print('OTHER', os_.most_common(20))
-for r in rows:
-  if r['ARPT_ID'] in ('END','OKC','SWO','WDG','CBM','DLF','SPS','PNC'):
-    print({k: r[k] for k in ('ARPT_ID','ICAO_ID','ARPT_NAME','CITY','COUNTY_NAME','STATE_CODE','FACILITY_USE_CODE','OWNERSHIP_TYPE_CODE','FUEL_TYPES','CONTR_FUEL_AVBL','TWR_TYPE_CODE','LNDG_FEE_FLAG','OTHER_SERVICES','TRNS_STRG_HGR_FLAG','PHONE_NO','MIL_LNDG_FLAG','JOINT_USE_FLAG')})
-PY`).toString());
-
-// Open-Meteo: how many locations per request?
-for (const n of [100, 300, 600]) {
-  const lat = Array.from({ length: n }, (_, i) => (30 + (i % 20) * 0.5).toFixed(2)).join(",");
-  const lon = Array.from({ length: n }, (_, i) => (-100 + Math.floor(i / 20) * 0.5).toFixed(2)).join(",");
-  r = await get(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_850hPa,relative_humidity_850hPa,cloud_cover_850hPa&forecast_days=8&timezone=UTC`);
-  out(`open-meteo n=${n}`, { status: r.status, size: r.size, head: r.status !== 200 ? r.buf?.toString().slice(0, 300) : undefined });
-}
+const r = await fetch("https://nfdc.faa.gov/webContent/28DaySub/extra/29_Oct_2026_MTR_CSV.zip");
+(await import("node:fs")).writeFileSync("/tmp/mtr.zip", Buffer.from(await r.arrayBuffer()));
+console.log(execSync("cd /tmp && unzip -o -q mtr.zip && cut -d, -f2 MTR_BASE.csv | sort | uniq -c; grep -c '' MTR_BASE.csv; head -c 600 MTR_WDTH.csv").toString());
