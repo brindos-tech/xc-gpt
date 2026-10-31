@@ -19,6 +19,31 @@ function row(label, valueHtml) {
   return valueHtml ? `<div class="fp-row"><span>${label}</span><div>${valueHtml}</div></div>` : "";
 }
 
+const FUEL_CAP = 6;
+
+function merchantRow(m) {
+  const tel = telHref(m.phone);
+  const tag = m.contract ? `<span class="badge best-match">DLA contract</span>` : m.onSite ? `<span class="badge">on-site</span>` : `<span class="badge">delivers</span>`;
+  return `<div class="fp-merchant">
+    <div><b>${esc(m.merchant)}</b> ${tag}</div>
+    <div class="muted small">${esc(m.fuels.join(", ") || "fuels not listed")}${m.phone ? ` · ${tel ? `<a href="${tel}">${esc(m.phone)}</a>` : esc(m.phone)}` : ""}${m.updated ? ` · updated ${esc(m.updated)}` : ""}</div>
+  </div>`;
+}
+
+/** AIR Card merchants: contract and on-site first; the long off-site tail folds away. */
+function merchantsHtml(f) {
+  const all = f.aircard || [];
+  if (!all.length) return "";
+  const head = all.filter((m) => m.contract || m.onSite);
+  const tail = all.filter((m) => !m.contract && !m.onSite);
+  return `<details class="fp-notes fp-merchants" ${head.length ? "open" : ""}>
+    <summary>AIR Card merchants (${all.length})</summary>
+    ${head.slice(0, FUEL_CAP).map(merchantRow).join("") || `<div class="muted small">No on-site merchant listed.</div>`}
+    ${tail.length ? `<details class="fp-more"><summary>${tail.length} off-site supplier${tail.length === 1 ? "" : "s"} (fuel delivered)</summary>${tail.slice(0, 12).map(merchantRow).join("")}</details>` : ""}
+    <div class="muted small">AIR Card merchant export — re-exported periodically; call to confirm before you go.</div>
+  </details>`;
+}
+
 export function fieldHtml(f, ctx) {
   const { origin, config, tripDate } = ctx;
   const distanceNm = greatCircleNm(origin, f);
@@ -41,7 +66,9 @@ export function fieldHtml(f, ctx) {
       ${approvalCell("Land", f.land)}${approvalCell("Fuel", f.fuel)}${approvalCell("RON", f.ron)}
     </div>
     ${row("FBO", f.fbo ? `${esc(f.fbo)}${f.fboPhone ? ` · ${tel ? `<a href="${tel}">${esc(f.fboPhone)}</a>` : esc(f.fboPhone)}` : ""}` : `<span class="muted">None listed${f.classification.startsWith("Military") ? " (military field — use base ops)" : ""}</span>`)}
-    ${row("Gov't fuel", `<span class="${gfc.known ? (gfc.has ? "ok-text" : "bad-text") : "muted"}">${esc(gfc.text)}</span>`)}
+    ${row("Gov't fuel", `<span class="${gfc.level === "contract" ? "ok-text" : gfc.level === "none" ? "bad-text" : gfc.level === "unknown" ? "muted" : ""}">${esc(gfc.text)}</span>`)}
+    ${gfc.conflict ? `<div class="fp-conflict">${esc(gfc.conflictText)}</div>` : ""}
+    ${merchantsHtml(f)}
     ${f.notes ? `<div class="fp-notes"><h5>Nav info list notes</h5><div>${esc(f.notes)}</div></div>` : ""}
     <div class="fp-facts">
       <h5>FAA data</h5>

@@ -2,7 +2,7 @@
 
 A nav planner for T-6 cross-country missions, with the events map that started the project as page 2. See [ARCHITECTURE.md](ARCHITECTURE.md) for the original design.
 
-- **Planner (home)** — the Vance Nav Info List on a map from the selected base, with the range ring, a Nav Info List / P-coded fields switch, quick filters (fuel, RON, T-6 suitable, FBO, towered), and toggleable airspace: MOAs, restricted, warning and alert areas (on by default), IR / VR / SR training routes (off). Click a field for its FBO and phone, Land / Fuel / RON status, nav-list notes, FAA facts (runway, tower, fuel, hours) and GSA per diem; click an airspace for its scheduling activity, hours and procedures.
+- **Planner (home)** — the Vance Nav Info List on a map from the selected base, with the range ring, a Nav Info List / P-coded fields switch, quick filters (fuel available, DLA fuel contract, AIR Card on-site, T-6 suitable, FBO, military), and toggleable airspace: MOAs, restricted, warning and alert areas (on by default), IR / VR / SR training routes (off). Click a field for its FBO and phone, Land / Fuel / RON status, nav-list notes, FAA facts (runway, tower, fuel, hours) and GSA per diem; click an airspace for its scheduling activity, hours and procedures.
 - **Events** — destinations with events in a date range (From / To calendar boxes), by category and activity, with the PR ops chip. Loads only when opened.
 
 ## The planner's data
@@ -10,6 +10,7 @@ A nav planner for T-6 cross-country missions, with the events map that started t
 | File | Source | How it updates |
 |---|---|---|
 | `data/curated/navinfo.json` | Vance Nav Info List PDF (71 OSS/OSOP) | `python3 scripts/import-navinfo.py <pdf>` when a new list is published. `CODE_FIXES` in that script maps codes the list gets wrong (K01R → 0R1, KPBI → KDJT). |
+| `data/curated/aircard.json` | AIR Card merchant export (CSV) | `python3 scripts/import-aircard.py <csv>` — manual re-export; the file goes stale, and the field sheet shows each merchant's last-updated date. Merchant e-mail addresses are dropped; only fields on the nav list are kept. |
 | `data/curated/ap1.json` | DoD FLIP AP/1A (SUA) and AP/1B (MTR) text exports | `node scripts/import-ap1.mjs <AP1A.txt> <AP1B.txt>` each 8-week FLIP cycle |
 | `data/generated/field-facts.json` | FAA NASR 28-day subscription + GSA per diem | `refresh-fields.yml`, weekly |
 | `data/generated/airspace-{sua,mtr}.json` | FAA SUA / MTR geometry merged with `ap1.json` | `refresh-fields.yml`, weekly |

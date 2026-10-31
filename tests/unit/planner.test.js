@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mergeFields, isPCoded, selectFields, fieldStatus, gfcStatus, perDiemFor, fiscalYear, telHref, matchesSearch } from "../../assets/js/planner/fields.js";
+import { mergeFields, isPCoded, selectFields, fieldStatus, gfcStatus, perDiemFor, fiscalYear, telHref, matchesSearch, FIELD_FILTERS } from "../../assets/js/planner/fields.js";
 import { airspaceRows, airspaceTooltip } from "../../assets/js/planner/airspace.js";
 
 const config = { aircraft: { cruiseKts: 300 } };
@@ -20,7 +20,17 @@ const facts = {
     KLAX: { lat: 33.9425, lon: -118.408, tower: "ATCT" },
   },
 };
-const fields = mergeFields(nav, facts);
+const aircard = {
+  airports: {
+    KOKC: [
+      { merchant: "AAR AIRCRAFT SERVICES", contract: true, onSite: true, fuels: ["Jet A"], phone: "+1 (405) 218-3150" },
+      { merchant: "World Fuel Services", contract: false, onSite: false, fuels: ["Jet A"], phone: null },
+    ],
+    KPNC: [{ merchant: "Ponca Aviation", contract: false, onSite: true, fuels: ["Jet A"], phone: null }],
+    KLAX: [{ merchant: "Atlantic", contract: true, onSite: true, fuels: [], phone: null }],
+  },
+};
+const fields = mergeFields(nav, facts, aircard);
 const state = (patch = {}) => ({ fieldSource: "nav", fieldFilters: new Set(), search: "", rangeNm: 600, ...patch });
 
 test("merge joins facts and flags fields without a position", () => {
@@ -33,7 +43,11 @@ test("range, source and quick filters", () => {
   assert.deepEqual(selectFields(fields, state(), vance, config).fields.map((f) => f.code), ["KPNC", "KOKC"]);
   assert.deepEqual(selectFields(fields, state({ fieldSource: "p" }), vance, config).fields.map((f) => f.code), ["KOKC"]);
   assert.deepEqual(selectFields(fields, state({ fieldFilters: new Set(["fuel"]) }), vance, config).fields.map((f) => f.code), ["KOKC"]);
-  assert.deepEqual(selectFields(fields, state({ fieldFilters: new Set(["towered"]) }), vance, config).fields.map((f) => f.code), ["KOKC"]);
+  assert.deepEqual(selectFields(fields, state({ fieldFilters: new Set(["dla"]) }), vance, config).fields.map((f) => f.code), ["KOKC"]);
+  assert.deepEqual(selectFields(fields, state({ fieldFilters: new Set(["aircard"]) }), vance, config).fields.map((f) => f.code), ["KPNC", "KOKC"]);
+  // RON and Towered are not toggles any more
+  assert.deepEqual(FIELD_FILTERS.map((f) => f.key), ["fuel", "dla", "aircard", "t6", "fbo", "military"]);
+  assert.equal(FIELD_FILTERS[0].label, "Fuel available");
   assert.equal(selectFields(fields, state({ rangeNm: 2000 }), vance, config).inRange, 3);
 });
 
@@ -49,9 +63,17 @@ test("P-coded, status and GFC", () => {
   assert.equal(isPCoded(fields[1]), false);
   assert.equal(fieldStatus(fields[0]), "go");
   assert.equal(fieldStatus(fields[1]), "check");
-  assert.equal(gfcStatus(fields[1]).has, false);
-  assert.equal(gfcStatus(fields[0]).known, false);
-  assert.equal(gfcStatus({ notes: "", contractFuel: true }).has, true);
+  assert.equal(gfcStatus(fields[0]).level, "contract");
+  assert.match(gfcStatus(fields[0]).text, /AAR AIRCRAFT SERVICES/);
+  // KPNC: the list says No GFC and the export has only an open-market merchant — the list wins
+  assert.equal(gfcStatus(fields[1]).level, "none");
+  assert.equal(gfcStatus({ notes: "", aircard: [{ merchant: "X", contract: false, onSite: true }] }).level, "open");
+  assert.equal(gfcStatus({ notes: "", aircard: [{ merchant: "X", contract: false, onSite: false }] }).level, "delivered");
+  assert.equal(gfcStatus({ notes: "", aircard: [] }).level, "unknown");
+  // a contract merchant against a "No GFC" note is flagged, not hidden
+  const clash = gfcStatus({ notes: "- No GFC", aircard: [{ merchant: "Y", contract: true, onSite: true }] });
+  assert.equal(clash.level, "contract");
+  assert.equal(clash.conflict, true);
 });
 
 test("per diem by fiscal year and month", () => {

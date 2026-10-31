@@ -3,12 +3,17 @@
 // scripts/build-fields.js (data/generated/field-facts.json).
 import { greatCircleNm, flightMinutes } from "../geo.js";
 
-/** Join the curated list with generated facts; fields without a position can't be mapped. */
-export function mergeFields(navinfo, factsFile) {
+/**
+ * Join the curated list with generated facts and the AIR Card merchant
+ * export (data/curated/aircard.json); fields without a position can't be
+ * mapped.
+ */
+export function mergeFields(navinfo, factsFile, aircard) {
   const facts = factsFile?.facts || {};
+  const merchants = aircard?.airports || {};
   return navinfo.fields.map((f) => {
     const x = facts[f.code] || {};
-    return { ...f, ...x, id: f.code, hasPosition: Number.isFinite(x.lat) && Number.isFinite(x.lon) };
+    return { ...f, ...x, id: f.code, aircard: merchants[f.code] || [], hasPosition: Number.isFinite(x.lat) && Number.isFinite(x.lon) };
   });
 }
 
@@ -20,11 +25,11 @@ export function mergeFields(navinfo, factsFile) {
 export const isPCoded = (f) => /^P \(/.test(f.classification || "");
 
 export const FIELD_FILTERS = [
-  { key: "fuel", label: "Fuel approved", test: (f) => f.fuel === "Approved" },
-  { key: "ron", label: "RON approved", test: (f) => f.ron === "Approved" },
+  { key: "fuel", label: "Fuel available", test: (f) => f.fuel === "Approved" },
+  { key: "dla", label: "DLA fuel contract", test: (f) => hasContractMerchant(f) },
+  { key: "aircard", label: "AIR Card on-site", test: (f) => (f.aircard || []).some((m) => m.onSite) },
   { key: "t6", label: "T-6 suitable", test: (f) => (f.suitability || []).includes("T-6") },
   { key: "fbo", label: "Has FBO", test: (f) => Boolean(f.fbo) },
-  { key: "towered", label: "Towered", test: (f) => /^ATCT/.test(f.tower || "") },
   { key: "military", label: "Military / joint", test: (f) => /Military|MIL\/CIV|with DoD tenant/.test(f.classification || "") },
 ];
 
@@ -77,12 +82,52 @@ export const STATUS_LABELS = {
   no: "Landing not approved",
 };
 
-/** Government fuel contract signal: the list's own notes first, FAA's contract-fuel flag second. */
+export const hasContractMerchant = (f) => (f.aircard || []).some((m) => m.contract);
+
+/**
+ * Government fuel, from the AIR Card merchant export ("DLA Energy Contract"
+ * = a GFC merchant; "Open Market" = accepts the AIR Card without a contract)
+ * set against the nav info list's own notes. The list stays the authority on
+ * whether crews are *approved* — when the two disagree both are shown.
+ */
 export function gfcStatus(f) {
+  const merchants = f.aircard || [];
+  const contract = merchants.filter((m) => m.contract);
+  const openOnSite = merchants.filter((m) => !m.contract && m.onSite);
+  const openOff = merchants.filter((m) => !m.contract && !m.onSite);
   const notes = f.notes || "";
-  if (/\bno (gfc|fuel contract|government fuel)/i.test(notes) || /\bFBO lost GFC\b/i.test(notes)) return { known: true, has: false, text: "No GFC (per nav info list)" };
-  if (f.contractFuel === true) return { known: true, has: true, text: "Contract fuel available (FAA)" };
-  return { known: false, has: null, text: "GFC not noted — verify before going" };
+  const listSaysNo = /\bno (gfc|fuel contract|government fuel)/i.test(notes) || /\bFBO lost GFC\b/i.test(notes);
+
+  let level, text;
+  if (contract.length) {
+    level = "contract";
+    text = `DLA contract: ${contract.map((m) => m.merchant).join(", ")}`;
+  } else if (listSaysNo) {
+    level = "none";
+    text = "No GFC (per nav info list)";
+  } else if (openOnSite.length) {
+    level = "open";
+    text = `AIR Card open market on-site: ${openOnSite.map((m) => m.merchant).join(", ")}`;
+  } else if (openOff.length) {
+    level = "delivered";
+    text = "No on-site merchant; open-market suppliers deliver";
+  } else {
+    level = "unknown";
+    text = "GFC not noted — verify before going";
+  }
+  const conflict = listSaysNo && contract.length > 0;
+  return {
+    level,
+    text,
+    // legacy fields the sheet colours by
+    known: level !== "unknown",
+    has: level === "contract" || level === "open" ? true : level === "none" ? false : null,
+    conflict,
+    conflictText: conflict ? "The nav info list says “No GFC” here, but AIR Card data shows a DLA contract merchant. Trust the list; verify before relying on it." : null,
+    contract,
+    openOnSite,
+    openOff,
+  };
 }
 
 /** Federal fiscal year (FY2027 = Oct 2026 – Sep 2027). */
