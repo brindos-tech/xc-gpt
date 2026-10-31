@@ -14,8 +14,13 @@ A nav planner for T-6 cross-country missions, with the events map that started t
 | `data/curated/ap1.json` | DoD FLIP AP/1A (SUA) and AP/1B (MTR) text exports | `node scripts/import-ap1.mjs <AP1A.txt> <AP1B.txt>` each 8-week FLIP cycle |
 | `data/generated/field-facts.json` | FAA NASR 28-day subscription + GSA per diem | `refresh-fields.yml`, weekly |
 | `data/generated/airspace-{sua,mtr}.json` | FAA SUA / MTR geometry merged with `ap1.json` | `refresh-fields.yml`, weekly |
+| `wx/` (branch `wx-data`, served at `data/generated/wx/`) | Open-Meteo GFS pressure-level forecast, 1° grid + every nav-list field, 3-hourly for 8 days | `refresh-wx.yml`, twice daily; **not committed to main** — force-published as one commit on `wx-data`, which `deploy-pages.yml` copies into the site |
 
 Planning reference only — the page says so. ForeFlight / FLIP / NOTAMs remain the source for what's actually allowed and open.
+
+### Weather overlays
+
+The planner's weather bar (day picker today…+7, local-time slider, overlays) draws radar, flight category, low/high icing, ceiling and thunderstorms from that forecast grid. `assets/js/planner/wx-model.js` derives the layers: icing where a pressure level is −20…0 °C with cloud cover ≥ 40 % (low < 10,000 ft MSL, high 10,000–25,000 ft); ceiling from the lowest level with ≥ 50 % cloud above ground; flight category from ceiling and visibility. It is a **planning aid, not a weather brief** — ~60 nm grid, ~1,500 ft vertical spacing. “Radar” is live NEXRAD (Iowa Environmental Mesonet tiles) only at “now”; any other time shows model precipitation instead. The page hides the weather bar if no forecast has been published. Open-Meteo's free tier is non-commercial and limited per day, so keep the schedule at two runs.
 
 ## Running it locally
 
@@ -49,6 +54,7 @@ Tags flag *candidates*. Actual participation goes through the base's public affa
 Two scheduled workflows regenerate `data/generated/`:
 
 - **`.github/workflows/refresh-daily.yml`** — pulls Ticketmaster and SeatGeek events, weather, expands `recurring.json`, merges, validates, commits.
+- **`.github/workflows/refresh-wx.yml`** — twice daily: the forecast grid, published to the `wx-data` branch (see above).
 - **`.github/workflows/refresh-fields.yml`** — weekly: NASR + per-diem field facts and the airspace layers (see above).
 - **`.github/workflows/refresh-weekly.yml`** — syncs Spotify top artists, resolves new Ticketmaster attraction IDs, rebuilds, checks link health.
 

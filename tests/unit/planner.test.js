@@ -221,3 +221,22 @@ test("wx: buildWxFiles produces per-date files whose layers line up with steps a
   assert.equal(files.fields.fields.KEND.ceil.length, 16);
   assert.equal(files.fields.fields.KEND.tF[0], 59);
 });
+
+test("wx-data: step lookup by local date, bilinear sampling inside coverage only", async () => {
+  const { createWxData } = await import("../../assets/js/planner/wx-data.js");
+  const grid = { lat0: 30, lon0: -100, step: 1, nlat: 3, nlon: 3, cov: "111111110" }; // SE corner not covered
+  const dayFile = { date: "2026-11-02", steps: ["2026-11-02T12:00Z"], layers: Object.fromEntries(["lice", "hice", "ceil", "vis", "prec", "thun"].map((l) => [l, [[0, 0, 0, 0, 0, 0, 0, 0, 0]]])) };
+  dayFile.layers.prec = [[0, 10, 0, 0, 10, 0, 0, 0, 0]];
+  const d = createWxData(async (p) => (p.includes("index.json") ? { generatedAt: "x", steps: ["2026-11-02T12:00Z"], dates: ["2026-11-02"], grid } : dayFile));
+  assert.equal(await d.init(), true);
+  await d.ensureSteps(["2026-11-02T12:00Z"]);
+  // halfway between a 0 and a 10 cell
+  assert.equal(d.sample(d.layerValues("2026-11-02T12:00Z", "prec"), 30, -99.5), 5);
+  // outside the grid and inside an uncovered cell
+  assert.equal(d.sample(d.layerValues("2026-11-02T12:00Z", "prec"), 40, -99.5), null);
+  assert.equal(d.sample(d.layerValues("2026-11-02T12:00Z", "prec"), 32, -98, true), null);
+  const p = d.pointAt("2026-11-02T12:00Z", 31, -99);
+  assert.equal(p.prec, 10);
+  // missing weather: init resolves false instead of throwing
+  assert.equal(await createWxData(async () => { throw new Error("404"); }).init(), false);
+});
