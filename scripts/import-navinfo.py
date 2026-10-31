@@ -21,6 +21,13 @@ from pathlib import Path
 import pdfplumber
 
 OUT = Path(__file__).resolve().parent.parent / "data" / "curated" / "navinfo.json"
+# Codes the published list carries that no longer match FAA data. Applied on
+# every import so a re-import keeps the fix; remove an entry once OSS
+# corrects it in the PDF. The original code is kept as `listedAs`.
+CODE_FIXES = {
+    "K01R": "0R1",   # Atmore Municipal
+    "KPBI": "KDJT",  # confirmed by the unit, Oct 2026
+}
 # Some FBO comments in the source were triple-encoded (UTF-8 read as
 # cp1252, three times over) before they reached the PDF.
 MOJIBAKE = re.compile(r"[ÃÂâ€šƒ¢Å“™¬ž\u0080-\u009f]{2,}")
@@ -96,6 +103,10 @@ def main():
     m = re.search(r"(\d{1,2})_([A-Za-z]{3})_(\d{2})", pdf_path.name)
     as_of = datetime.strptime("-".join(m.groups()), "%d-%b-%y").date().isoformat() if m else None
     fields = parse(pdf_path)
+    for f in fields:
+        if f["code"] in CODE_FIXES:
+            f["listedAs"] = f["code"]
+            f["code"] = CODE_FIXES[f["code"]]
     OUT.write_text(json.dumps({
         "source": pdf_path.name,
         "asOf": as_of,

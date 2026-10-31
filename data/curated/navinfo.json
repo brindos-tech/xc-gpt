@@ -4,7 +4,7 @@
  "owner": "71 OSS/OSOP (Vance Airspace)",
  "fields": [
   {
-   "code": "K01R",
+   "code": "0R1",
    "name": "Atmore Municipal Airport",
    "city": "Atmore, AL",
    "stateName": "Alabama",
@@ -17,7 +17,8 @@
    "fboPhone": "",
    "suitability": [],
    "distanceFromVanceNm": 613,
-   "notes": "No GFC, attendance MON-FRI: 0700-1700/Weekends: ON CALL, Rwy 5001' x 80'"
+   "notes": "No GFC, attendance MON-FRI: 0700-1700/Weekends: ON CALL, Rwy 5001' x 80'",
+   "listedAs": "K01R"
   },
   {
    "code": "1R8",
@@ -1530,7 +1531,7 @@
    "notes": "- Busy International Airport w/ SIDs and STARs\n- Hours of Operation: 0600-2300 7 days a week to include holidays."
   },
   {
-   "code": "KPBI",
+   "code": "KDJT",
    "name": "Palm Beach International Airport",
    "city": "West Palm Beach, FL",
    "stateName": "Florida",
@@ -1546,7 +1547,8 @@
     "T-1"
    ],
    "distanceFromVanceNm": 1078,
-   "notes": "- T-38 start cart fee\n- Call ahead about fees\n- No RON per AETC"
+   "notes": "- T-38 start cart fee\n- Call ahead about fees\n- No RON per AETC",
+   "listedAs": "KPBI"
   },
   {
    "code": "KCOF",

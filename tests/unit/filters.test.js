@@ -17,13 +17,12 @@ const config = {
 };
 
 const place = (id, distanceNm, extra = {}) => ({
-  id, name: id, distanceNm, isWest: true, kinds: ["city"], activities: {}, airports: [{ icao: `K${id.toUpperCase()}` }], ...extra,
+  id, name: id, distanceNm, kinds: ["city"], activities: {}, airports: [{ icao: `K${id.toUpperCase()}` }], ...extra,
 });
 
 const places = () => [
   place("near", 100, { activities: { food: 4 } }),
   place("far", 900),
-  place("east", 200, { isWest: false }),
   place("wichita", 96, { airports: [{ icao: "KSPS" }] }),
   place("bigcity", 300, { kinds: ["city"], activities: { weird: 4, food: 3, art: 3 } }),
   place("smalltown", 250, { kinds: ["boutique"], activities: { weird: 1, food: 2, art: 2, outdoors: 2 } }),
@@ -44,7 +43,6 @@ const events = [
 const baseState = (patch = {}) => ({
   originId: "vance",
   rangeNm: 600,
-  westOnly: false,
   categories: new Set(),
   activities: new Set(),
   minScale: null,
@@ -66,10 +64,6 @@ test("the selected base's own airport is not a destination", () => {
   assert.ok(!ids(applyFilters(places(), events, baseState({ originId: "sheppard" }), config).visiblePlaces).includes("wichita"));
 });
 
-test("west-of-the-Mississippi rule", () => {
-  const { visiblePlaces } = applyFilters(places(), events, baseState({ westOnly: true }), config);
-  assert.ok(!ids(visiblePlaces).includes("east"));
-});
 
 test("Boutique activity uses the boutique gate, not the quirk score", () => {
   const { visiblePlaces } = applyFilters(places(), events, baseState({ activities: new Set(["weird"]) }), config);

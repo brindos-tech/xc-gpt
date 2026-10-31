@@ -28,7 +28,6 @@ export function applyFilters(places, events, state, config) {
     // selected base.
     if (origin && place.airports?.some((a) => a.icao === origin.icao)) return false;
     if (place.distanceNm > state.rangeNm) return false;
-    if (state.westOnly && !place.isWest) return false;
     if (state.activities.size > 0) {
       // The Boutique chip (the "weird" activity key) asks a different
       // question than the other five: not "does this place score high on
@@ -124,7 +123,6 @@ export function applyFiltersMemoized(places, events, state, config) {
   const hash = JSON.stringify({
     originId: state.originId,
     rangeNm: state.rangeNm,
-    westOnly: state.westOnly,
     categories: Array.from(state.categories).sort(),
     activities: Array.from(state.activities).sort(),
     minScale: state.minScale,
