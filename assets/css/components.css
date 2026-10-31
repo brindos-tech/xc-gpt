@@ -252,3 +252,45 @@
 .fp-merchant a { color: var(--accent3); }
 .fp-more { margin-top: 6px; }
 .fp-more summary { cursor: pointer; font-size: 0.78em; color: var(--muted); padding: 6px 0; }
+
+/* ---- weather bar (planner map) ---- */
+.wx-bar {
+  position: absolute;
+  top: 10px;
+  left: 54px;
+  right: 12px;
+  max-width: 720px;
+  z-index: 420;
+  background: rgba(23, 26, 33, 0.93);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  font-size: 0.8em;
+}
+.wx-bar[hidden] { display: none; }
+.wx-head { display: flex; align-items: center; gap: 10px; }
+.wx-summary { color: var(--muted); flex: 1; }
+.wx-collapse { background: none; border: 1px solid var(--border); color: var(--text); border-radius: var(--radius-sm); padding: 2px 9px; cursor: pointer; }
+.wx-body { margin-top: 8px; display: grid; gap: 8px; }
+.wx-days, .wx-layers { display: flex; flex-wrap: wrap; gap: 6px; }
+.wx-bar .chip { padding: 4px 10px; font-size: 0.95em; }
+.wx-bar .chip:disabled { opacity: 0.35; cursor: not-allowed; }
+.wx-time { display: flex; align-items: center; gap: 10px; }
+.wx-time input[type="range"] { flex: 1; min-width: 0; accent-color: var(--accent); }
+.wx-time output { min-width: 5.5em; text-align: right; color: var(--text); font-variant-numeric: tabular-nums; }
+.wx-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--muted); font-size: 0.92em; }
+.wx-legend span { display: inline-flex; align-items: center; gap: 4px; }
+.wx-sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; }
+.wx-disclaimer { margin-top: 6px; color: var(--muted); font-size: 0.85em; line-height: 1.35; }
+.wx-bar .wx-body[hidden] ~ .wx-disclaimer { display: none; }
+@media (max-width: 860px) {
+  .wx-bar { left: 50px; right: 8px; top: 8px; padding: 6px 9px; }
+}
+
+/* field sheet forecast */
+.fp-wx { margin: 12px 0; }
+.fp-wx-scroll { overflow-x: auto; }
+.fp-wx-table { border-collapse: collapse; width: 100%; font-size: 0.8em; }
+.fp-wx-table th, .fp-wx-table td { padding: 4px 8px 4px 0; text-align: left; white-space: nowrap; border-bottom: 1px solid var(--border); }
+.fp-wx-table th { color: var(--muted); font-weight: 600; }

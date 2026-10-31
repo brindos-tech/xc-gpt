@@ -14,6 +14,7 @@ test("state round-trips through the hash", () => {
     categories: new Set(["food", "art"]), activities: new Set(["weird"]), search: "rodeo", selectedPlaceId: "taos-nm",
     fieldSource: "p", fieldFilters: new Set(["fuel", "t6"]), airspace: new Set(["MOA", "SR"]),
     selectedFieldId: "KOKC", selectedAirspaceId: "MOA:VANCE 1A MOA", tripDate: "2026-11-07",
+    wxLayers: new Set(["cat", "lice"]), wxTime: "2026-11-07T15:00Z",
     dateRange: { start: new Date(2026, 9, 10), end: new Date(2026, 9, 20) },
   };
   const patch = hashToState(stateToHash(state), defaults);
@@ -30,6 +31,10 @@ test("state round-trips through the hash", () => {
   assert.equal(patch.selectedFieldId, "KOKC");
   assert.equal(patch.selectedAirspaceId, "MOA:VANCE 1A MOA");
   assert.equal(patch.tripDate, "2026-11-07");
+  assert.deepEqual([...patch.wxLayers].sort(), ["cat", "lice"]);
+  assert.equal(patch.wxTime, "2026-11-07T15:00Z");
+  // "none" is how an empty overlay set survives the round trip
+  assert.equal(hashToState(stateToHash({ ...state, wxLayers: new Set() }), defaults).wxLayers.size, 0);
   assert.equal(patch.dateRange.start.getTime(), new Date(2026, 9, 10).getTime());
   assert.equal(patch.dateRange.end.getTime(), new Date(2026, 9, 20).getTime());
 });

@@ -19,6 +19,8 @@ export function stateToHash(state) {
   if (state.selectedFieldId) params.set("fld", state.selectedFieldId);
   if (state.selectedAirspaceId) params.set("as", state.selectedAirspaceId);
   if (state.tripDate) params.set("day", state.tripDate);
+  params.set("wx", state.wxLayers.size ? Array.from(state.wxLayers).join(",") : "none");
+  if (state.wxTime) params.set("wxt", state.wxTime);
   return `#/${params.toString()}`;
 }
 
@@ -60,6 +62,8 @@ export function hashToState(hash, defaults) {
   if (params.has("fld")) patch.selectedFieldId = params.get("fld");
   if (params.has("as")) patch.selectedAirspaceId = params.get("as");
   if (params.has("day") && /^\d{4}-\d{2}-\d{2}$/.test(params.get("day"))) patch.tripDate = params.get("day");
+  if (params.has("wx")) patch.wxLayers = new Set(params.get("wx").split(",").filter((k) => k && k !== "none"));
+  if (params.has("wxt") && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z$/.test(params.get("wxt"))) patch.wxTime = params.get("wxt");
 
   return patch;
 }

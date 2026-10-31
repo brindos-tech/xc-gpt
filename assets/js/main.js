@@ -5,6 +5,7 @@ import { createFilterRail } from "./views/filter-rail.js";
 import { createPlannerView } from "./planner/planner-view.js";
 import { createFieldPanel } from "./planner/field-panel.js";
 import { mergeFields, selectFields } from "./planner/fields.js";
+import { createWxController } from "./planner/wx-controller.js";
 
 const DATA_BASE = "data";
 
@@ -72,6 +73,7 @@ async function boot() {
     onAirspaceClick: (id) => store.setState({ selectedAirspaceId: id, selectedFieldId: null }),
     onAirspaceStatus: (key, text) => filterRail.setAirspaceStatus(key, text),
   });
+  const wx = createWxController({ store, map: planner.map, loadJson, today, onChange: () => render() });
   $("plannerLegend").innerHTML =
     planner.legendStatuses.map((s) => `<span><span class="legend-dot" style="background:${s.color}"></span>${s.label}</span>`).join("") +
     `<span class="legend-note">dashed = outside range (search result)</span>`;
@@ -145,7 +147,8 @@ async function boot() {
     const origin = originsById.get(state.originId);
     planner.updateRange(state.rangeNm);
     const selection = selectFields(fields, state, origin, config);
-    planner.renderFields(selection, state.selectedFieldId);
+    planner.renderFields(selection, state.selectedFieldId, wx.fieldRing);
+    wx.render(state);
     planner.setAirspace(state.airspace, state.selectedAirspaceId);
 
     const label = state.fieldSource === "p" ? "P-coded" : "nav-list";
@@ -173,7 +176,7 @@ async function boot() {
       }
     }
     const [y, m, d] = state.tripDate.split("-").map(Number);
-    fieldPanel.render({ field, airspace, ctx: { origin, config, tripDate: new Date(y, m - 1, d) } });
+    fieldPanel.render({ field, airspace, ctx: { origin, config, tripDate: new Date(y, m - 1, d), wxRows: field ? wx.fieldRows(field.code, state.tripDate) : null } });
   }
 
   function renderEvents(state) {

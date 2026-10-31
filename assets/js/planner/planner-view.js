@@ -17,6 +17,7 @@ export function createPlannerView({ config, origin, loadJson, onFieldClick, onAi
   // Airspace polygons/lines go on a canvas renderer in a lower pane (hundreds
   // of vector shapes are too heavy as SVG); field pins stay SVG on top so
   // each pin is a real DOM node that can take keyboard focus.
+  map.createPane("wx").style.zIndex = 320; // forecast images sit under the airspace
   map.createPane("airspace").style.zIndex = 350;
   const airspaceRenderer = L.canvas({ pane: "airspace", padding: 0.3 });
   const pinRenderer = L.svg();
@@ -116,18 +117,19 @@ export function createPlannerView({ config, origin, loadJson, onFieldClick, onAi
   }
 
   // ---- fields ----
-  function renderFields({ fields }, selectedFieldId) {
+  function renderFields({ fields }, selectedFieldId, ringFor) {
     pinLayer.clearLayers();
     for (const f of fields) {
       const status = fieldStatus(f);
       const color = STATUS_COLORS[status];
       const selected = f.id === selectedFieldId;
+      const ring = ringFor?.(f.code);
       const marker = L.circleMarker([f.lat, f.lon], {
-        radius: selected ? 9 : 6,
-        color: selected ? "#fff" : color,
+        radius: selected ? 9 : ring ? 8 : 6,
+        color: selected ? "#fff" : ring || color,
         fillColor: color,
         fillOpacity: f.outOfRange ? 0.25 : 0.8,
-        weight: selected ? 2.5 : 1.5,
+        weight: selected ? 2.5 : ring ? 3.5 : 1.5,
         opacity: f.outOfRange ? 0.5 : 1,
         dashArray: f.outOfRange ? "2,3" : null,
         renderer: pinRenderer,
@@ -178,6 +180,7 @@ export function createPlannerView({ config, origin, loadJson, onFieldClick, onAi
     getAirspace: (id) => featuresById.get(id) || null,
     // an airspace id from a shared link needs its file loaded before it can be shown
     ensureAirspaceData: (id) => (id?.startsWith("MOA:") || /^[RWA]:/.test(id || "") ? loadFile("sua") : id ? loadFile("mtr") : Promise.resolve()),
+    map,
     invalidateSize: () => map.invalidateSize(),
     flyTo: (lat, lon) => map.flyTo([lat, lon], Math.max(map.getZoom(), 8), { duration: 0.6 }),
     legendStatuses: Object.entries(STATUS_LABELS).map(([k, label]) => ({ key: k, label, color: STATUS_COLORS[k] })),
