@@ -13,7 +13,7 @@ on:
   push:
     branches: [main]
   workflow_run:
-    workflows: ["Refresh daily", "Refresh weekly"]
+    workflows: ["Refresh daily", "Refresh weekly", "Refresh fields & airspace"]
     types: [completed]
     branches: [main]
   workflow_dispatch: {}

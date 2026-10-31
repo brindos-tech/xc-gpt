@@ -1,0 +1,58 @@
+name: Refresh fields & airspace
+
+# Weekly: FAA NASR airport facts + GSA per diem for every nav-list field,
+# and the airspace layers (FAA SUA / MTR geometry merged with the curated
+# AP/1A-AP/1B scheduling details). NASR publishes every 28 days and GSA
+# yearly, so weekly is plenty. A finished run triggers deploy-pages.yml.
+on:
+  schedule:
+    - cron: "17 7 * * 1" # Mondays 07:17 UTC
+  workflow_dispatch: {}
+  # TEMPORARY (removed before merge): build real data on the feature branch.
+  push:
+    branches: [claude/cloud-session-setup-i08vkf]
+    paths:
+      - scripts/build-fields.js
+      - scripts/fetch-airspace.js
+      - scripts/lib/nasr.js
+      - scripts/lib/perdiem.js
+      - data/curated/navinfo.json
+      - data/curated/ap1.json
+      - .github/workflows/refresh-fields.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-data
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Field facts (NASR + per diem)
+        env:
+          GSA_API_KEY: ${{ secrets.GSA_API_KEY }}
+        run: node scripts/build-fields.js
+
+      - name: Airspace layers
+        run: node scripts/fetch-airspace.js
+
+      - name: Commit if changed
+        run: |
+          git config user.name "xc-gpt-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/generated/field-facts.json data/generated/airspace-sua.json data/generated/airspace-mtr.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "chore: refresh field facts + airspace ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+            git push
+          fi

@@ -1,0 +1,6825 @@
+{
+ "source": "Nav_Info_List_28_Sep_26.pdf",
+ "asOf": "2026-09-28",
+ "owner": "71 OSS/OSOP (Vance Airspace)",
+ "fields": [
+  {
+   "code": "K01R",
+   "name": "Atmore Municipal Airport",
+   "city": "Atmore, AL",
+   "stateName": "Alabama",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "Civil Airport (Non-P)",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [],
+   "distanceFromVanceNm": 613,
+   "notes": "No GFC, attendance MON-FRI: 0700-1700/Weekends: ON CALL, Rwy 5001' x 80'"
+  },
+  {
+   "code": "1R8",
+   "name": "Bay Minette Municipal Airport",
+   "city": "Bay Minette, AL",
+   "stateName": "Alabama",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "Civil Airport (Non-P)",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 602,
+   "notes": "Hours of Operation: 0800 - 1700 - Monday through Friday; 0900 - 1700 Saturdays through Sunday; 7 days per week including holidays and weekends. Closed on\nThanksgiving and Christmas.\nCall-out fee after hours: Advance notification after hours - 60 minutes $100.00 per occurrence\n/T-6 NTA ONLY\nNo GFC"
+  },
+  {
+   "code": "KBHM",
+   "name": "Birmingham International Airport",
+   "city": "Birmingham, AL",
+   "stateName": "Alabama",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Atlantic Aviation",
+   "fboPhone": "(205) 591-6830",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 574,
+   "notes": "- P Coded field\n- No FBO LOA, call ahead"
+  },
+  {
+   "code": "KOZR",
+   "name": "Cairns Army Airfield",
+   "city": "Fort Rucker, AL",
+   "stateName": "Alabama",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 680,
+   "notes": "No FBO. Unknown how to get fuel."
+  },
+  {
+   "code": "61A",
+   "name": "Camden Municipal Airport",
+   "city": "Camden, AL",
+   "stateName": "Alabama",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "Unknown",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 587,
+   "notes": "No GFC"
+  },
+  {
+   "code": "KSEM",
+   "name": "Craig Field",
+   "city": "Selma, AL",
+   "stateName": "Alabama",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Unknown",
+   "approvalList": "AETC NTA",
+   "fbo": "Aeropro",
+   "fboPhone": "(703) 263-5051",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 592,
+   "notes": "- Hours of Operation: 0600-2300 local time, 7-days per week including holidays. Overtime Fee/Call Out Fee $25 per Occurrence."
+  },
+  {
+   "code": "KDHN",
+   "name": "Dothan Regional Airport",
+   "city": "Dothan, AL",
+   "stateName": "Alabama",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Aero One Aviation",
+   "fboPhone": "(334) 983-4541",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 690,
+   "notes": "Hours of Operation:\nMon - Fri: 0600 - 2100, Sat - Sun: 0700 - 2000\n(Easter / Independence Day: 0800 - 1700) (Christmas / Thanksgiving and New Years - On-Call)\n2 hours advance notice required with an $87.00 per occurrence call out fee\n- No FBO SA, call ahead"
+  },
+  {
+   "code": "KAIV",
+   "name": "George Downer Airport",
+   "city": "Aliceville, AL",
+   "stateName": "Alabama",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 517,
+   "notes": "No GFC"
+  },
+  {
+   "code": "KCQF",
+   "name": "H L Sonny Callahan Airport",
+   "city": "Fairhope, AL",
+   "stateName": "Alabama",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "Unknown",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 614,
+   "notes": "No GFC"
+  },
+  {
+   "code": "KHSV",
+   "name": "Huntsville International Airport",
+   "city": "Huntsville, AL",
+   "stateName": "Alabama",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(256) 772-9341",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 554,
+   "notes": "- 24 Hrs/Day, 365\n- No FBO SA, call ahead"
+  },
+  {
+   "code": "KJKA",
+   "name": "Jack Edwards Airport",
+   "city": "Gulf Shores, AL",
+   "stateName": "Alabama",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "Unknown",
+   "approvalList": "AETC NTA",
+   "fbo": "Gulf Air Center",
+   "fboPhone": "(251) 968-5200",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 629,
+   "notes": "- Hours of Operation: 0600-2000 Monday- Sunday including Holidays. Closed Christmas\n- No GFC\nJackson Municipal Airport\nJackson, AL"
+  },
+  {
+   "code": "KMXF",
+   "name": "Maxwell AFB",
+   "city": "Montgomery, AL",
+   "stateName": "Alabama",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 619,
+   "notes": ""
+  },
+  {
+   "code": "KBFM",
+   "name": "Mobile Downtown Airport",
+   "city": "Mobile, AL",
+   "stateName": "Alabama",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(251) 433-2800",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 600,
+   "notes": "- 24 Hrs/Day, 365\n- No T-38 start capability\n- No FBO SA, call ahead"
+  },
+  {
+   "code": "KMOB",
+   "name": "Mobile Regional Airport",
+   "city": "Mobile, AL",
+   "stateName": "Alabama",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(251) 633-5000",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 591,
+   "notes": "- Mon-Sun 0500-2200\n- 2-hr advance notice required for after-hours fuel delivery\n- No FBO SA, call ahead"
+  },
+  {
+   "code": "KMGM",
+   "name": "Montgomery Regional Airport",
+   "city": "Montgomery, AL",
+   "stateName": "Alabama",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Montgomery Aviation",
+   "fboPhone": "(334) 288-7334",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 620,
+   "notes": "- 24 Hrs/day, 365\n- No FBO SA, call ahead"
+  },
+  {
+   "code": "3M8",
+   "name": "North Pickens Airport",
+   "city": "Reform, AL",
+   "stateName": "Alabama",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "Unlisted",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 519,
+   "notes": "No GFC"
+  },
+  {
+   "code": "79J",
+   "name": "South Alabama Regional Airport at Bill Benton Field",
+   "city": "Andalusia, AL",
+   "stateName": "Alabama",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "AETC NTA",
+   "fbo": "South Alabama Airport",
+   "fboPhone": "(334) 222-0638",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 649,
+   "notes": "- Use ICAO K79J when looking at fuel contract information\n- Non-Towered Airport"
+  },
+  {
+   "code": "KTOI",
+   "name": "Troy Municipal Airport",
+   "city": "Troy, AL",
+   "stateName": "Alabama",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Pike Aviation",
+   "fboPhone": "(334) 556-7457",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 650,
+   "notes": "- Hours of Operation: 8:00 AM to 5:00 PM, 7 days per week except on New Year's Day,\nMemorial Day, Independence Day, Labor Day, Thanksgiving and Christmas Day.\n- Longest runway 6197 ft x 100 ft\n- No FBO SA, call ahead"
+  },
+  {
+   "code": "KTCL",
+   "name": "Tuscaloosa Regional Airport",
+   "city": "Tuscaloosa, AL",
+   "stateName": "Alabama",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Hawthorne Global Aviation Services",
+   "fboPhone": "(205) 349-3991",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 541,
+   "notes": "- RON is not authorized w/o Wing/CC approval\n- 0600-2200 Mon-Sun including holidays\n- 2 Hr advance notice for after hours fuel delivery (call out fee: $125)\n- No FBO SA, call ahead"
+  },
+  {
+   "code": "KLIT",
+   "name": "Clinton National Airport",
+   "city": "Little Rock, AR",
+   "stateName": "Arkansas",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(501) 374-6582",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 295,
+   "notes": "- No start cart here\n- AirCard GFC data shows TacAir but it is Signature. They are the same FBO here and Signature is honoring the old TacAir GFC"
+  },
+  {
+   "code": "KFYV",
+   "name": "Drake Field",
+   "city": "Fayetteville, AR",
+   "stateName": "Arkansas",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 183,
+   "notes": "- Hours of Operation: 0600-2200 Monday-Friday, 0800-2000 Saturday-Sunday Including Holidays. 1 hour advance notice for after hours\n- No GFC"
+  },
+  {
+   "code": "KFSM",
+   "name": "Fort Smith Regional Airport",
+   "city": "Fort Smith, AR",
+   "stateName": "Arkansas",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(479) 646-1611",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 183,
+   "notes": "- 24 hours per day Monday - Friday and 6:00AM - 10:00PM Saturday - Sunday, including holidays\n- Q Code: Rwys 20 & 26 Day only due to an unlit or unspecified approach restriction"
+  },
+  {
+   "code": "KLRF",
+   "name": "Little Rock AFB",
+   "city": "Jacksonville, AR",
+   "stateName": "Arkansas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 295,
+   "notes": ""
+  },
+  {
+   "code": "KMEZ",
+   "name": "Mena Intermountain Municipal Airport",
+   "city": "Mena, AR",
+   "stateName": "Arkansas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 211,
+   "notes": "This airfield may not be on the AETC VTL, but it is specifically approved by AETC for the purposes of landing and receiving maintenance services at Hampton Aviation. The\nFBO does not specifically have a GFC but there is a way to get fuel there, call ahead for more information.\nLetter of Agreement stipulations:\nNo overhead patterns.\nDo not exceed 200 knots unless required for flight safety.\nNo more than 2 aircraft in the pattern.\nFBO lost GFC"
+  },
+  {
+   "code": "KXNA",
+   "name": "Northwest Arkansas Regional Airport",
+   "city": "Fayetteville, AR",
+   "stateName": "Arkansas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Regional Jet Center",
+   "fboPhone": "(479) 205-1100",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 175,
+   "notes": "- Limit of 3 military aircraft in VFR pattern. Q- Some ramps (and/or taxiways) are reported as unlit/lighting unknown. Nighttime operations on these surfaces are approved\nprovided auxiliary lighting is confirmed/provided."
+  },
+  {
+   "code": "KTXK",
+   "name": "Texarkana Regional Airport-Webb Field",
+   "city": "Texarkana, AR",
+   "stateName": "Arkansas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(870) 773-6969",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 260,
+   "notes": "0600-2200 Mon-Sun\nFax (903) 831-6010"
+  },
+  {
+   "code": "KDMA",
+   "name": "Davis-Monthan AFB",
+   "city": "Tucson, AZ",
+   "stateName": "Arizona",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 690,
+   "notes": ""
+  },
+  {
+   "code": "KPHX",
+   "name": "Phoenix Sky Harbor International Airport",
+   "city": "Phoenix, AZ",
+   "stateName": "Arizona",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Jackson Jet Center",
+   "fboPhone": "(208) 955-0311",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 715,
+   "notes": "Peak daily traffic between 0000Z and 0100Z, avoid operations during this hour. IPs should do most of the talking and flying\n- No FBO SA"
+  },
+  {
+   "code": "KIWA",
+   "name": "Phoenix-Mesa Gateway Airport",
+   "city": "Mesa, AZ",
+   "stateName": "Arizona",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Gateway Aviation Services",
+   "fboPhone": "(480) 966-7700",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 700,
+   "notes": ""
+  },
+  {
+   "code": "KPRC",
+   "name": "Prescott Regional Airport/Ernest Love Field",
+   "city": "Prescott, AZ",
+   "stateName": "Arizona",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Civil Airport (Non-P)",
+   "approvalList": "AETC VTL",
+   "fbo": "Cutter Aviation",
+   "fboPhone": "(928) 443-9333",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 715,
+   "notes": "Hours of Operation: 0700-2000, 7-days a week including holidays.\nCall-out fee charged per occurrence, 3-hour advance notice required, phone: 928-899-1088."
+  },
+  {
+   "code": "KFHU",
+   "name": "Sierra Vista Municipal Airport / Libby Army Airfield",
+   "city": "Fort Huachuca, AZ",
+   "stateName": "Arizona",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Approved",
+   "classification": "MIL/CIV",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 681,
+   "notes": ""
+  },
+  {
+   "code": "KTUS",
+   "name": "Tucson International Airport",
+   "city": "Tucson, AZ",
+   "stateName": "Arizona",
+   "land": "See\nComments",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Executive Air",
+   "fboPhone": "(520) 445-6375",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 694,
+   "notes": "- A PPR IS REQUIRED FOR THIS AIRFIELD!\n- No Service Agreement on file as of 7/20/20.\n- The FBO will likely charge ramp and overnight fees. Read review from 26 Nov 2018."
+  },
+  {
+   "code": "KNYL",
+   "name": "Yuma International Airport",
+   "city": "Yuma, AZ",
+   "stateName": "Arizona",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "MIL/CIV",
+   "approvalList": "None",
+   "fbo": "Freeman Holdings of Arizona",
+   "fboPhone": "(928) 247-9571",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 854,
+   "notes": "- Extremely busy joint use mil/civ airport w/ Marine Corps fighters and airline traffic\n- 24 Hrs/Day, 365"
+  },
+  {
+   "code": "KDAG",
+   "name": "Barstow-Daggett Airport",
+   "city": "Daggett, CA",
+   "stateName": "California",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Daggett Aviation",
+   "fboPhone": "(760) 254-2542",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 924,
+   "notes": "- No service agreement in place with the FBO so call ahead and check fees."
+  },
+  {
+   "code": "KBAB",
+   "name": "Beale AFB",
+   "city": "Marysville, CA",
+   "stateName": "California",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1126,
+   "notes": ""
+  },
+  {
+   "code": "KEDW",
+   "name": "Edwards AFB",
+   "city": "Rosamond, CA",
+   "stateName": "California",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 976,
+   "notes": ""
+  },
+  {
+   "code": "KNJK",
+   "name": "El Centro NAF Airport",
+   "city": "El Centro, CA",
+   "stateName": "California",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 901,
+   "notes": ""
+  },
+  {
+   "code": "KFAT",
+   "name": "Fresno Yosemite International Airport",
+   "city": "Fresno, CA",
+   "stateName": "California",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(559) 981-2490",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1049,
+   "notes": "- OVERTIME FEE $140 / HOUR / HOLIDAYS INCLUDED.\n- 30 minutes advanced noticed required for after hours fuel delivery"
+  },
+  {
+   "code": "KLAX",
+   "name": "Los Angeles International Airport",
+   "city": "Los Angeles, CA",
+   "stateName": "California",
+   "land": "See\nComments",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Atlantic Aviation",
+   "fboPhone": "(310) 258-9884",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1014,
+   "notes": "- Approved to land because DoD tenant is present, but landing fees may be applied\n- Extremely busy and congested airspace"
+  },
+  {
+   "code": "KRIV",
+   "name": "March Air Reserve Base",
+   "city": "Riverside, CA",
+   "stateName": "California",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Approved",
+   "classification": "MIL/CIV",
+   "approvalList": "None",
+   "fbo": "Million Air",
+   "fboPhone": "(951) 247-2111",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 960,
+   "notes": "0700-1900 PST, Monday through Friday (including holidays) - phone: (951) 247-2111\nCall-Out/Advance Notice 1 Hour – No Fee."
+  },
+  {
+   "code": "KMCC",
+   "name": "McClellan Airfield",
+   "city": "Sacramento, CA",
+   "stateName": "California",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "McClellan Jet Services",
+   "fboPhone": "(916) 641-8970",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1124,
+   "notes": "-24 hours a day/ 7 days a week. Holidays included, no advanced notice or call-out fee required."
+  },
+  {
+   "code": "KNKX",
+   "name": "Miramar MCAS",
+   "city": "San Diego, CA",
+   "stateName": "California",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 971,
+   "notes": ""
+  },
+  {
+   "code": "KNUQ",
+   "name": "Moffett Federal Airfield",
+   "city": "Mountain View, CA",
+   "stateName": "California",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1158,
+   "notes": "Hours of Operation: 0000-2400 7 days a week to include holidays.\nSpecific Circumstances: Note: DoD including Coast Guard are exempt from State Jet Fuel (Excise) Tax. Federal Civilian and National Guard are not exempt from State Jet\nFuel (Excise) Tax."
+  },
+  {
+   "code": "KNLC",
+   "name": "Naval Air Station Lemoore",
+   "city": "Lemoore, CA",
+   "stateName": "California",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1063,
+   "notes": ""
+  },
+  {
+   "code": "KNZY",
+   "name": "Naval Air Station North Island",
+   "city": "San Diego, CA",
+   "stateName": "California",
+   "land": "See\nComments",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-38"
+   ],
+   "distanceFromVanceNm": 978,
+   "notes": "T-1s unable to land per AP1 and IFR Sup. Airport will not de-rig barriers/cables, LDA insufficient."
+  },
+  {
+   "code": "KNTD",
+   "name": "Naval Air Station Point Mugu",
+   "city": "Oxnard, CA",
+   "stateName": "California",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1046,
+   "notes": ""
+  },
+  {
+   "code": "KNID",
+   "name": "Naval Air Weapons Station China Lake",
+   "city": "Ridgecrest, CA",
+   "stateName": "California",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 959,
+   "notes": ""
+  },
+  {
+   "code": "KNUC",
+   "name": "Naval Auxiliary Landing Field San Clemente Island",
+   "city": "San Clemente, CA",
+   "stateName": "California",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1038,
+   "notes": ""
+  },
+  {
+   "code": "KNRS",
+   "name": "Naval Outlying Landing Field Imperial Beach",
+   "city": "Imperial Beach, CA",
+   "stateName": "California",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 975,
+   "notes": ""
+  },
+  {
+   "code": "KONT",
+   "name": "Ontario International Airport",
+   "city": "Ontario, CA",
+   "stateName": "California",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "World Fuel Services",
+   "fboPhone": "(305) 428-8010",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 974,
+   "notes": "- New ANG P-coded airport addition\n- No FBO SA or Airport LOA...call ahead"
+  },
+  {
+   "code": "KMHR",
+   "name": "Sacramento Mather Airport",
+   "city": "Sacramento, CA",
+   "stateName": "California",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Modern Aviation",
+   "fboPhone": "(916) 428-8292",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1119,
+   "notes": "Hours of Operation: including holidays. M-F: 0600-2100\nWeekend: 0700 - 1900\nLine Service: Staff on the ramp providing all aircraft services.\nM-F: 0500-2200 Weekend: 0500-2200\nCall out by request with 2 hours notice. $175.00 call out fee per occurrence"
+  },
+  {
+   "code": "KSUU",
+   "name": "Travis AFB",
+   "city": "Fairfield, CA",
+   "stateName": "California",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1149,
+   "notes": ""
+  },
+  {
+   "code": "KVBG",
+   "name": "Vandenberg AFB",
+   "city": "Lompoc, CA",
+   "stateName": "California",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1109,
+   "notes": ""
+  },
+  {
+   "code": "KBKF",
+   "name": "Buckley AFB",
+   "city": "Aurora, CO",
+   "stateName": "Colorado",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 381,
+   "notes": ""
+  },
+  {
+   "code": "KAPA",
+   "name": "Centennial Airport",
+   "city": "Centennial, CO",
+   "stateName": "Colorado",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Denver Jet Center",
+   "fboPhone": "(303) 790-4321",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 381,
+   "notes": "No T-38 start capability, FBO near A4 taxiway. Q-Mtn terrain/2ft tall runway lights on runways in multiple locations 0 ft from edges."
+  },
+  {
+   "code": "KCFO",
+   "name": "Colorado Air and Space Port",
+   "city": "Aurora, CO",
+   "stateName": "Colorado",
+   "land": "See\nComments",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 375,
+   "notes": "- No GFC\n- No FBO listed on the AETC VTL which means Wing/CC approval required to RON\n- Known in the AirCard website under its old ICAO: KFTG"
+  },
+  {
+   "code": "KCOS",
+   "name": "Colorado Springs Municipal Airport",
+   "city": "Colorado Springs, CO",
+   "stateName": "Colorado",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Colorado Jet Center",
+   "fboPhone": "(719) 591-2288",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 355,
+   "notes": "- Q-watch for buildings/light poles on edge of civilian parking ramp"
+  },
+  {
+   "code": "KEGE",
+   "name": "Eagle County Regional Airport",
+   "city": "Eagle, CO",
+   "stateName": "Colorado",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(970) 524-7770",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 470,
+   "notes": ""
+  },
+  {
+   "code": "KGJT",
+   "name": "Grand Junction Regional Airport",
+   "city": "Grand Junction, CO",
+   "stateName": "Colorado",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "West Star Aviation",
+   "fboPhone": "(970) 243-7500",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 530,
+   "notes": "- Military parking is not on main FBO ramp, contact ground control for directions to military parking area (AKA Walker Field).\n- HOURS OF OPERATIONS: 0500 - 2200 / 7 days a week; including holidays. Call Out Fee $200.00 per occurrence – No notice required."
+  },
+  {
+   "code": "KFLY",
+   "name": "Meadow Lake Airport",
+   "city": "Colorado Springs, CO",
+   "stateName": "Colorado",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 353,
+   "notes": "USAFA has a local agreement. Vance does not have an agreement (nor an agreement on behalf of AETC) for this airport, even though Vance is listed as the OPR on the\nAETC NTA. Previous identifier: 00V"
+  },
+  {
+   "code": "KPUB",
+   "name": "Pueblo Memorial Airport",
+   "city": "Pueblo, CO",
+   "stateName": "Colorado",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Freeman Jet Center",
+   "fboPhone": "(719) 948-3316",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 335,
+   "notes": "- Sheppard AFB reports Flower Aviation does not have an air cart (T-38 suitability marked undetermined for this reason).\n- ASRR note: To reduce the risks associated with a saturated traffic pattern at Pueblo Memorial Airport, HQ AETC requests units to restrict flying operations in the Pueblo\narea to mission essential sorties during weekdays when the weather permits VFR operations.\n- Uncontrolled operations approved at night for T-6s\n- Hours of Operation: 0700-2200. 7 days a week, Holidays included. Call Out Fee $100.00 per call"
+  },
+  {
+   "code": "KAFF",
+   "name": "United States Air Force Academy Airfield",
+   "city": "Colorado Springs, CO",
+   "stateName": "Colorado",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 363,
+   "notes": ""
+  },
+  {
+   "code": "KDOV",
+   "name": "Dover AFB",
+   "city": "Dover, DE",
+   "stateName": "Delaware",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "MIL/CIV",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1076,
+   "notes": ""
+  },
+  {
+   "code": "KILG",
+   "name": "New Castle Airport",
+   "city": "Wilmington, DE",
+   "stateName": "Delaware",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1071,
+   "notes": "- No GFC\n- Longest runway is 7275 ft x 150 ft"
+  },
+  {
+   "code": "KBKV",
+   "name": "Brooksville-Tampa Bay Regional Airport",
+   "city": "Brooksville, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "American Aviation",
+   "fboPhone": "(325) 796-5173",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 913,
+   "notes": "- Longest runway is 7001 ft x 150 ft"
+  },
+  {
+   "code": "KVQQ",
+   "name": "Cecil Airport",
+   "city": "Jacksonville, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Jacksonville Jetport",
+   "fboPhone": "(904) 317-6550",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 884,
+   "notes": "- 24 Hrs/day Mon-Fri\n- 0600-2200 Sat-Sun\n- 6 hrs advance notice required for after hours fuel delivery"
+  },
+  {
+   "code": "KVPS",
+   "name": "Eglin AFB/NW Florida Regional Airport",
+   "city": "Valparaiso, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "MIL/CIV",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 670,
+   "notes": "Get fuel from military side. No Gov Fuel Contract at any FBO.\n- 24 Hrs/Day, 365"
+  },
+  {
+   "code": "KHRT",
+   "name": "Hurlburt Field Airport",
+   "city": "Mary Esther, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 665,
+   "notes": ""
+  },
+  {
+   "code": "KJAX",
+   "name": "Jacksonville International Airport",
+   "city": "Jacksonville, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Sheltair Aviation",
+   "fboPhone": "(904) 741-0904",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 884,
+   "notes": "- 0500-2300, 365 days\n- No FBO SA, call ahead"
+  },
+  {
+   "code": "KMCF",
+   "name": "MacDill AFB",
+   "city": "Tampa, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 933,
+   "notes": ""
+  },
+  {
+   "code": "KAGR",
+   "name": "MacDill AFB Auxiliary Field",
+   "city": "Avon Park, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "Sebring - Avon Park",
+   "fboPhone": "(863) 655-6455",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 990,
+   "notes": "HOURS OF OPERATION: 07:30-18:00 HOURS, 7 DAYS PER WEEK, INCLUDING HOLIDAYS, OVERTIME FEE / CALL OUT FEE $150.00 PER OCCURRENCE, 2\nHOURS ADVANCE NOTICE, PHONE NUMBERS FOR CALLOUTS: 863-655-6455 CELL: 863-452-7814."
+  },
+  {
+   "code": "KNRB",
+   "name": "Mayport Naval Station",
+   "city": "Jacksonville, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 899,
+   "notes": ""
+  },
+  {
+   "code": "KMLB",
+   "name": "Melbourne International Airport",
+   "city": "Melbourne, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Civil Airport (Non-P)",
+   "approvalList": "AETC VTL",
+   "fbo": "Sheltair Melbourne",
+   "fboPhone": "(325) 673-8838",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1005,
+   "notes": "Hours of Operation: 6:00 AM – 10:00 PM / 7 Days a week (Holidays included). Call Out Fee $75.00 per occurrence"
+  },
+  {
+   "code": "KNIP",
+   "name": "Naval Air Station Jacksonville",
+   "city": "Jacksonville, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 892,
+   "notes": ""
+  },
+  {
+   "code": "KNQX",
+   "name": "Naval Air Station Key West",
+   "city": "Boca Chica Key, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1095,
+   "notes": ""
+  },
+  {
+   "code": "KNPA",
+   "name": "Naval Air Station Pensacola",
+   "city": "Pensacola, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 641,
+   "notes": ""
+  },
+  {
+   "code": "KNFJ",
+   "name": "Naval Outlying Field Choctaw",
+   "city": "Milton, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 651,
+   "notes": ""
+  },
+  {
+   "code": "KNGS",
+   "name": "Naval Outlying Field Santa Rosa",
+   "city": "Milton, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Not\nApproved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 648,
+   "notes": "No GFC"
+  },
+  {
+   "code": "KNEN",
+   "name": "Naval Outlying Field Whitehouse",
+   "city": "Jacksonville, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 880,
+   "notes": "Call ahead about full stops"
+  },
+  {
+   "code": "KOPF",
+   "name": "Opa-locka Airport",
+   "city": "Opa-locka, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Embassair",
+   "fboPhone": "(305) 677-3696",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1099,
+   "notes": ""
+  },
+  {
+   "code": "KMCO",
+   "name": "Orlando International Airport",
+   "city": "Orlando, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Atlantic Aviation",
+   "fboPhone": "(800) 704-4147",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 965,
+   "notes": "- Busy International Airport w/ SIDs and STARs\n- Hours of Operation: 0600-2300 7 days a week to include holidays."
+  },
+  {
+   "code": "KPBI",
+   "name": "Palm Beach International Airport",
+   "city": "West Palm Beach, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Not\nApproved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Atlantic Aviation",
+   "fboPhone": "(561) 683-4142",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1078,
+   "notes": "- T-38 start cart fee\n- Call ahead about fees\n- No RON per AETC"
+  },
+  {
+   "code": "KCOF",
+   "name": "Patrick AFB",
+   "city": "Cocoa Beach, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1002,
+   "notes": ""
+  },
+  {
+   "code": "KPNS",
+   "name": "Pensacola Regional Airport",
+   "city": "Pensacola, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Pensacola Aviation Center",
+   "fboPhone": "(850) 434-0636",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 642,
+   "notes": "- Taxiways leading to FBO are less than 50 ft wide"
+  },
+  {
+   "code": "KSRQ",
+   "name": "Sarasota-Bradenton International Airport",
+   "city": "Sarasota, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Dolphin Aviation Inc",
+   "fboPhone": "(941) 355-2902",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 948,
+   "notes": "- No start cart available\n- 0600 HRS - 2200 HRS / 7 days a week to include holidays\nCall-out Overtime Fee $100 per HR"
+  },
+  {
+   "code": "KPIE",
+   "name": "St. Petersburg-Clearwater International Airport",
+   "city": "St. Petersburg, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Sheltair",
+   "fboPhone": "(727) 530-3453",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 924,
+   "notes": "Hours of Operation: 0600hrs - 2200hrs / 7 days a week to include holidays. Overtime/Call-out Fee $50.00 per Occurrence / 20 Min Notice Required."
+  },
+  {
+   "code": "KTLH",
+   "name": "Tallahassee Regional Airport",
+   "city": "Tallahassee, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Million Air Tallahassee",
+   "fboPhone": "(850) 574-5671",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 767,
+   "notes": ""
+  },
+  {
+   "code": "KPAM",
+   "name": "Tyndall AFB",
+   "city": "Panama City, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 725,
+   "notes": ""
+  },
+  {
+   "code": "KNSE",
+   "name": "Whiting Field Naval Air Station North",
+   "city": "Milton, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 641,
+   "notes": ""
+  },
+  {
+   "code": "KNDZ",
+   "name": "Whiting Field Naval Air Station South",
+   "city": "Milton, FL",
+   "stateName": "Florida",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 642,
+   "notes": "Hours of Operation:\n0600 - 2100, Seven Days A Week, $200 Call Out fee, 24 Hrs Notice"
+  },
+  {
+   "code": "KWDR",
+   "name": "Barrow County Airport",
+   "city": "Winder, GA",
+   "stateName": "Georgia",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Romanair",
+   "fboPhone": "(770) 867-4001",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 713,
+   "notes": "Hours of Operation: 0900-1800 Monday-Friday\n0900-1700 Saturday-Sunday; holidays not included.\nCall Out/Overtime Fee of $75 per Occurrence."
+  },
+  {
+   "code": "KPDK",
+   "name": "DeKalb-Peachtree Airport",
+   "city": "Atlanta, GA",
+   "stateName": "Georgia",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Not\nApproved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Atlantic Aviation",
+   "fboPhone": "(770) 454-5000",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 684,
+   "notes": "- VHF Only\n- No RON (AETC policy)"
+  },
+  {
+   "code": "KMGE",
+   "name": "Dobbins Air Reserve Base",
+   "city": "Marietta, GA",
+   "stateName": "Georgia",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 673,
+   "notes": ""
+  },
+  {
+   "code": "KSAV",
+   "name": "Hilton Head International Airport",
+   "city": "Savannah, GA",
+   "stateName": "Georgia",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(912) 964-1557",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 866,
+   "notes": "0600HRS-2200HRS / 7 days a week to include holidays / Overtime / Callout Fee $100.00 PER OCCURRENCE / 2 HR NOTICE"
+  },
+  {
+   "code": "KSVN",
+   "name": "Hunter Army Airfield",
+   "city": "Savannah, GA",
+   "stateName": "Georgia",
+   "land": "See\nComments",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 871,
+   "notes": "- PPR required for all aircraft to include touch and go ops"
+  },
+  {
+   "code": "KMCN",
+   "name": "Middle Georgia Regional Airport",
+   "city": "Macon, GA",
+   "stateName": "Georgia",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "HighNote Aviation",
+   "fboPhone": "(478) 310-4689",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 738,
+   "notes": ""
+  },
+  {
+   "code": "KVAD",
+   "name": "Moody Air Force Base",
+   "city": "Valdosta, GA",
+   "stateName": "Georgia",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 802,
+   "notes": ""
+  },
+  {
+   "code": "KMGR",
+   "name": "Moultrie Municipal Airport",
+   "city": "Moultrie, GA",
+   "stateName": "Georgia",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "Unknown",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [],
+   "distanceFromVanceNm": 771,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "4J5",
+   "name": "Quitman Brooks County Airport",
+   "city": "Quitman, GA",
+   "stateName": "Georgia",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "Unknown",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 789,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KABY",
+   "name": "Southwest Georgia Regional Airport",
+   "city": "Albany, GA",
+   "stateName": "Georgia",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 741,
+   "notes": "- No GFC here"
+  },
+  {
+   "code": "KTVI",
+   "name": "Thomasville Regional Airport",
+   "city": "Thomasville, GA",
+   "stateName": "Georgia",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "Unknown",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [],
+   "distanceFromVanceNm": 773,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KVLD",
+   "name": "Valdosta Regional Airport",
+   "city": "Valdosta, GA",
+   "stateName": "Georgia",
+   "land": "See\nComments",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 804,
+   "notes": "- VHF aircraft only\n- No RON\n- No GFC"
+  },
+  {
+   "code": "KLHW",
+   "name": "Wright Army Airfield/Midcoast Regional Airport",
+   "city": "Ft. Stewart, GA",
+   "stateName": "Georgia",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "MIL/CIV",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 855,
+   "notes": "AKA Ft. Stewart"
+  },
+  {
+   "code": "KIKV",
+   "name": "Ankeny Regional Airport",
+   "city": "Ankeny, IA",
+   "stateName": "Iowa",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 380,
+   "notes": "- Non-Towered Airport\n- No GFC here"
+  },
+  {
+   "code": "KDVN",
+   "name": "Davenport Municipal Airport",
+   "city": "Davenport, IA",
+   "stateName": "Iowa",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 465,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KDSM",
+   "name": "Des Moines International Airport",
+   "city": "Des Moines, IA",
+   "stateName": "Iowa",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(515) 256-5330",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 369,
+   "notes": ""
+  },
+  {
+   "code": "KSUX",
+   "name": "Sioux Gateway Airport",
+   "city": "Sioux City, IA",
+   "stateName": "Iowa",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 371,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KBOI",
+   "name": "Boise Air Terminal",
+   "city": "Boise, ID",
+   "stateName": "Idaho",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Western Aircraft",
+   "fboPhone": "(208) 338-1800",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 945,
+   "notes": "Hours of Operation:\n0600-2100 7 days a week to include holidays. Call Out/ Overtime Fee $125 per hour"
+  },
+  {
+   "code": "KMUO",
+   "name": "Mountain Home AFB",
+   "city": "Mountain Home, ID",
+   "stateName": "Idaho",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 919,
+   "notes": ""
+  },
+  {
+   "code": "KSPI",
+   "name": "Abraham Lincoln Capital Airport",
+   "city": "Springfield, IL",
+   "stateName": "Illinois",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Stellar Aviation of Springfield",
+   "fboPhone": "(217) 523-5080",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 442,
+   "notes": "- Call ahead to ensure they will not charge for start carts\n- HOURS OF OPERATION: 7:00am-10:00pm Monday-Sunday (7 Days Per Week); Holidays included. Call-out $150 per Occurrence, Call-out phone number: 217-523-\n5080; 24 hour advance notice.\n- No GFC\n- Short runways\n- Busy/congested airspace"
+  },
+  {
+   "code": "KRFD",
+   "name": "Chicago Rockford International Airport",
+   "city": "Rockford, IL",
+   "stateName": "Illinois",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 539,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KMLI",
+   "name": "Quad City International Airport",
+   "city": "Moline, IL",
+   "stateName": "Illinois",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 462,
+   "notes": "- Lots of refueling hour stipulations and call out fee data: call ahead\n- No T-38 start cart\n- See Q codes, multiple tall lights\n- No GFC"
+  },
+  {
+   "code": "KBLV",
+   "name": "Scott AFB/MidAmerica St. Louis Airport",
+   "city": "Belleville, IL",
+   "stateName": "Illinois",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "MIL/CIV",
+   "approvalList": "None",
+   "fbo": "Airport Terminal Services",
+   "fboPhone": "(618) 566-5265",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 407,
+   "notes": "HOURS OF OPERATION: Monday – Sunday 0800-2000, including holidays; After hours, $90 per hour, call 618-566-5265 (24 hour notice)."
+  },
+  {
+   "code": "KMWA",
+   "name": "Williamson County Regional Airport",
+   "city": "Marion, IL",
+   "stateName": "Illinois",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 435,
+   "notes": "- 0700-1900 Mon-Sun\n- Call out fee $60/hr\n- No GFC"
+  },
+  {
+   "code": "KEVV",
+   "name": "Evansville Regional Airport",
+   "city": "Evansville, IN",
+   "stateName": "Indiana",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Tri-State Aero",
+   "fboPhone": "(912) 426-1221",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 507,
+   "notes": "HOURS OF OPERATIONS: Monday Through Sunday 0600 CST - 2200 CST. Holidays included. Call Out Fee $250.00 per occurrence – 1 hour notice\nrequired."
+  },
+  {
+   "code": "KFWA",
+   "name": "Fort Wayne International Airport",
+   "city": "Fort Wayne, IN",
+   "stateName": "Indiana",
+   "land": "See\nComments",
+   "fuel": "Not\nApproved",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 657,
+   "notes": "- No Airport LOA or FBO Service Agreement\n- No GFC"
+  },
+  {
+   "code": "KGYY",
+   "name": "Gary/Chicago International Airport",
+   "city": "Gary, IN",
+   "stateName": "Indiana",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Gary Jet Center",
+   "fboPhone": "(219) 944-1210",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 583,
+   "notes": "- No FBO SA, call ahead"
+  },
+  {
+   "code": "KIND",
+   "name": "Indianapolis International Airport",
+   "city": "Indianapolis, IN",
+   "stateName": "Indiana",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Million Air",
+   "fboPhone": "(371) 554-8400",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 585,
+   "notes": "- No T38 start cart"
+  },
+  {
+   "code": "KHUF",
+   "name": "Terre Haute International Airport",
+   "city": "Terre Haute, IN",
+   "stateName": "Indiana",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Hoosier Aviation",
+   "fboPhone": "(812) 877-7600",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 536,
+   "notes": "$100 call out fee after hours.\nMultiple Q codes.\nRWY 18/36 unusable due to poor pavement."
+  },
+  {
+   "code": "KANY",
+   "name": "Anthony Municipal Airport",
+   "city": "Anthony, KS",
+   "stateName": "Kansas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 49,
+   "notes": "- No GFC\n- No Jet fuel\n- Rwy 18/36 now 5000 ft x 75 ft (NOTAM 09/103)"
+  },
+  {
+   "code": "KFOE",
+   "name": "Forbes Field",
+   "city": "Topeka, KS",
+   "stateName": "Kansas",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Million Air",
+   "fboPhone": "(785) 862-0950",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 190,
+   "notes": "Sunday through Saturday 0600-2300 Central. No Call-out or Overtime fee applies. 1 hour advance notice preferred. After Hours Number 785-215-0973. Rapid Refuel\ndelivery method is available at no extra\ncharge under this Contract."
+  },
+  {
+   "code": "KGCK",
+   "name": "Garden City Regional Airport",
+   "city": "Garden City, KS",
+   "stateName": "Kansas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Saker Aviation",
+   "fboPhone": "(620) 275-5055",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 165,
+   "notes": "- No T-38 start cart\n- Narrow Taxiways-see multiple Q codes that apply to C-21s\n- No UHF\n- Uncontrolled operations approved at night for T-6s\n- Fire response is immediate when on site but after 2300L the ARFF shuts down. Then it is 15 minutes response time from Garden City Fire"
+  },
+  {
+   "code": "KHUT",
+   "name": "Hutchinson Municipal Airport",
+   "city": "Hutchinson, KS",
+   "stateName": "Kansas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Wells Aircraft",
+   "fboPhone": "(620) 663-1546",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 103,
+   "notes": "- 0800-1800 Mon-Fri, 0800-1700 Sat-Sun\n- Call out after hours is $75 and requires 24 hr notice\n- Restaurant on the field, no dinner on Sundays\n- GPU unavailable\n- Uncontrolled operations approved at night for T-6s\n- T6 practice ELPs approved here by LOA\n- Approved for T-6 mission solo out-and-back"
+  },
+  {
+   "code": "KLBL",
+   "name": "Liberal Mid-America Regional Airport",
+   "city": "Liberal, KS",
+   "stateName": "Kansas",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "Civil Airport (Non-P)",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 153,
+   "notes": "- If planning to fuel or RON, individual pilots are responsible for ensuring that the FBO will be open, or will not charge call out fees if after hours. (FCIF 18-061)\n- No GFC\n- Uncontrolled operations approved at night for T-6s\n- Must park within 100 ft of FBO (1st or 2nd spot is close enough) in order to use GPU power cord that is plugged into outside wall\n- Small ramp & taxiways, watch wingtip clearance with taxi lights\n- Fuel delivery 0600-2000 Mon-Sun\n- 2 hours advanced notice for after hours fuel delivery with $150 fee.\n- Uncontrolled operations approved at night for T-6s"
+  },
+  {
+   "code": "KIAB",
+   "name": "McConnell AFB",
+   "city": "Wichita, KS",
+   "stateName": "Kansas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 83,
+   "notes": "- Approved for T-6 mission solo out-and-back"
+  },
+  {
+   "code": "KIXD",
+   "name": "New Century AirCenter",
+   "city": "Olathe, KS",
+   "stateName": "Kansas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(913) 782-9003",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 207,
+   "notes": "- Uncontrolled operations approved at night for T-6s"
+  },
+  {
+   "code": "KSLN",
+   "name": "Salina Municipal Airport",
+   "city": "Salina, KS",
+   "stateName": "Kansas",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Avflight Salina",
+   "fboPhone": "(785) 825-6739",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 147,
+   "notes": "- Limit 2 T-1s in VFR pattern, no T-38 or T-6 restrictions\n- Uncontrolled operations approved at night for T-6s\n- Fire response is immediate when on site but after 2300L the ARFF shuts down. Then it is 10 minutes response time from Salina Fire"
+  },
+  {
+   "code": "KFLV",
+   "name": "Sherman Army Airfield",
+   "city": "Fort Leavenworth, KS",
+   "stateName": "Kansas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Approved",
+   "classification": "MIL/CIV",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 231,
+   "notes": ""
+  },
+  {
+   "code": "KWLD",
+   "name": "Strother Field",
+   "city": "Winfield, KS",
+   "stateName": "Kansas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Civil Airport (Non-P)",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 65,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KEGT",
+   "name": "Wellington Municipal Airport",
+   "city": "Wellington, KS",
+   "stateName": "Kansas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Civil Airport (Non-P)",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 64,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KICT",
+   "name": "Wichita Dwight D. Eisenhower National Airport",
+   "city": "Wichita, KS",
+   "stateName": "Kansas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Yingling Aviation",
+   "fboPhone": "(316) 943-3246",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 82,
+   "notes": "- Approved for T-6 solo student formation out-and-back"
+  },
+  {
+   "code": "KLEX",
+   "name": "Blue Grass Airport",
+   "city": "Lexington, KY",
+   "stateName": "Kentucky",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(859) 255-7724",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 644,
+   "notes": ""
+  },
+  {
+   "code": "KHOP",
+   "name": "Campbell Army Airfield",
+   "city": "Fort Campbell, KY",
+   "stateName": "Kentucky",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 503,
+   "notes": ""
+  },
+  {
+   "code": "KSDF",
+   "name": "Louisville International Airport",
+   "city": "Louisville, KY",
+   "stateName": "Kentucky",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Atlantic Aviation",
+   "fboPhone": "(502) 368-1515",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 592,
+   "notes": "- Only land for fuel, otherwise FBO will charge a service/handling fee\n- Very busy UPS hub"
+  },
+  {
+   "code": "KARA",
+   "name": "Acadiana Regional Airport",
+   "city": "New Iberia, LA",
+   "stateName": "Louisiana",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Freeman Holdings of Louisiana",
+   "fboPhone": "(337) 357-1401",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 485,
+   "notes": ""
+  },
+  {
+   "code": "KAEX",
+   "name": "Alexandria International Airport",
+   "city": "Alexandria, LA",
+   "stateName": "Louisiana",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Million Air Alexandria",
+   "fboPhone": "(318) 443-5566",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 403,
+   "notes": "GCA provides PAR approaches to Rwy 14 and ASR Approaches to RWY 14 and 32 only Tuesday - Friday 0800-1700 local"
+  },
+  {
+   "code": "KBAD",
+   "name": "Barksdale AFB",
+   "city": "Bossier City, LA",
+   "stateName": "Louisiana",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 312,
+   "notes": ""
+  },
+  {
+   "code": "KCWF",
+   "name": "Chennault International Airport",
+   "city": "Lake Charles, LA",
+   "stateName": "Louisiana",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Freeman Holdings of Louisiana",
+   "fboPhone": "(337) 436-4877",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 439,
+   "notes": ""
+  },
+  {
+   "code": "KESF",
+   "name": "Esler Regional Airport",
+   "city": "Alexandria, LA",
+   "stateName": "Louisiana",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Freeman Holdings of Louisiana",
+   "fboPhone": "(318) 487-6003",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 408,
+   "notes": ""
+  },
+  {
+   "code": "KNEW",
+   "name": "Lakefront Airport",
+   "city": "New Orleans, LA",
+   "stateName": "Louisiana",
+   "land": "See\nComments",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(504) 244-4448",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 548,
+   "notes": "- Displaced thresholds on RWY36L/18R\n- Water survival equipment required to land south\n- High bird activity\n- Uncontrolled operations approved at night for T-6s\n- ARFF manned 24/7/365"
+  },
+  {
+   "code": "KMLU",
+   "name": "Monroe Regional Airport",
+   "city": "Monroe, LA",
+   "stateName": "Louisiana",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Avflight",
+   "fboPhone": "(318) 387-0222",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 371,
+   "notes": ""
+  },
+  {
+   "code": "KNBG",
+   "name": "New Orleans Naval Air Station Joint Reserve Base",
+   "city": "New Orleans, LA",
+   "stateName": "Louisiana",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 557,
+   "notes": "ARRESTING GEAR CABLES: MAINTAINED IN RAISED POSN AND IN BATTERY AT ALL TIMES, DO NOT LAND DRCT ON A-GEAR CABLES"
+  },
+  {
+   "code": "KSHV",
+   "name": "Shreveport Regional Airport",
+   "city": "Shreveport, LA",
+   "stateName": "Louisiana",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(318) 636-1000",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 310,
+   "notes": ""
+  },
+  {
+   "code": "KBED",
+   "name": "Laurence G. Hanscom Field",
+   "city": "Bedford, MA",
+   "stateName": "Massachusetts",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Atlantic Aviation",
+   "fboPhone": "(978) 341-8400",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1283,
+   "notes": "- 24/7/365"
+  },
+  {
+   "code": "KFMH",
+   "name": "Otis Air National Guard Base",
+   "city": "Falmouth, MA",
+   "stateName": "Massachusetts",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1311,
+   "notes": ""
+  },
+  {
+   "code": "KHGR",
+   "name": "Hagerstown Regional Airport",
+   "city": "Hagerstown, MD",
+   "stateName": "Maryland",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Rider Jet Center",
+   "fboPhone": "(301) 791-9119",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 974,
+   "notes": "- Longest runway is 7000 ft x 150 ft"
+  },
+  {
+   "code": "KADW",
+   "name": "Joint Base Andrews",
+   "city": "Camp Springs, MD",
+   "stateName": "Maryland",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1010,
+   "notes": ""
+  },
+  {
+   "code": "KNHK",
+   "name": "Naval Air Station Patuxent River",
+   "city": "Patuxent River, MD",
+   "stateName": "Maryland",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1031,
+   "notes": ""
+  },
+  {
+   "code": "KNUI",
+   "name": "Navy Outlying Field Webster",
+   "city": "Saint Inigoes, MD",
+   "stateName": "Maryland",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 1030,
+   "notes": ""
+  },
+  {
+   "code": "KBGR",
+   "name": "Bangor International Airport",
+   "city": "Bangor, ME",
+   "stateName": "Maine",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1411,
+   "notes": "- No GFC here"
+  },
+  {
+   "code": "KAPN",
+   "name": "Alpena County Regional Airport",
+   "city": "Alpena, MI",
+   "stateName": "Michigan",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 836,
+   "notes": "No GFC. May have to get fuel/RON at ANG."
+  },
+  {
+   "code": "KTVC",
+   "name": "Cherry Capital Airport",
+   "city": "Traverse City, MI",
+   "stateName": "Michigan",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 754,
+   "notes": "- Call ahead to avoid fees\n- No GFC"
+  },
+  {
+   "code": "KGOV",
+   "name": "Grayling Army Airfield",
+   "city": "Grayling, MI",
+   "stateName": "Michigan",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Not\nApproved",
+   "classification": "MIL/CIV",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 781,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KMTC",
+   "name": "Selfridge Air National Guard Base",
+   "city": "Mt. Clemens, MI",
+   "stateName": "Michigan",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 792,
+   "notes": ""
+  },
+  {
+   "code": "KBTL",
+   "name": "W. K. Kellogg Regional Airport",
+   "city": "Battle Creek, MI",
+   "stateName": "Michigan",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 688,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KYIP",
+   "name": "Willow Run Airport",
+   "city": "Ypsilanti, MI",
+   "stateName": "Michigan",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Civil Airport (Non-P)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "AvFlight Ypsilanti",
+   "fboPhone": "(810) 965-6961",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 752,
+   "notes": ""
+  },
+  {
+   "code": "KDLH",
+   "name": "Duluth International Airport",
+   "city": "Duluth, MN",
+   "stateName": "Minnesota",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Monaco Air Duluth",
+   "fboPhone": "(218) 727-2911",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 680,
+   "notes": "- No FBO SA, call ahead"
+  },
+  {
+   "code": "KMSP",
+   "name": "Minneapolis-Saint Paul International Airport",
+   "city": "Bloomington, MN",
+   "stateName": "Minnesota",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(612) 726-5700",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 555,
+   "notes": "Call ahead for aircraft parking arrangement.\nSignature Flight Support will charge a fee for hangar usage/O2 service/defueling.\nASRR: multiple Q codes, recommend reading. (some ramps unlit, runway obstacle caution 2ft6in elevated runway lights every 200ft past each threshold and 0ft both sides\nof runway-also on multiple taxiways, taxiway to museum unsusable for C-21s (northern part of ANG area D ramp)."
+  },
+  {
+   "code": "KBBG",
+   "name": "Branson Airport",
+   "city": "Branson, MO",
+   "stateName": "Missouri",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Civil Airport (Non-P)",
+   "approvalList": "AETC VTL",
+   "fbo": "Branson Jet Center",
+   "fboPhone": "(417) 334-7813",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 228,
+   "notes": ""
+  },
+  {
+   "code": "KCGI",
+   "name": "Cape Girardeau Regional Airport",
+   "city": "Cape Girardeau, MO",
+   "stateName": "Missouri",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Cape Aviation",
+   "fboPhone": "(573) 335-6632",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 405,
+   "notes": "- No SA with Cape Aviation, call ahead\n- 0500-2200 Mon-Fri, 0600-2200 Sat-Sun\n- Call out fee $50 after 2200"
+  },
+  {
+   "code": "KCOU",
+   "name": "Columbia Regional Airport",
+   "city": "Columbia, MO",
+   "stateName": "Missouri",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 309,
+   "notes": "- No T-38 airstart cart\n- 0600-2400 Mon-Fri, 0700-2300 Sat-Sun\n- $100 callout\n- Columbus AFB was charged overnight fees for aircraft weather evacing in March 2021. Call ahead to better understand what fees will be charged if you intend on RONing.\n- No GFC"
+  },
+  {
+   "code": "KJEF",
+   "name": "Jefferson City Municipal Airport",
+   "city": "Jefferson City, MO",
+   "stateName": "Missouri",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Jefferson City Aviation",
+   "fboPhone": "(573) 636-5118",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 5786,
+   "notes": "- No FBO SA, call ahead\n- Longest runway 6000 ft x 100 ft"
+  },
+  {
+   "code": "KMKC",
+   "name": "Kansas City Downtown Wheeler Airport",
+   "city": "Kansas City, MO",
+   "stateName": "Missouri",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Civil Airport (Non-P)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(816) 842-8484",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 230,
+   "notes": "- T6 practice ELPs approved here by LOA"
+  },
+  {
+   "code": "KSTJ",
+   "name": "Rosecrans Memorial Airport",
+   "city": "St. Joseph, MO",
+   "stateName": "Missouri",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 250,
+   "notes": "- No GFC. Might be able to get fuel from mil side."
+  },
+  {
+   "code": "KSUS",
+   "name": "Spirit of St. Louis Airport",
+   "city": "St. Louis, MO",
+   "stateName": "Missouri",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(636) 532-8882",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 373,
+   "notes": "- No FBO service agreement, call ahead.\n- No FBO SA, call ahead"
+  },
+  {
+   "code": "KTBN",
+   "name": "Waynesville-St. Robert Reg. Forney Field Airport",
+   "city": "Ft. Leonard Wood, MO",
+   "stateName": "Missouri",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "MIL/CIV",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 289,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KSZL",
+   "name": "Whiteman AFB",
+   "city": "Knob Noster, MO",
+   "stateName": "Missouri",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 253,
+   "notes": ""
+  },
+  {
+   "code": "KCBM",
+   "name": "Columbus AFB",
+   "city": "Columbus, MS",
+   "stateName": "Mississippi",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 493,
+   "notes": ""
+  },
+  {
+   "code": "KUBS",
+   "name": "Columbus-Lowndes County Airport",
+   "city": "Columbus, MS",
+   "stateName": "Mississippi",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 500,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KGTR",
+   "name": "Golden Triangle Regional Airport",
+   "city": "Columbus, MS",
+   "stateName": "Mississippi",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "AvFlight",
+   "fboPhone": "(662) 328-9312",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 491,
+   "notes": "- 0600-2000 Mon-Sun\n- Call out fee $50"
+  },
+  {
+   "code": "KGWO",
+   "name": "Greenwood-Leflore Airport",
+   "city": "Greenwood, MS",
+   "stateName": "Mississippi",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Cotton Belt Aviation",
+   "fboPhone": "(662) 445-4111",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 422,
+   "notes": "- No start cart\n- No GFC\n- No RON"
+  },
+  {
+   "code": "KGNF",
+   "name": "Grenada Municipal Airport",
+   "city": "Grenada, MS",
+   "stateName": "Mississippi",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "Unknown",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 426,
+   "notes": "Accepts Air Card, no GFC"
+  },
+  {
+   "code": "KGPT",
+   "name": "Gulfport-Biloxi International Airport",
+   "city": "Gulfport, MS",
+   "stateName": "Mississippi",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Million Air Gulfport",
+   "fboPhone": "(228) 701-0400",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 569,
+   "notes": ""
+  },
+  {
+   "code": "KHKS",
+   "name": "Hawkins Field Airport",
+   "city": "Jackson, MS",
+   "stateName": "Mississippi",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Hawkins Jet Center",
+   "fboPhone": "(601) 948-8778",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 451,
+   "notes": "- No FBO SA, call ahead\n- Longest runway 5387 ft x 150 ft"
+  },
+  {
+   "code": "M44",
+   "name": "Houston Municipal Airport",
+   "city": "Houston, MS",
+   "stateName": "Mississippi",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Unknown",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 461,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KJAN",
+   "name": "Jackson International Airport",
+   "city": "Jackson, MS",
+   "stateName": "Mississippi",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Atlantic Aviation",
+   "fboPhone": "(601) 939-9366",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 458,
+   "notes": "No FBO Service Agreement on file between AETC or Vance and the FBO. Call ahead to avoid fees."
+  },
+  {
+   "code": "KBIX",
+   "name": "Keesler AFB",
+   "city": "Biloxi, MS",
+   "stateName": "Mississippi",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 574,
+   "notes": ""
+  },
+  {
+   "code": "KMEI",
+   "name": "Key Field Airport",
+   "city": "Meridian, MS",
+   "stateName": "Mississippi",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Meridian Aviation",
+   "fboPhone": "(601) 693-7282",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 514,
+   "notes": ""
+  },
+  {
+   "code": "KLMS",
+   "name": "Louisville Winston County Airport",
+   "city": "Louisville, MS",
+   "stateName": "Mississippi",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "Unknown",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 477,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KGLH",
+   "name": "Mid Delta Regional Airport",
+   "city": "Greenville, MS",
+   "stateName": "Mississippi",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Mid Delta Aviation",
+   "fboPhone": "(662) 334-3121",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 382,
+   "notes": "- VHF aircraft only\n- 0700-1900 Mon-Sat, 0800-1700 Sun"
+  },
+  {
+   "code": "KNMM",
+   "name": "Naval Air Station Meridian",
+   "city": "Meridian, MS",
+   "stateName": "Mississippi",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 516,
+   "notes": ""
+  },
+  {
+   "code": "KNJW",
+   "name": "Navy Outlying Field Williams",
+   "city": "Meridian, MS",
+   "stateName": "Mississippi",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 497,
+   "notes": ""
+  },
+  {
+   "code": "KHSA",
+   "name": "Stennis International Airport",
+   "city": "Bay St. Louis, MS",
+   "stateName": "Mississippi",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Not\nApproved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Million Air Stennis",
+   "fboPhone": "(228) 463-2389",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 555,
+   "notes": "- 0700-1900 Mon-Fri, 0700-1730 Sat-Sun\n- 1 hr advance notice for after hour fuel delivery"
+  },
+  {
+   "code": "KPQL",
+   "name": "Trent Lott International Airport",
+   "city": "Pascagoula, MS",
+   "stateName": "Mississippi",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Southern Sky Aviation",
+   "fboPhone": "(205) 966-9291",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 588,
+   "notes": "- No T-38 start cart\n- 0800-1700, 7 days a week (closed on holidays)"
+  },
+  {
+   "code": "KUTA",
+   "name": "Tunica Municipal Airport",
+   "city": "Tunica, MS",
+   "stateName": "Mississippi",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Unknown",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 383,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KTUP",
+   "name": "Tupelo Regional Airport",
+   "city": "Tupelo, MS",
+   "stateName": "Mississippi",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Tupelo Aviation Unlimited",
+   "fboPhone": "(662) 823-4359",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 465,
+   "notes": "- No FBO SA, call ahead\n- Runway is 7150 ft x 150 ft"
+  },
+  {
+   "code": "KUOX",
+   "name": "University-Oxford Airport",
+   "city": "Oxford, MS",
+   "stateName": "Mississippi",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "Unknown",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 427,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KGTF",
+   "name": "Great Falls International Airport",
+   "city": "Great Falls, MT",
+   "stateName": "Montana",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Holman Aviation",
+   "fboPhone": "(406) 453-7613",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 897,
+   "notes": "Vance does not have a current Airport LOA or FBO Service Agreement. Those are meant to prevent fees, but they are not required for landing or using the FBO. Aircrews\nshould ensure no charges before arriving, or get OG/CC approval."
+  },
+  {
+   "code": "KHLN",
+   "name": "Helena Regional Airport",
+   "city": "Helena, MT",
+   "stateName": "Montana",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Leading Edge Montana",
+   "fboPhone": "(406) 442-2190",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 881,
+   "notes": "- 0600-2359, 7 days a week including holidays\n- 2 hr advance notice for after hours fuel delivery (with $150 fee)"
+  },
+  {
+   "code": "KAVL",
+   "name": "Asheville Regional Airport",
+   "city": "Fletcher, NC",
+   "stateName": "North Carolina",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(828) 687-7110",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 749,
+   "notes": ""
+  },
+  {
+   "code": "KCLT",
+   "name": "Charlotte/Douglas International Airport",
+   "city": "Charlotte, NC",
+   "stateName": "North Carolina",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 828,
+   "notes": "- No GFC\n- Very busy American Airlines hub"
+  },
+  {
+   "code": "KECG",
+   "name": "Elizabeth City CGAS Regional Airport",
+   "city": "Elizabeth City, NC",
+   "stateName": "North Carolina",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "Elizabeth City Regional",
+   "fboPhone": "(252) 335-5634",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1050,
+   "notes": ""
+  },
+  {
+   "code": "KGSO",
+   "name": "Piedmont Triad International Airport",
+   "city": "Greensboro, NC",
+   "stateName": "North Carolina",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(919) 840-2200",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 870,
+   "notes": "- T-38 aircrews should call ahead to check availability of start cart\n- 24/7/365"
+  },
+  {
+   "code": "KRDU",
+   "name": "Raleigh-Durham International Airport",
+   "city": "Raleigh, NC",
+   "stateName": "North Carolina",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(919) 840-2200",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 927,
+   "notes": "PPR Required for all military aircraft, practice approaches, and noise abatement: Give arrival time/departure, call central line: 919-840-7510 ask for Ops 1"
+  },
+  {
+   "code": "KGSB",
+   "name": "Seymour Johnson AFB",
+   "city": "Goldsboro, NC",
+   "stateName": "North Carolina",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 972,
+   "notes": ""
+  },
+  {
+   "code": "KVUJ",
+   "name": "Stanly County Airport",
+   "city": "Albemarle, NC",
+   "stateName": "North Carolina",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Eastern Aviation Fuels",
+   "fboPhone": "(704) 982-9013",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 865,
+   "notes": "- No GFC\n- Longest runway 5499 ft x 100 ft"
+  },
+  {
+   "code": "KILM",
+   "name": "Wilmington International Airport",
+   "city": "Wilmington, NC",
+   "stateName": "North Carolina",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Air Wilmington",
+   "fboPhone": "(910) 763-0146",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 987,
+   "notes": "- No FBO SA, call ahead"
+  },
+  {
+   "code": "KBIS",
+   "name": "Bismarck Municipal Airport",
+   "city": "Bismarck, ND",
+   "stateName": "North Dakota",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Bismarck Aero Center",
+   "fboPhone": "(701) 223-4754",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 639,
+   "notes": "- Can get T-38 start cart but for a fee.\n- Multiple Q codes for 3ft elevated lights 30ft or greater from centerline on multiple taxiways and 10 ft from edge of parking areas.\n- No FBO SA, call ahead"
+  },
+  {
+   "code": "KRDR",
+   "name": "Grand Forks AFB",
+   "city": "Grand Forks, ND",
+   "stateName": "North Dakota",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 698,
+   "notes": ""
+  },
+  {
+   "code": "KFAR",
+   "name": "Hector International Airport",
+   "city": "Fargo, ND",
+   "stateName": "North Dakota",
+   "land": "See\nComments",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 637,
+   "notes": "- No GFC\n- The FBO fuel receipt does not annotate with or without icing inhibitor. Please make sure you ask for inhibitor and that you pernonally make a note on the fuel receipt\nsaying you confirmed you received it. (due to AETC audit)\n- Read Multiple Q codes for lights...\nQ- Use caution and wing walker, deviate from centerline as required, in the vicinity of: 2ft 0in tall EDGE LIGHTS located 27ft from Taxiways H and F centerlines. Taxiways H\nand F are unsuitable for C21 aircraft due to the 2ft tall EDGE LIGHT obstacles."
+  },
+  {
+   "code": "KMIB",
+   "name": "Minot AFB",
+   "city": "Minot, ND",
+   "stateName": "North Dakota",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 740,
+   "notes": ""
+  },
+  {
+   "code": "KGRI",
+   "name": "Central Nebraska Regional Airport",
+   "city": "Grand Island, NE",
+   "stateName": "Nebraska",
+   "land": "See\nComments",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 278,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KLNK",
+   "name": "Lincoln Airport",
+   "city": "Lincoln, NE",
+   "stateName": "Nebraska",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Duncan Aviation",
+   "fboPhone": "(402) 479-8180",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 276,
+   "notes": "- No FBO service agreement, call ahead\n- Uncontrolled operations approved at night for T-6s\n- ARFF manned 24/7/365 by Nebraska ANG"
+  },
+  {
+   "code": "KOFF",
+   "name": "Offutt AFB",
+   "city": "Omaha, NE",
+   "stateName": "Nebraska",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 302,
+   "notes": ""
+  },
+  {
+   "code": "KPSM",
+   "name": "Portsmouth International Airport at Pease",
+   "city": "Portsmouth, NH",
+   "stateName": "New Hampshire",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Port City Air",
+   "fboPhone": "(603) 430-1111",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1308,
+   "notes": "- No FBO SA"
+  },
+  {
+   "code": "KNEL",
+   "name": "Naval Air Engineering Station Lakehurst",
+   "city": "Lakehurst, NJ",
+   "stateName": "New Jersey",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 1130,
+   "notes": ""
+  },
+  {
+   "code": "KABQ",
+   "name": "Albuquerque International Sunport / Kirtland AFB",
+   "city": "Albuquerque, NM",
+   "stateName": "New Mexico",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "MIL/CIV",
+   "approvalList": "None",
+   "fbo": "Cutter Aviation",
+   "fboPhone": "(505) 842-4184",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 431,
+   "notes": "Use Cutter Aviation and be clear that you're from an AETC UPT base, this way they can apply the correct agreement. All fees should be waived for up to 2 days per visit.\nCall for current rates for the FBO provided JASU. JASU from military side should be free. $150 for a tow from Cutter to the military side. FBO Service Agreement covers all\nAETC UPT bases. Airport LOA not required since field is MIL/CIV."
+  },
+  {
+   "code": "KCVS",
+   "name": "Cannon AFB",
+   "city": "Clovis, NM",
+   "stateName": "New Mexico",
+   "land": "See\nComments",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 290,
+   "notes": "- Touch and Gos approved but to land, fuel, or RON needs a PPR"
+  },
+  {
+   "code": "KHMN",
+   "name": "Holloman AFB",
+   "city": "Alamogordo, NM",
+   "stateName": "New Mexico",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 456,
+   "notes": ""
+  },
+  {
+   "code": "KROW",
+   "name": "Roswell International Air Center Airport",
+   "city": "Roswell, NM",
+   "stateName": "New Mexico",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Avflight Roswell Corporation",
+   "fboPhone": "(575) 347-2054",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 374,
+   "notes": ""
+  },
+  {
+   "code": "KSAF",
+   "name": "Santa Fe Municipal Airport",
+   "city": "Santa Fe, NM",
+   "stateName": "New Mexico",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Atlantic Aviation",
+   "fboPhone": "(505) 780-4455",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 399,
+   "notes": "- No over the wing refueling.\n- 0600-2300 Mon-Sun\n- Uncontrolled operations approved at night for T-6s\n- Quiet hours 2200L-0600L. Airport is secured at night so use only during FBO hours.\n- $30 overnight ramp fee"
+  },
+  {
+   "code": "KINS",
+   "name": "Creech AFB",
+   "city": "Indian Springs, NV",
+   "stateName": "Nevada",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 856,
+   "notes": ""
+  },
+  {
+   "code": "KLAS",
+   "name": "McCarran International Airport",
+   "city": "Las Vegas, NV",
+   "stateName": "Nevada",
+   "land": "See\nComments",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(702) 739-1100",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 834,
+   "notes": "- 71 FTW/CC instructions: PPR at Nellis will be used before LAS (if Nellis is available and open on desired days).\n- If T-38's go, crews pay for start cart out of pocket (no cost to gov).\n- Max of 4 Vance aircraft at once. Ensure correct perception of valuable training in a complex terminal environment.\n- A PPR is required for ramp and overnight parking space due to availability.\n- FBO WILL charge fees, no Service Agreement on file. Use Signature Flight Support."
+  },
+  {
+   "code": "KNFL",
+   "name": "Naval Air Station Fallon",
+   "city": "Fallon, NV",
+   "stateName": "Nevada",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1000,
+   "notes": ""
+  },
+  {
+   "code": "KLSV",
+   "name": "Nellis AFB",
+   "city": "Las Vegas, NV",
+   "stateName": "Nevada",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 827,
+   "notes": ""
+  },
+  {
+   "code": "KRTS",
+   "name": "Reno-Stead Airport",
+   "city": "Reno, NV",
+   "stateName": "Nevada",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Aviation Classics",
+   "fboPhone": "(305) 428-8010",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1055,
+   "notes": "- No FBO SA, call ahead"
+  },
+  {
+   "code": "KRNO",
+   "name": "Reno-Tahoe International Airport",
+   "city": "Reno, NV",
+   "stateName": "Nevada",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Stellar Aviation",
+   "fboPhone": "(561) 656-9817",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1049,
+   "notes": "- No FBO SA, call ahead"
+  },
+  {
+   "code": "KALB",
+   "name": "Albany International Airport",
+   "city": "Albany, NY",
+   "stateName": "New York",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Million Air",
+   "fboPhone": "(518) 242-2444",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1176,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KROC",
+   "name": "Greater Rochester Airport",
+   "city": "Rochester, NY",
+   "stateName": "New York",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "US Airports Flight Support",
+   "fboPhone": "(585) 527-6835",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1016,
+   "notes": "- No FBO SA, call ahead"
+  },
+  {
+   "code": "KISP",
+   "name": "Long Island MacArthur Airport",
+   "city": "Islip, NY",
+   "stateName": "New York",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "New York Jet/Mid Island Air",
+   "fboPhone": "(631) 588-5400",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1191,
+   "notes": ""
+  },
+  {
+   "code": "KIAG",
+   "name": "Niagara Falls International Airport",
+   "city": "Niagara Falls, NY",
+   "stateName": "New York",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Calspan Air Services",
+   "fboPhone": "(716) 298-9307",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 963,
+   "notes": "- No LOA or FBO service agreement, call ahead"
+  },
+  {
+   "code": "KSWF",
+   "name": "Stewart International Airport",
+   "city": "Newburgh, NY",
+   "stateName": "New York",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Atlantic Aviation",
+   "fboPhone": "(845) 567-9800",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1151,
+   "notes": "- FBO says they charge $50 for start cart\n- May be possible to get fuel and RON at ANG, call ahead"
+  },
+  {
+   "code": "KSYR",
+   "name": "Syracuse Hancock International Airport",
+   "city": "Syracuse, NY",
+   "stateName": "New York",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Freeman Jet Center",
+   "fboPhone": "(315) 455-7951",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1082,
+   "notes": "- No Airport LOA\n- New FBO without a service agreement on file\n- Call ahead and ask about fees\nAkron-Canton Regional Airport\nAkron, OH"
+  },
+  {
+   "code": "KLUK",
+   "name": "Cincinnati Municipal Airport-Lunken Field",
+   "city": "Cincinnati, OH",
+   "stateName": "Ohio",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(513) 871-8600",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 661,
+   "notes": "- Q code- 1ft6in tall lights 35 ft from centerline taxiways D,E,G"
+  },
+  {
+   "code": "KCMH",
+   "name": "John Glenn Columbus International Airport",
+   "city": "Columbus, OH",
+   "stateName": "Ohio",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Lane Aviation",
+   "fboPhone": "(614) 237-3747",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 741,
+   "notes": "- Takeoff and full stops only. Radar work and VFR patterns to be done at Rickenbacker International Airport (KLCK) which is about 12 miles away.\n- No FBO SA, call ahead"
+  },
+  {
+   "code": "KLCK",
+   "name": "Rickenbacker International Airport",
+   "city": "Columbus, OH",
+   "stateName": "Ohio",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Rickenbacker Aviation",
+   "fboPhone": "(614) 497-1276",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 737,
+   "notes": "- Q-1ft6in lights 200ft past rwy thresholds and 10ft along runway and taxiway edges\n- Taxiway J unsuitable for C21 due to poor pavement"
+  },
+  {
+   "code": "KTOL",
+   "name": "Toledo Express Airport",
+   "city": "Toledo, OH",
+   "stateName": "Ohio",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Grand Aire",
+   "fboPhone": "(419) 861-6700",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 729,
+   "notes": "- 24/7/365\n- No FBO Service Agreement, call ahead"
+  },
+  {
+   "code": "KFFO",
+   "name": "Wright-Patterson AFB",
+   "city": "Dayton, OH",
+   "stateName": "Ohio",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 687,
+   "notes": ""
+  },
+  {
+   "code": "KLTS",
+   "name": "Altus AFB",
+   "city": "Altus, OK",
+   "stateName": "Oklahoma",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 120,
+   "notes": ""
+  },
+  {
+   "code": "KAVK",
+   "name": "Alva Regional Airport",
+   "city": "Alva, OK",
+   "stateName": "Oklahoma",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Civil Airport (Non-P)",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 44,
+   "notes": "- Vance Airport LOA established June 2018\n- No GFC and no FBO SA"
+  },
+  {
+   "code": "KADM",
+   "name": "Ardmore Municipal Airport",
+   "city": "Ardmore, OK",
+   "stateName": "Oklahoma",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Small Business Aviation",
+   "fboPhone": "(580) 389-5263",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 130,
+   "notes": "- 0700-1900 Mon-Fri (closed on weekends)\n- No charge after hours call out for fuel (580)362-6977"
+  },
+  {
+   "code": "KBVO",
+   "name": "Bartlesville Municipal Airport",
+   "city": "Bartlesville, OK",
+   "stateName": "Oklahoma",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Civil Airport (Non-P)",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 95,
+   "notes": "- NTA use only\n- RWY 17/35: 6850 ft x 100 ft"
+  },
+  {
+   "code": "KBKN",
+   "name": "Blackwell-Tonkawa Municipal Airport",
+   "city": "Blackwell, OK",
+   "stateName": "Oklahoma",
+   "land": "See\nComments",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Civil Airport (Non-P)",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 36,
+   "notes": "- NTA Only\n- RWY 17/35 is 3,500 ft x 60 ft"
+  },
+  {
+   "code": "92F",
+   "name": "Chattanooga Sky Harbor Airport",
+   "city": "Chattanooga, OK",
+   "stateName": "Oklahoma",
+   "land": "See\nComments",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Unlisted",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 124,
+   "notes": "- NTA Ops\n- RWY 17/35 is 3400 ft x 60 ft"
+  },
+  {
+   "code": "4O5",
+   "name": "Cherokee Municipal Airport",
+   "city": "Cherokee, OK",
+   "stateName": "Oklahoma",
+   "land": "See\nComments",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Civil Airport (Non-P)",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 34,
+   "notes": "- NTA Only\n- Rwy 17/35 is 3,776 ft x 60 ft"
+  },
+  {
+   "code": "KCHK",
+   "name": "Chickasha Municipal Airport",
+   "city": "Chickasha, OK",
+   "stateName": "Oklahoma",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Unlisted",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 75,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KCSM",
+   "name": "Clinton-Sherman Airport",
+   "city": "Burns Flat, OK",
+   "stateName": "Oklahoma",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Lux Air Jet Center",
+   "fboPhone": "(405) 267-4010",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 87,
+   "notes": "- Night ops are approved provided auxiliary lighting is confirmed/provided. Use caution in vicinity of a 6ft tall Blast Fence located 50ft from the edge of Ramp. ACs must\nensure adequate capability to safely turnaround prior to entering the ramp area.\n- Joint-Use Agreement (JUA) establishes funding to operate CSM. This is different from a \"Joint-Use\" or MIL/CIV airport. The JUA is maintained by Altus and funded by\nAETC. JUA renewed in Mar 2021 for 5 years."
+  },
+  {
+   "code": "KRQO",
+   "name": "El Reno Regional Airport",
+   "city": "El Reno, OK",
+   "stateName": "Oklahoma",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Civil Airport (Non-P)",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 52,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KWDG",
+   "name": "Enid Woodring Regional Airport",
+   "city": "Enid, OK",
+   "stateName": "Oklahoma",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Enid Woodring Airport",
+   "fboPhone": "(580) 234-5476",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 7,
+   "notes": "- Towered and NTA ops approved per AETC\n- Fuel Delivery 0600 - 2130 Mon-Sun (1 hr notice required for after hours)\n- Uncontrolled operations approved at night for T-6s\n- Only one rescue vehicle on site and it is not ARFF capable. Response is from Enid Fire, regardless of hours\n- ELP Approved here"
+  },
+  {
+   "code": "K6K4",
+   "name": "Fairview Municipal Airport",
+   "city": "Fairview, OK",
+   "stateName": "Oklahoma",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Civil Airport (Non-P)",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 27,
+   "notes": "- NTA Only"
+  },
+  {
+   "code": "KGOK",
+   "name": "Guthrie-Edmond Regional Airport",
+   "city": "Guthrie, OK",
+   "stateName": "Oklahoma",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Civil Airport (Non-P)",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 38,
+   "notes": "- No GFC\n- No FBO SA\nHaliburton Field\nDuncan, OK"
+  },
+  {
+   "code": "KFSI",
+   "name": "Henry Post Army Airfield",
+   "city": "Fort Sill, OK",
+   "stateName": "Oklahoma",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 104,
+   "notes": ""
+  },
+  {
+   "code": "KCKA",
+   "name": "Kegelman Air Force Auxiliary Field",
+   "city": "Cherokee, OK",
+   "stateName": "Oklahoma",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 26,
+   "notes": ""
+  },
+  {
+   "code": "KLAW",
+   "name": "Lawton-Fort Sill Regional Airport",
+   "city": "Lawton, OK",
+   "stateName": "Oklahoma",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Lawton Aviation Services",
+   "fboPhone": "(580) 353-4869",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 109,
+   "notes": "- Fuel 0400-2000, 7 days a week (including holidays)"
+  },
+  {
+   "code": "O53",
+   "name": "Medford Municipal Airport",
+   "city": "Medford, OK",
+   "stateName": "Oklahoma",
+   "land": "See\nComments",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Civil Airport (Non-P)",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 28,
+   "notes": "- NTA Only\n- Rwy 17/35 is 3,007 ft x 60 ft"
+  },
+  {
+   "code": "KMKO",
+   "name": "Muskogee-Davis Regional Airport",
+   "city": "Muskogee, OK",
+   "stateName": "Oklahoma",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Civil Airport (Non-P)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Davis Field Aviation",
+   "fboPhone": "(918) 682-4101",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 131,
+   "notes": ""
+  },
+  {
+   "code": "KPVJ",
+   "name": "Pauls Valley Municipal Airport",
+   "city": "Pauls Valley, OK",
+   "stateName": "Oklahoma",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Unlisted",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 104,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "F22",
+   "name": "Perry Municipal Airport",
+   "city": "Perry, OK",
+   "stateName": "Oklahoma",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Civil Airport (Non-P)",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 31,
+   "notes": "- No GFC\n- No FBO SA"
+  },
+  {
+   "code": "KPNC",
+   "name": "Ponca City Regional Airport",
+   "city": "Ponca City, OK",
+   "stateName": "Oklahoma",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "Civil Airport (Non-P)",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 46,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KSWO",
+   "name": "Stillwater Airport",
+   "city": "Stillwater, OK",
+   "stateName": "Oklahoma",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Stillwater Flight Center",
+   "fboPhone": "(405) 624-5463",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 42,
+   "notes": "- Do not break red on the ramp in front of the FBO!\n- Use caution on twy D between Twys A and C due to limited wingtip clearance\n- Towered and non-towered ops approved per AETC\n- Uncontrolled operations approved at night for T-6s\n- Approved for T-6 mission solo out-and-back"
+  },
+  {
+   "code": "KTIK",
+   "name": "Tinker AFB",
+   "city": "Oklahoma City, OK",
+   "stateName": "Oklahoma",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 62,
+   "notes": "- Approved for T-6 mission solo out-and-back"
+  },
+  {
+   "code": "KTUL",
+   "name": "Tulsa International Airport",
+   "city": "Tulsa, OK",
+   "stateName": "Oklahoma",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Atlantic Aviation",
+   "fboPhone": "(918) 836-6592",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 99,
+   "notes": "- T6 practice ELPs approved here by LOA\n- Atlantic Aviation will charge you $160 to use a start cart\n- Be cautious for FOD on the mil ramp, it is not swept for FOD regularly.\n- Approved for T-6 mission solo out-and-back"
+  },
+  {
+   "code": "KOUN",
+   "name": "University of Oklahoma Westheimer Airport",
+   "city": "Norman, OK",
+   "stateName": "Oklahoma",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 69,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KEND",
+   "name": "Vance AFB",
+   "city": "Enid, OK",
+   "stateName": "Oklahoma",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "Vance\nApproved",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 0,
+   "notes": "When uncontrolled, only approved for takeoffs/landings during designated Uncontrolled Airfield Operations (UAO) weekends."
+  },
+  {
+   "code": "KJWG",
+   "name": "Watonga Regional Airport",
+   "city": "Watonga, OK",
+   "stateName": "Oklahoma",
+   "land": "See\nComments",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Civil Airport (Non-P)",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 38,
+   "notes": "- NTA Only\n- Rwy 17/35 is 4,000 ft x 60 ft"
+  },
+  {
+   "code": "KPWA",
+   "name": "Wiley Post Airport",
+   "city": "Oklahoma City, OK",
+   "stateName": "Oklahoma",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "See\nComments",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Atlantic Aviation",
+   "fboPhone": "(405) 787-4040",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 50,
+   "notes": "- Confirm hangar and oxygen fee prior to requesting services"
+  },
+  {
+   "code": "KOKC",
+   "name": "Will Rogers World Airport",
+   "city": "Oklahoma City, OK",
+   "stateName": "Oklahoma",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "AAR Aircraft Services",
+   "fboPhone": "(405) 218-3150",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 59,
+   "notes": "- Use AAR Aircraft Services\n- No multiple approaches after 2230L, pilots may still request\n- Use rwy 17R/35L; climb to 3000 MSL prior to turning east from 17R/35L; full stop only from any runway 2230-0630L\n- Approved for T-6 mission solo out-and-back"
+  },
+  {
+   "code": "KLMT",
+   "name": "Crater Lake-Klamath Regional Airport",
+   "city": "Klamath Falls, OR",
+   "stateName": "Oregon",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Century Aviation Services",
+   "fboPhone": "(541) 882-4681",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1156,
+   "notes": ""
+  },
+  {
+   "code": "KPDX",
+   "name": "Portland International Airport",
+   "city": "Portland, OR",
+   "stateName": "Oregon",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Atlantic Aviation",
+   "fboPhone": "(503) 331-4220",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1242,
+   "notes": "- Outdated SA. Call ahead to avoid fees."
+  },
+  {
+   "code": "KMDT",
+   "name": "Harrisburg International Airport",
+   "city": "Harrisburg, PA",
+   "stateName": "Pennsylvania",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Avflight Harrisburg",
+   "fboPhone": "(717) 944-4666",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1021,
+   "notes": ""
+  },
+  {
+   "code": "KJST",
+   "name": "Johnstown-Cambria County Airport",
+   "city": "Johnstown, PA",
+   "stateName": "Pennsylvania",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Nulton Aviation Services",
+   "fboPhone": "(814) 361-3500",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 928,
+   "notes": "SA outdated and unable to update due to issues with FBO. Coordinate trip in advance with FBO to avoid fees."
+  },
+  {
+   "code": "KPIT",
+   "name": "Pittsburgh International Airport",
+   "city": "Pittsburgh, PA",
+   "stateName": "Pennsylvania",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Atlantic Aviation",
+   "fboPhone": "(412) 472-6700",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 867,
+   "notes": ""
+  },
+  {
+   "code": "KOQU",
+   "name": "Quonset State Airport",
+   "city": "North Kingstown, RI",
+   "stateName": "Rhode Island",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Flight Level Aviation",
+   "fboPhone": "(401) 295-5020",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1271,
+   "notes": "- No Airport LOA"
+  },
+  {
+   "code": "KCHS",
+   "name": "Charleston International Airport",
+   "city": "Charleston, SC",
+   "stateName": "South Carolina",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "MIL/CIV",
+   "approvalList": "None",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(843) 414-9200",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 906,
+   "notes": ""
+  },
+  {
+   "code": "KGYH",
+   "name": "Donaldson Center Airport",
+   "city": "Greenville, SC",
+   "stateName": "South Carolina",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Donaldson Jet Center",
+   "fboPhone": "(864) 277-8184",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 764,
+   "notes": "- T-38 aircrews should call FBO to check availability of start cart\n- RON is not authorized per AETC"
+  },
+  {
+   "code": "KGSP",
+   "name": "Greenville-Spartanburg International Airport",
+   "city": "Greer, SC",
+   "stateName": "South Carolina",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "See\nComments",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Cerulean Aviation",
+   "fboPhone": "(864) 655-5221",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 770,
+   "notes": "- RON is not authorized w/o Wing/CC approval\n- Start cart must be borrowed, call ahead"
+  },
+  {
+   "code": "KMMT",
+   "name": "McEntire Joint National Guard Base",
+   "city": "Eastover, SC",
+   "stateName": "South Carolina",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 852,
+   "notes": ""
+  },
+  {
+   "code": "KMYR",
+   "name": "Myrtle Beach International Airport",
+   "city": "Myrtle Beach, SC",
+   "stateName": "South Carolina",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Horry County",
+   "fboPhone": "(843) 957-7011",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 946,
+   "notes": "- No GFC\n- RON not authorized per AETC"
+  },
+  {
+   "code": "KSSC",
+   "name": "Shaw AFB",
+   "city": "Sumter, SC",
+   "stateName": "South Carolina",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 867,
+   "notes": ""
+  },
+  {
+   "code": "KRCA",
+   "name": "Ellsworth AFB",
+   "city": "Rapid City, SD",
+   "stateName": "South Dakota",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 525,
+   "notes": ""
+  },
+  {
+   "code": "KFSD",
+   "name": "Joe Foss Field Airport",
+   "city": "Sioux Falls, SD",
+   "stateName": "South Dakota",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Maverick Air Center",
+   "fboPhone": "(605) 271-2282",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 438,
+   "notes": ""
+  },
+  {
+   "code": "KRAP",
+   "name": "Rapid City Regional Airport",
+   "city": "Rapid City, SD",
+   "stateName": "South Dakota",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Phillips 66",
+   "fboPhone": "(605) 393-2500",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 519,
+   "notes": ""
+  },
+  {
+   "code": "KCHA",
+   "name": "Chattanooga Lovell Field",
+   "city": "Chattanooga, TN",
+   "stateName": "Tennessee",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 625,
+   "notes": "- Fuel available 24/7/365\n- No GFC\n- P Coded field"
+  },
+  {
+   "code": "KTYS",
+   "name": "McGhee Tyson Airport",
+   "city": "Knoxville, TN",
+   "stateName": "Tennessee",
+   "land": "See\nComments",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(865) 970-9000",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 676,
+   "notes": "- Fuel available 24/7/365\n- Airport LOA not on file, call ahead"
+  },
+  {
+   "code": "KMKL",
+   "name": "McKellar-Sipes Regional Airport",
+   "city": "Jackson, TN",
+   "stateName": "Tennessee",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Jackson Madison County",
+   "fboPhone": "(731) 423-0995",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 440,
+   "notes": "- No FBO SA, call ahead\n- Longest runway 6005 ft x 150 ft"
+  },
+  {
+   "code": "KMEM",
+   "name": "Memphis International Airport",
+   "city": "Memphis, TN",
+   "stateName": "Tennessee",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(407) 720-0108",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 395,
+   "notes": "- No T-38 start cart\n- Extremely busy FedEx hub with traffic increasing exponentially later in the evening\n- Fuel available 24/7/365"
+  },
+  {
+   "code": "KNQA",
+   "name": "Millington Regional Jetport",
+   "city": "Millington, TN",
+   "stateName": "Tennessee",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "CTI Professional Flight Training",
+   "fboPhone": "(901) 873-4359",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 396,
+   "notes": "- 0700-2100 Mon-Fri, 0700-1900 Sat-Sun\n- 2 Hr Advance notice required for after hours fuel delivery\n- May charge for a start cart, call ahead"
+  },
+  {
+   "code": "KBNA",
+   "name": "Nashville International Airport",
+   "city": "Nashville, TN",
+   "stateName": "Tennessee",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(615) 361-3000",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 544,
+   "notes": "- Aircrews check fees ahead of time"
+  },
+  {
+   "code": "KMQY",
+   "name": "Smyrna Airport",
+   "city": "Smyrna, TN",
+   "stateName": "Tennessee",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Azure Flight Support",
+   "fboPhone": "(615) 220-2957",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 552,
+   "notes": "- Fuel 24/7/365\n- Uncontrolled operations approved at night for T-6s\n- Due to lack of manning, fire response time and capabilities could be drastically elongated after the Control Tower closes"
+  },
+  {
+   "code": "KABI",
+   "name": "Abilene Regional Airport",
+   "city": "Abilene, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Abilene Aero",
+   "fboPhone": "(325) 677-2601",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 252,
+   "notes": "- Fuel 24/7/365\nAustin-Bergstrom International\nAirport\nAustin, TX"
+  },
+  {
+   "code": "KBEA",
+   "name": "Beeville Municipal",
+   "city": "Beeville, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 479,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KBPG",
+   "name": "Big Spring McMahon-Wrinkle Airport",
+   "city": "Big Spring, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Unlisted",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 306,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "0F2",
+   "name": "Bowie Municipal Airport",
+   "city": "Bowie, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Unlisted",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [],
+   "distanceFromVanceNm": 165,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KBRO",
+   "name": "Brownsville South Padre Island International",
+   "city": "Brownsville, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Civil Airport (Non-P)",
+   "approvalList": "AETC VTL",
+   "fbo": "Associated Energy Group",
+   "fboPhone": "(305) 913-5253",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 627,
+   "notes": "- Call before you go to make sure they can get a start cart"
+  },
+  {
+   "code": "KRWV",
+   "name": "Caldwell Municipal Airport",
+   "city": "Caldwell, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Unlisted",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [],
+   "distanceFromVanceNm": 355,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KCXO",
+   "name": "Conroe-North Houston Regional Airport",
+   "city": "Houston, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Herd Air Group",
+   "fboPhone": "(936) 760-1717",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 381,
+   "notes": "- Fuel available 0700-2100 Mon-Sun"
+  },
+  {
+   "code": "KCRP",
+   "name": "Corpus Christi International Airport",
+   "city": "Corpus Christi, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Atlantic Aviation",
+   "fboPhone": "(361) 289-1881",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 515,
+   "notes": "- No fees with fuel purchase (call ahead and make sure that's still valid)\n- No ELPs or SFOs allowed\n- Fuel available 24/7/365"
+  },
+  {
+   "code": "KCOT",
+   "name": "Cotulla-La Salle County Airport",
+   "city": "Cotulla, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Unlisted",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 478,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KDWH",
+   "name": "David Wayne Hooks Memorial Airport",
+   "city": "Houston, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Northwest Airport Management",
+   "fboPhone": "(281) 376-5436",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 395,
+   "notes": "- Fuel available 24/7/365\n- Longest runway 7009 x 100"
+  },
+  {
+   "code": "KDRT",
+   "name": "Del Rio International Airport",
+   "city": "Del Rio, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Not\nApproved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC NTA",
+   "fbo": "Pico Aviation",
+   "fboPhone": "(830) 768-0898",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 445,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KDTO",
+   "name": "Denton Municipal Airport",
+   "city": "Denton, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 192,
+   "notes": "- No GFC\n- No T-38 start cart"
+  },
+  {
+   "code": "24R",
+   "name": "Dilley Airpark",
+   "city": "Dilley, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Unlisted",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [],
+   "distanceFromVanceNm": 464,
+   "notes": ""
+  },
+  {
+   "code": "KCZT",
+   "name": "Dimmit County Airport",
+   "city": "Carrizo Springs, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Unlisted",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 479,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KTPL",
+   "name": "Draughon-Miller Central Texas Regional Airport",
+   "city": "Temple, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Not\nApproved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC NTA",
+   "fbo": "AvFuel",
+   "fboPhone": "(254) 298-5770",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 313,
+   "notes": "- Fuel 0500-2200 Mon-Sun ($100 after hrs fee w/ 1 Hr advance notice required)"
+  },
+  {
+   "code": "KDYS",
+   "name": "Dyess AFB",
+   "city": "Abilene, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 255,
+   "notes": ""
+  },
+  {
+   "code": "KGGG",
+   "name": "East Texas Regional Airport",
+   "city": "Longview, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "KRS Jet Center",
+   "fboPhone": "(903) 643-2010",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 286,
+   "notes": "- Fuel 0530-2100 Mon-Sun\n- 1 Hr advance notice for after hours (w/ $75 fee)"
+  },
+  {
+   "code": "KCLL",
+   "name": "Easterwood Airport",
+   "city": "College Station, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Astin Aviation",
+   "fboPhone": "(979) 775-5255",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 354,
+   "notes": "- Pre-arrangement required: Check-in using www.astinaviation.com"
+  },
+  {
+   "code": "KECU",
+   "name": "Edwards County Airport",
+   "city": "Rocksprings, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Unlisted",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 400,
+   "notes": "- No fuel here"
+  },
+  {
+   "code": "KELP",
+   "name": "El Paso International Airport",
+   "city": "El Paso, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Million Air El Paso",
+   "fboPhone": "(915) 779-2831",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 501,
+   "notes": "Crews have reported being charged ramp fees. Call ahead to ensure no charges."
+  },
+  {
+   "code": "27R",
+   "name": "Eldorado Airport",
+   "city": "Eldorado, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Unlisted",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 356,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KEFD",
+   "name": "Ellington Field",
+   "city": "Houston, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(281) 484-6551",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 428,
+   "notes": "Twy B unlighted east of Rwy 17R/35L-daylight use only.\nFort Stockton-Pecos County Airport\nFort Stockton, TX"
+  },
+  {
+   "code": "KAFW",
+   "name": "Fort Worth Alliance Airport",
+   "city": "Fort Worth, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "See\nComments",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Alliance Aviation Services",
+   "fboPhone": "(817) 890-1000",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 204,
+   "notes": "- Base was charged fees for aircraft RONing during a weather evac in Feb 2021. Please call ahead to better understand fees to be charged. There is no SA in place with\nthe FBO."
+  },
+  {
+   "code": "KFTW",
+   "name": "Fort Worth Meacham International Airport",
+   "city": "Fort Worth, TX",
+   "stateName": "Texas",
+   "land": "See\nComments",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Modern Aviation",
+   "fboPhone": "(817) 289-8000",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 213,
+   "notes": "- Aircraft should only park on Modern Aviation's main ramp. Several aircraft props were damaged due to gravel on auxiliary parking spots (Sep 2025)."
+  },
+  {
+   "code": "KNFW",
+   "name": "Fort Worth Naval Air Station JRB (Carswell Field) Airport",
+   "city": "Ft. Worth, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 216,
+   "notes": ""
+  },
+  {
+   "code": "KUVA",
+   "name": "Garner Field",
+   "city": "Uvalde, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Not\nApproved",
+   "classification": "Unlisted",
+   "approvalList": "AETC NTA",
+   "fbo": "Uvalde Flight Center",
+   "fboPhone": "(830) 279-0877",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 438,
+   "notes": "- New FBO, call ahead to avoid fees"
+  },
+  {
+   "code": "KGYB",
+   "name": "Giddings-Lee County Airport",
+   "city": "Giddings, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Unlisted",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 374,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KHDO",
+   "name": "Hondo Municipal Airport",
+   "city": "Hondo, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 424,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "2R9",
+   "name": "Karnes County Airport",
+   "city": "Kenedy, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Unlisted",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [],
+   "distanceFromVanceNm": 452,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KJCT",
+   "name": "Kimble County Airport",
+   "city": "Junction, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Unlisted",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 362,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KNQI",
+   "name": "Kingsville NAS",
+   "city": "Kingsville, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 531,
+   "notes": ""
+  },
+  {
+   "code": "KSKF",
+   "name": "Lackland AFB (Kelly Field Annex)",
+   "city": "San Antonio, TX",
+   "stateName": "Texas",
+   "land": "See\nComments",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "MIL/CIV",
+   "approvalList": "None",
+   "fbo": "Atlantic Aviation",
+   "fboPhone": "(210) 921-6100",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 419,
+   "notes": "- IFR Sup: USAF Aircraft will use transient alert services and park on military ramp"
+  },
+  {
+   "code": "KLRD",
+   "name": "Laredo International Airport",
+   "city": "Laredo, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(956) 728-7540",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 534,
+   "notes": ""
+  },
+  {
+   "code": "KDLF",
+   "name": "Laughlin AFB",
+   "city": "Del Rio, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 443,
+   "notes": ""
+  },
+  {
+   "code": "KLBB",
+   "name": "Lubbock Preston Smith International Airport",
+   "city": "Lubbock, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Lubbock Aero",
+   "fboPhone": "(806) 747-5101",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 250,
+   "notes": "- High bird activity here"
+  },
+  {
+   "code": "KSJT",
+   "name": "Mathis Field",
+   "city": "San Angelo, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Ranger Aviation",
+   "fboPhone": "(325) 949-3773",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 326,
+   "notes": "- Fuel 0600-2200, 7 days a week (including holidays)\n- 30 min advance notice required for after hours fuel (w/ $70 fee)"
+  },
+  {
+   "code": "5T9",
+   "name": "Maverick County Memorial International Airport",
+   "city": "Eagle Pass, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Unlisted",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 468,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "T30",
+   "name": "McKinley Field Airport",
+   "city": "Pearsall, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Unlisted",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 456,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KMAF",
+   "name": "Midland International Airport",
+   "city": "Midland, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(432) 563-2033",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 339,
+   "notes": ""
+  },
+  {
+   "code": "KNGP",
+   "name": "Naval Air Station Corpus Christi",
+   "city": "Corpus Christi, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 520,
+   "notes": ""
+  },
+  {
+   "code": "KNWL",
+   "name": "Naval Outlying Field Waldron",
+   "city": "Corpus Christi, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 524,
+   "notes": ""
+  },
+  {
+   "code": "KGYI",
+   "name": "North Texas Regional Airport",
+   "city": "Sherman, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 169,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KPEZ",
+   "name": "Pleasanton Municipal Airport",
+   "city": "Pleasanton, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Unlisted",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 445,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KRND",
+   "name": "Randolph AFB",
+   "city": "Universal City, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 410,
+   "notes": ""
+  },
+  {
+   "code": "49R",
+   "name": "Real County Airport",
+   "city": "Leakey, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Unlisted",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [],
+   "distanceFromVanceNm": 407,
+   "notes": "- No fuel or FBO here"
+  },
+  {
+   "code": "KAMA",
+   "name": "Rick Husband Amarillo International Airport",
+   "city": "Amarillo, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(806) 335-2806",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 196,
+   "notes": "- Fuel available 24/7/365"
+  },
+  {
+   "code": "T20",
+   "name": "Roger M. Dreyer Memorial Airport",
+   "city": "Gonzales, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Unlisted",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [],
+   "distanceFromVanceNm": 410,
+   "notes": ""
+  },
+  {
+   "code": "KSAT",
+   "name": "San Antonio International Airport",
+   "city": "San Antonio, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(210) 625-9100",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 410,
+   "notes": "- Use Signature North (on the north ramp)\n- No T-38 start cart"
+  },
+  {
+   "code": "KHYI",
+   "name": "San Marcos Municipal Airport",
+   "city": "San Marcos, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Unlisted",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 387,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KSPS",
+   "name": "Sheppard AFB / Wichita Falls Municipal Airport",
+   "city": "Wichita Falls, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "MIL/CIV",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 144,
+   "notes": "- Fuel on the mil side"
+  },
+  {
+   "code": "84R",
+   "name": "Smithville Crawford Municipal Airport",
+   "city": "Smithville, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Unlisted",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 381,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KSOA",
+   "name": "Sonora Municipal Airport",
+   "city": "Sonora, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Unlisted",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 372,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "88R",
+   "name": "Spicewood Airport",
+   "city": "Spicewood, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "Unlisted",
+   "approvalList": "AETC NTA",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 352,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KSSF",
+   "name": "Stinson Municipal Airport",
+   "city": "San Antonio, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 422,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KCNW",
+   "name": "TSTC Waco Airport",
+   "city": "Waco, TX",
+   "stateName": "Texas",
+   "land": "See\nComments",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Servion of Waco",
+   "fboPhone": "(254) 799-5513",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 286,
+   "notes": "- Touch and go landings limited to below 400k lbs gross weight aircraft without prior coordination with TSTC Waco Airport Manager\n- Fuel hours are all over the place, call ahead"
+  },
+  {
+   "code": "KTYR",
+   "name": "Tyler Pounds Regional Airport",
+   "city": "Tyler, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 270,
+   "notes": "- No GFC\n- No RON per AETC"
+  },
+  {
+   "code": "KHRL",
+   "name": "Valley International Airport",
+   "city": "Harlingen, TX",
+   "stateName": "Texas",
+   "land": "See\nComments",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Sun Valley Aviation",
+   "fboPhone": "(956) 421-4545",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 608,
+   "notes": "- No T-38 start capability\n- Fuel available 0600-2300 Mon-Sun ($100 call out fee)"
+  },
+  {
+   "code": "KVCT",
+   "name": "Victoria Regional Airport",
+   "city": "Victoria, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Victoria Jet Center",
+   "fboPhone": "(361) 578-1221",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 453,
+   "notes": "- Fuel available 0600-2100 Mon-Sat, 0600-1800 Sun\n- Call out fee $100 per occurence"
+  },
+  {
+   "code": "KACT",
+   "name": "Waco Regional Airport",
+   "city": "Waco, TX",
+   "stateName": "Texas",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Texas Aero",
+   "fboPhone": "(254) 752-9731",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 286,
+   "notes": "- Fuel available 0600-2200 Mon-Sun\n- $40 call out fee after hrs"
+  },
+  {
+   "code": "KHIF",
+   "name": "Hill AFB",
+   "city": "Ogden, UT",
+   "stateName": "Utah",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 717,
+   "notes": ""
+  },
+  {
+   "code": "KSLC",
+   "name": "Salt Lake City International Airport",
+   "city": "Salt Lake City, UT",
+   "stateName": "Utah",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Signature Flight Support",
+   "fboPhone": "(801) 359-2085",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 711,
+   "notes": ""
+  },
+  {
+   "code": "U42",
+   "name": "South Valley Regional Airport",
+   "city": "Salt Lake City, UT",
+   "stateName": "Utah",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 709,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KBKT",
+   "name": "Allen C Perkinson / Blackstone Army Airfield",
+   "city": "Blackstone, VA",
+   "stateName": "Virginia",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "MIL/CIV",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 960,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KNDY",
+   "name": "Dahlgren Naval Surface Warfare Center",
+   "city": "Dahlgren, VA",
+   "stateName": "Virginia",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 1002,
+   "notes": ""
+  },
+  {
+   "code": "KLFI",
+   "name": "Langley AFB",
+   "city": "Hampton, VA",
+   "stateName": "Virginia",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1036,
+   "notes": ""
+  },
+  {
+   "code": "KNTU",
+   "name": "Naval Air Station Oceana",
+   "city": "Virginia Beach, VA",
+   "stateName": "Virginia",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1053,
+   "notes": ""
+  },
+  {
+   "code": "KNGU",
+   "name": "Norfolk Naval Station",
+   "city": "Norfolk, VA",
+   "stateName": "Virginia",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1040,
+   "notes": ""
+  },
+  {
+   "code": "KRIC",
+   "name": "Richmond International Airport",
+   "city": "Sandston, VA",
+   "stateName": "Virginia",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Aero Industries",
+   "fboPhone": "(804) 222-7211",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 989,
+   "notes": ""
+  },
+  {
+   "code": "KTCM",
+   "name": "McChord AFB",
+   "city": "Tacoma, WA",
+   "stateName": "Washington",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1269,
+   "notes": ""
+  },
+  {
+   "code": "KNRA",
+   "name": "Naval Outlying Field Coupeville",
+   "city": "Coupeville, WA",
+   "stateName": "Washington",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Not\nApproved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 1299,
+   "notes": ""
+  },
+  {
+   "code": "KPAE",
+   "name": "Paine Field/Snohomish County Airport",
+   "city": "Everett, WA",
+   "stateName": "Washington",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1279,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KGEG",
+   "name": "Spokane International Airport",
+   "city": "Spokane, WA",
+   "stateName": "Washington",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Aero Center",
+   "fboPhone": "(509) 455-5204",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1101,
+   "notes": "- 0600-2200\n- $80 callout fee after hours"
+  },
+  {
+   "code": "KNUW",
+   "name": "Whidbey Island Naval Air Station",
+   "city": "Oak Harbor, WA",
+   "stateName": "Washington",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "Military",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 1304,
+   "notes": ""
+  },
+  {
+   "code": "KMSN",
+   "name": "Dane County Regional Airport",
+   "city": "Madison, WI",
+   "stateName": "Wisconsin",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Wisconsin Four Lakes",
+   "fboPhone": "(608) 268-5000",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 568,
+   "notes": "- No FBO service agreement on file, call ahead to inquire about fees"
+  },
+  {
+   "code": "KMKE",
+   "name": "General Mitchell International Airport",
+   "city": "Milwaukee, WI",
+   "stateName": "Wisconsin",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Avflight Milwaukee",
+   "fboPhone": "(734) 663-6466",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 609,
+   "notes": ""
+  },
+  {
+   "code": "KGRB",
+   "name": "Green Bay Austin Straubel International Airport",
+   "city": "Green Bay, WI",
+   "stateName": "Wisconsin",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Jet Air Services",
+   "fboPhone": "(866) 676-7835",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 661,
+   "notes": "- FBO has to borrow T-38 start cart from the Delta - free of charge as long as it is taken care of. Recommend you call ahead."
+  },
+  {
+   "code": "KLSE",
+   "name": "La Crosse Municipal Airport",
+   "city": "La Crosse, WI",
+   "stateName": "Wisconsin",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "See\nComments",
+   "classification": "P (without DoD\ntenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Colgan Air Services",
+   "fboPhone": "(608) 783-8359",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 546,
+   "notes": "- Check FBO limited hours, $150 callout fee after hours. See ASRR for multiple Q codes with 3ft tall lights.\n- No T-38 start cart!"
+  },
+  {
+   "code": "KCMY",
+   "name": "Sparta/Fort McCoy Airport",
+   "city": "Sparta, WI",
+   "stateName": "Wisconsin",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "See\nComments",
+   "classification": "MIL/CIV",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 563,
+   "notes": "- No Fuel or FBO here"
+  },
+  {
+   "code": "KOSH",
+   "name": "Whittman Regional Airport",
+   "city": "Oshkosh, WI",
+   "stateName": "Wisconsin",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 628,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KMRB",
+   "name": "Eastern West Virginia Regional Airport",
+   "city": "Martinsburg, WV",
+   "stateName": "West Virginia",
+   "land": "Approved",
+   "fuel": "Not\nApproved",
+   "ron": "Not\nApproved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 960,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KPKB",
+   "name": "Mid-Ohio Valley Regional Airport",
+   "city": "Parkersburg, WV",
+   "stateName": "West Virginia",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "See\nComments",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "Mid-Ohio Valley Regional Airport",
+   "fboPhone": "(304) 464-5113",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 801,
+   "notes": ""
+  },
+  {
+   "code": "KCKB",
+   "name": "North Central West Virginia Airport",
+   "city": "Clarksburg, WV",
+   "stateName": "West Virginia",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 856,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KCRW",
+   "name": "Yeager Airport",
+   "city": "Charleston, WV",
+   "stateName": "West Virginia",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "AETC VTL",
+   "fbo": "Capital Jet Center",
+   "fboPhone": "(304) 859-0102",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 787,
+   "notes": "No T-38 start cart.\nBe cautious of fees with Executive Air Terminal: they have charges for oxygen, tie downs,and hangar usage.\nEncourages military training and practice approaches."
+  },
+  {
+   "code": "KGUR",
+   "name": "Camp Guernsey Airport",
+   "city": "Guernsey, WY",
+   "stateName": "Wyoming",
+   "land": "Approved",
+   "fuel": "See\nComments",
+   "ron": "Approved",
+   "classification": "MIL/CIV",
+   "approvalList": "None",
+   "fbo": "",
+   "fboPhone": "",
+   "suitability": [
+    "T-6"
+   ],
+   "distanceFromVanceNm": 475,
+   "notes": "- No GFC"
+  },
+  {
+   "code": "KCYS",
+   "name": "Cheyenne Regional Airport",
+   "city": "Cheyenne, WY",
+   "stateName": "Wyoming",
+   "land": "Approved",
+   "fuel": "Approved",
+   "ron": "Approved",
+   "classification": "P (with DoD tenant)",
+   "approvalList": "Vance\nApproved",
+   "fbo": "Legend Aeroserve",
+   "fboPhone": "(816) 949-8900",
+   "suitability": [
+    "T-6",
+    "T-1"
+   ],
+   "distanceFromVanceNm": 433,
+   "notes": ""
+  }
+ ]
+}
