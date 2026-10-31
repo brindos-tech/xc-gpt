@@ -13,7 +13,6 @@ function resolveVar(cssVar) {
 export function createMapView({ config, origin }) {
   const mapEl = document.getElementById("mapWrap");
   const legendEl = document.getElementById("mapLegend");
-  const riverDeltaEl = document.getElementById("riverDelta");
 
   // SVG renderer (the default), not canvas: at ~87 places, real DOM nodes
   // per pin cost nothing measurable, and it's the only way a pin can be
@@ -42,11 +41,6 @@ export function createMapView({ config, origin }) {
     color: "#ff8a3d", weight: 1.5, dashArray: "6,6", fill: false, opacity: 0.6,
   }).addTo(map);
 
-  // River polyline
-  const riverLine = L.polyline(config.mississippi, {
-    color: "#3ddc97", weight: 2, dashArray: "4,6", opacity: 0.55,
-  }).addTo(map);
-
   const pinLayer = L.layerGroup().addTo(map);
   let onPinClick = () => {};
 
@@ -64,14 +58,10 @@ export function createMapView({ config, origin }) {
     map.flyTo([newOrigin.lat, newOrigin.lon], map.getZoom(), { duration: 0.6 });
   }
 
-  function setRiverVisible(westOnly) {
-    riverLine.setStyle({ opacity: westOnly ? 0.75 : 0.3 });
-  }
-
   function render(visiblePlaces, allPlaces, state) {
     pinLayer.clearLayers();
 
-    const shown = state.westOnly ? visiblePlaces : allPlaces.filter((p) => p.distanceNm <= state.rangeNm);
+    const shown = allPlaces.filter((p) => p.distanceNm <= state.rangeNm);
     const visibleIds = new Set(visiblePlaces.map((p) => p.id));
 
     for (const place of shown) {
@@ -133,23 +123,12 @@ export function createMapView({ config, origin }) {
       .join("") + `<span><span class="legend-dot" style="background:#4a5568;opacity:.5"></span>no events in window</span>`;
   }
 
-  function setRiverDelta(text) {
-    if (text) {
-      riverDeltaEl.textContent = text;
-      riverDeltaEl.style.display = "block";
-    } else {
-      riverDeltaEl.style.display = "none";
-    }
-  }
-
   renderLegend();
 
   return {
     render,
     updateRange,
     setOrigin,
-    setRiverVisible,
-    setRiverDelta,
     invalidateSize: () => map.invalidateSize(),
     onPinClick: (fn) => { onPinClick = fn; },
     flyTo: (lat, lon) => map.flyTo([lat, lon], 7, { duration: 0.6 }),

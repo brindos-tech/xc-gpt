@@ -57,24 +57,98 @@ async function openPage(viewport = { width: 1280, height: 900 }) {
   return { page, context, errors };
 }
 
-test("boots, renders every view, and throws nothing", async () => {
+const pins = (page) => page.locator("#plannerMap [data-field]");
+
+test("planner boots with field pins and throws nothing", async () => {
   const { page, context, errors } = await openPage();
   try {
-    assert.ok((await page.locator("#mapWrap path.leaflet-interactive").count()) > 1, "map markers drawn");
+    assert.ok((await pins(page).count()) > 100, "nav-list pins drawn");
+    assert.match(await page.textContent("#rangeCounts"), /nav-list fields? in range/);
+    // the default airspace layers load on their own
+    await page.waitForFunction(() => /\d/.test(document.querySelector('[data-air-status="MOA"]')?.textContent || ""), null, { timeout: 15000 });
+    assert.ok((await page.locator("#plannerMap canvas").count()) > 0, "airspace canvas present");
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
 
-    await page.click('#tabBar [data-view="feed"]');
-    assert.ok((await page.locator("#feedInner .feed-row").count()) > 0, "feed rows");
+test("a field opens its sheet with FBO, status and per diem, and closes again", async () => {
+  const { page, context, errors } = await openPage();
+  try {
+    await page.locator('#plannerMap [data-field="KOKC"]').dispatchEvent("click");
+    await page.waitForSelector("#fieldPanel.open");
+    const text = await page.textContent("#fieldContent");
+    assert.match(text, /KOKC/);
+    assert.match(text, /Will Rogers/);
+    assert.match(text, /AAR Aircraft Services/);
+    assert.match(text, /GSA per diem/);
+    assert.match(await page.evaluate(() => location.hash), /fld=KOKC/);
+    // opening the sheet must not scroll the clipped map area sideways
+    assert.equal(await page.evaluate(() => document.getElementById("viewSurface").scrollLeft), 0);
+    await page.click("#fieldClose");
+    await page.waitForSelector("#fieldPanel:not(.open)");
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
 
-    await page.click('#tabBar [data-view="places"]');
-    assert.ok((await page.locator("#placesInner .place-card").count()) > 0, "place cards");
+test("field list switch, quick filters and airspace toggles", async () => {
+  const { page, context, errors } = await openPage();
+  try {
+    const navCount = await pins(page).count();
+    await page.click('[data-src="p"]');
+    await page.waitForFunction((n) => document.querySelectorAll("#plannerMap [data-field]").length < n, navCount);
+    const pCount = await pins(page).count();
+    assert.ok(pCount > 0 && pCount < navCount, `P-coded (${pCount}) is a subset of the list (${navCount})`);
 
-    await page.click('#tabBar [data-view="artists"]');
-    await page.click('#tabBar [data-view="weekends"]');
-    assert.ok((await page.locator("#weekendsInner .weekend-card").count()) > 0, "weekend cards");
+    await page.click('[data-src="nav"]');
+    await page.click('[data-ff="fuel"]');
+    await page.waitForFunction((n) => document.querySelectorAll("#plannerMap [data-field]").length < n, navCount);
 
-    await page.locator("#weekendsInner .weekend-card[data-place]").first().click();
-    await page.waitForSelector("#detailPanel.open", { timeout: 5000 });
+    // IR/VR/SR are off by default; SR turns on and loads its file
+    assert.equal(await page.isChecked('[data-air-toggle="SR"]'), false);
+    assert.equal(await page.isChecked('[data-air-toggle="MOA"]'), true);
+    await page.click('[data-air="SR"] .switch');
+    await page.waitForFunction(() => /\d/.test(document.querySelector('[data-air-status="SR"]')?.textContent || ""), null, { timeout: 15000 });
+    assert.match(await page.evaluate(() => location.hash), /air=[^&]*SR/);
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
 
+test("another base switches to P-coded fields", async () => {
+  const { page, context } = await openPage();
+  try {
+    await page.click('[data-origin="columbus"]');
+    await page.waitForFunction(() => document.querySelector('[data-src="p"]')?.classList.contains("active"));
+    assert.match(await page.textContent("#rangeCounts"), /P-coded/);
+  } finally {
+    await context.close();
+  }
+});
+
+test("events page loads on demand, with calendar date boxes and no west toggle", async () => {
+  const { page, context, errors } = await openPage();
+  try {
+    assert.equal(await page.locator("#westToggle").count(), 0);
+    const requested = [];
+    page.on("request", (r) => requested.push(r.url()));
+    await page.click('#tabBar [data-view="events"]');
+    await page.waitForSelector("#mapWrap path.leaflet-interactive", { timeout: 20000 });
+    assert.ok(requested.some((u) => u.includes("generated/events.json")), "event data fetched only on opening the page");
+    assert.match(await page.textContent("#rangeCounts"), /places? · \d+ events? in window/);
+
+    // the boxes are real date inputs bounded by event coverage; moving "To" updates the range
+    assert.equal(await page.getAttribute("#dateFrom", "type"), "date");
+    const max = await page.getAttribute("#dateTo", "max");
+    await page.fill("#dateTo", max);
+    await page.waitForFunction((m) => location.hash.includes(`to=${m}`), max);
+    // a start after the end drags the end along
+    await page.fill("#dateFrom", max);
+    await page.waitForFunction((m) => location.hash.includes(`from=${m}`) && location.hash.includes(`to=${m}`), max);
     assert.deepEqual(errors, []);
   } finally {
     await context.close();
@@ -98,14 +172,14 @@ test("data is fetched with the deploy version, not a per-load timestamp", async 
     }
     await page.goto(site.url);
     await page.waitForFunction(() => document.getElementById("freshnessText")?.textContent.includes("loading") === false);
-    assert.ok(dataUrls.length >= 5);
+    assert.ok(dataUrls.length >= 4);
     for (const u of dataUrls) assert.match(u, /\?v=e2etest1$/, u);
   } finally {
     await context.close();
   }
 });
 
-test("mobile: filter sheet and detail sheet both close", async () => {
+test("mobile: filter sheet and field sheet both close", async () => {
   const { page, context, errors } = await openPage({ width: 390, height: 844 });
   try {
     await page.click("#railToggle");
@@ -113,12 +187,10 @@ test("mobile: filter sheet and detail sheet both close", async () => {
     await page.click("#railClose");
     await page.waitForSelector("#filterRail:not(.open)");
 
-    await page.click('#tabBar [data-view="places"]');
-    await page.locator("#placesInner .place-card").first().click();
-    await page.waitForSelector("#detailPanel.open");
-    await page.click("#detailClose");
-    await page.waitForSelector("#detailPanel:not(.open)");
-
+    await page.locator('#plannerMap [data-field="KOKC"]').dispatchEvent("click");
+    await page.waitForSelector("#fieldPanel.open");
+    await page.click("#fieldClose");
+    await page.waitForSelector("#fieldPanel:not(.open)");
     assert.deepEqual(errors, []);
   } finally {
     await context.close();

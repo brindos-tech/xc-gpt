@@ -7,6 +7,8 @@ const PRESETS = [
   { label: "Next 90 days", days: 90 },
 ];
 
+// Events-page date range: presets, a From / To pair of calendar boxes, and
+// a weekly density histogram that shows where the events are.
 export function createScrubber({ store, config, allEvents }) {
   const wrap = document.getElementById("scrubberWrap");
   wrap.innerHTML = `
@@ -15,39 +17,38 @@ export function createScrubber({ store, config, allEvents }) {
       <span class="scrubber-summary-hint">Change</span>
     </button>
     <div class="scrubber-body" id="scrubberBody">
-      <div class="scrubber-presets" style="display:flex;gap:6px;flex-wrap:wrap;">
-        ${PRESETS.map((p, i) => `<button class="chip" data-preset="${i}">${p.label}</button>`).join("")}
-        <button class="chip" data-preset="custom">Custom</button>
+      <div class="scrubber-top">
+        <div class="scrubber-presets" style="display:flex;gap:6px;flex-wrap:wrap;">
+          ${PRESETS.map((p, i) => `<button class="chip" data-preset="${i}">${p.label}</button>`).join("")}
+        </div>
+        <div class="date-range" role="group" aria-label="Date range">
+          <label>From <input type="date" id="dateFrom"></label>
+          <label>To <input type="date" id="dateTo"></label>
+        </div>
       </div>
       <div class="scrubber-track" style="position:relative;height:34px;">
         <canvas id="densityCanvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
-        <div id="brushLabel" style="position:absolute;top:-2px;right:0;font-size:0.72em;color:var(--muted);"></div>
       </div>
-      <input type="range" id="scrubStart" min="0" max="1" value="0" style="width:100%;">
     </div>
   `;
 
   const canvas = document.getElementById("densityCanvas");
-  const brushLabel = document.getElementById("brushLabel");
   const presetRow = wrap.querySelector(".scrubber-presets");
-  const scrubStart = document.getElementById("scrubStart");
+  const dateFrom = document.getElementById("dateFrom");
+  const dateTo = document.getElementById("dateTo");
   const summaryBtn = document.getElementById("scrubberSummary");
   const summaryLabel = document.getElementById("scrubberSummaryLabel");
 
   // On phones this strip eats scarce vertical space that the map wants, and
-  // once a horizon is picked it's reference material rather than a control.
-  // Collapse it to a one-line summary of the chosen range; tapping that
-  // brings the presets and density histogram back. Matches the CSS
-  // breakpoint — the collapse rules live inside the same media query, so a
-  // stale .collapsed class is inert on desktop.
+  // once a range is picked it's reference material rather than a control.
+  // Collapse it to a one-line summary; tapping that brings it back. Matches
+  // the CSS breakpoint — the collapse rules live inside the same media query.
   const isNarrow = window.matchMedia("(max-width: 860px)");
 
   function setCollapsed(collapsed) {
     wrap.classList.toggle("collapsed", collapsed);
     summaryBtn.setAttribute("aria-expanded", String(!collapsed));
-    // The density canvas measures 0px wide while it's display:none, so any
-    // draw that happened during collapse produced nothing. Redraw once it
-    // has real layout back, or it reappears blank.
+    // The density canvas measures 0px wide while it's display:none.
     if (!collapsed) {
       requestAnimationFrame(() => {
         const { dateRange } = store.getState();
@@ -55,10 +56,7 @@ export function createScrubber({ store, config, allEvents }) {
       });
     }
   }
-
-  summaryBtn.addEventListener("click", () => {
-    setCollapsed(!wrap.classList.contains("collapsed"));
-  });
+  summaryBtn.addEventListener("click", () => setCollapsed(!wrap.classList.contains("collapsed")));
 
   const today = store.getState().today;
   const horizonStart = addDays(today, -14);
@@ -83,9 +81,8 @@ export function createScrubber({ store, config, allEvents }) {
   // Fetched event data thins out hard once the source horizon is
   // exhausted — past that point all that's left is the odd annual-estimate
   // placeholder for next year's recurrence of a handful of festivals, not
-  // real browsable coverage. Cap what's scrubbable at the first point
-  // coverage goes empty for two weeks running, so the slider can't be
-  // dragged into a dead zone with nothing to show.
+  // real browsable coverage. Stop at the first point coverage goes empty for
+  // two weeks running, so the calendar can't be pointed into a dead zone.
   const todayWeek = Math.floor((today - horizonStart) / 86400000 / 7);
   let coverageWeeks = rawBuckets.length;
   for (let i = todayWeek; i < rawBuckets.length - 1; i++) {
@@ -94,10 +91,13 @@ export function createScrubber({ store, config, allEvents }) {
       break;
     }
   }
-
-  const totalDays = coverageWeeks * 7;
   const buckets = rawBuckets.slice(0, coverageWeeks);
   const maxBucket = Math.max(1, ...buckets);
+  const coverageEnd = addDays(horizonStart, coverageWeeks * 7);
+
+  // the native calendar greys out anything outside these
+  dateFrom.min = dateTo.min = toDateKey(today);
+  dateFrom.max = dateTo.max = toDateKey(coverageEnd);
 
   function drawDensity(rangeStart, rangeEnd) {
     const dpr = window.devicePixelRatio || 1;
@@ -115,96 +115,63 @@ export function createScrubber({ store, config, allEvents }) {
 
     buckets.forEach((count, i) => {
       const barH = Math.max(2, (count / maxBucket) * (h - 4));
-      const x = i * barW;
       const weekStartOffset = i * 7;
-      const weekEndOffset = weekStartOffset + 7;
-      const inRange = weekEndOffset > rangeStartOffset && weekStartOffset < rangeEndOffset;
+      const inRange = weekStartOffset + 7 > rangeStartOffset && weekStartOffset < rangeEndOffset;
       ctx.fillStyle = inRange ? "#ff8a3d" : "#2a2f3a";
-      ctx.fillRect(x + 0.5, h - barH, Math.max(1, barW - 1), barH);
+      ctx.fillRect(i * barW + 0.5, h - barH, Math.max(1, barW - 1), barH);
     });
   }
 
-  function applyRange(startOffsetDays, spanDays) {
-    const start = addDays(horizonStart, startOffsetDays);
-    const end = addDays(start, spanDays);
+  function setRange(start, end) {
     store.setState({ dateRange: { start, end } });
-    const label = `${formatDateShort(start)} – ${formatDateShort(end)}`;
-    brushLabel.textContent = label;
-    summaryLabel.textContent = label;
-    drawDensity(start, end);
   }
-
-  let currentSpan = 45;
 
   presetRow.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-preset]");
     if (!btn) return;
-    presetRow.querySelectorAll(".chip").forEach((c) => c.classList.remove("active"));
-    btn.classList.add("active");
-    // "Custom" means the user wants the slider, so leave the strip open.
-    if (btn.dataset.preset === "custom") return;
     const preset = PRESETS[Number(btn.dataset.preset)];
-    currentSpan = preset.days;
-    const startOffset = Math.round((today - horizonStart) / 86400000);
-    scrubStart.max = String(Math.max(0, totalDays - currentSpan));
-    scrubStart.value = String(startOffset);
-    applyRange(startOffset, currentSpan);
+    setRange(today, addDays(today, preset.days));
     if (isNarrow.matches) setCollapsed(true);
   });
 
-  scrubStart.max = String(Math.max(0, totalDays - currentSpan));
-  scrubStart.addEventListener("input", () => {
-    presetRow.querySelectorAll(".chip").forEach((c) => c.classList.remove("active"));
-    presetRow.querySelector('[data-preset="custom"]').classList.add("active");
-    applyRange(Number(scrubStart.value), currentSpan);
+  // Moving one box never leaves the range backwards: the other box follows.
+  dateFrom.addEventListener("change", () => {
+    if (!dateFrom.value) return;
+    const start = parseDate(dateFrom.value);
+    const { end } = store.getState().dateRange;
+    setRange(start, end < start ? start : end);
   });
-
-  // init to "Next 30 days"
-  presetRow.querySelectorAll(".chip")[2].classList.add("active");
-  const initStartOffset = Math.round((today - horizonStart) / 86400000);
-  currentSpan = 30;
-  scrubStart.value = String(initStartOffset);
-  scrubStart.max = String(Math.max(0, totalDays - currentSpan));
-  applyRange(initStartOffset, currentSpan);
-  // A default horizon is already applied on load, so on phones start folded
-  // away — the summary line still says which range is active.
-  setCollapsed(isNarrow.matches);
+  dateTo.addEventListener("change", () => {
+    if (!dateTo.value) return;
+    const end = parseDate(dateTo.value);
+    const { start } = store.getState().dateRange;
+    setRange(start > end ? end : start, end);
+  });
 
   window.addEventListener("resize", () => {
     const s = store.getState();
     drawDensity(s.dateRange.start, s.dateRange.end);
   });
 
+  // The default range counts as chosen already, so on phones start folded
+  // away — the summary line still says which range is active.
+  setCollapsed(isNarrow.matches);
+
   // main.js calls this on every state change, which makes it the one place a
-  // date range set from *outside* this strip gets reflected back into it —
-  // a range restored from the URL, mainly. Without it the label and the
-  // highlighted preset keep advertising whatever was last clicked here while
-  // the app filters by something else entirely.
+  // date range set from outside this strip (a range restored from the URL,
+  // a preset) gets reflected back into the inputs and the highlighted preset.
   function redraw(state) {
     const { start, end } = state.dateRange;
-    const label = `${formatDateShort(start)} – ${formatDateShort(end)}`;
-    brushLabel.textContent = label;
-    summaryLabel.textContent = label;
+    summaryLabel.textContent = `${formatDateShort(start)} – ${formatDateShort(end)}`;
+    // Don't overwrite a value the user is mid-way through picking.
+    if (document.activeElement !== dateFrom) dateFrom.value = toDateKey(start);
+    if (document.activeElement !== dateTo) dateTo.value = toDateKey(end);
 
+    // A preset is only "the" preset when the window also starts today.
     const spanDays = Math.round((end - start) / 86400000);
-    const startOffset = Math.round((start - horizonStart) / 86400000);
-    currentSpan = spanDays;
-    scrubStart.max = String(Math.max(0, totalDays - spanDays));
-    // Assigning .value programmatically does not fire "input", so this
-    // cannot loop back through applyRange into setState.
-    scrubStart.value = String(startOffset);
-
-    // A preset is only "the" preset when the window also starts today —
-    // otherwise it's a 30-day span someone dragged, which is Custom.
-    const startsToday = startOffset === Math.round((today - horizonStart) / 86400000);
+    const startsToday = toDateKey(start) === toDateKey(today);
     const presetIdx = startsToday ? PRESETS.findIndex((p) => p.days === spanDays) : -1;
-    presetRow.querySelectorAll(".chip").forEach((c) => c.classList.remove("active"));
-    const activeChip =
-      presetIdx >= 0
-        ? presetRow.querySelector(`[data-preset="${presetIdx}"]`)
-        : presetRow.querySelector('[data-preset="custom"]');
-    activeChip?.classList.add("active");
-
+    presetRow.querySelectorAll(".chip").forEach((c) => c.classList.toggle("active", Number(c.dataset.preset) === presetIdx));
     drawDensity(start, end);
   }
 

@@ -14,7 +14,11 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # Pinned, not ubuntu-latest: when latest moved to Ubuntu 26.04 (Oct 2026)
+    # Playwright 1.56 couldn't install Chromium there, and since this job
+    # gates deploy-pages.yml, every deploy failed for five days while the
+    # data refreshes kept succeeding. Bump this together with Playwright.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4

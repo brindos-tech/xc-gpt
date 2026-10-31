@@ -116,7 +116,8 @@ export function prReason(ev, { venueMatch } = {}) {
   if (byTitle === "Military-themed event" && ev.category === "sports") {
     return indoor ? "Military appreciation game (indoor — static/recruiting presence, no flyover)" : "Military appreciation game";
   }
-  if (byTitle) return byTitle;
+  // a concert by a band named "Airshow" is not an air show
+  if (byTitle && !(ev.category === "concert" && byTitle.startsWith("Air show"))) return byTitle;
 
   if (ev.category === "sports" && ACADEMY.test(ev.title) && /football/i.test(sportText)) {
     return "Service academy football game";

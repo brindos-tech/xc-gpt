@@ -1,4 +1,6 @@
 // Minimal state container. No framework, no two-way binding.
+import { DEFAULT_AIRSPACE } from "./planner/airspace.js";
+import { toDateKey } from "./format.js";
 
 function defaultState(config, today) {
   const horizonEnd = new Date(today);
@@ -8,14 +10,21 @@ function defaultState(config, today) {
     dateRange: { start: today, end: horizonEnd },
     originId: config.defaultOriginId,
     rangeNm: config.defaults.rangeNm,
-    westOnly: config.defaults.westOfMississippiOnly,
     categories: new Set(),
     activities: new Set(),
     minScale: null, // null = no floor; show everything in range
     search: "",
-    view: "map",
+    // "planner" (nav-info fields, the home page) | "events" (the events map)
+    view: "planner",
     selectedPlaceId: null,
     selectedEventId: null,
+    // ---- planner ----
+    fieldSource: "nav", // "nav" = Vance Nav Info List, "p" = P-coded fields
+    fieldFilters: new Set(), // keys of FIELD_FILTERS (assets/js/planner/fields.js)
+    airspace: new Set(DEFAULT_AIRSPACE),
+    selectedFieldId: null,
+    selectedAirspaceId: null,
+    tripDate: toDateKey(today), // day of travel: per diem month now, weather overlays next
   };
 }
 

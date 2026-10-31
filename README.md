@@ -1,6 +1,20 @@
 # XC GPT
 
-A rolling situational-awareness site for weekend cross-country flight planning — not a booking checklist. Map-first, date-scrubbable, filtered by range and activity, with departure bases at Vance (Enid, OK), Columbus, and Laughlin AFB. See [ARCHITECTURE.md](ARCHITECTURE.md) for the full design.
+A nav planner for T-6 cross-country missions, with the events map that started the project as page 2. See [ARCHITECTURE.md](ARCHITECTURE.md) for the original design.
+
+- **Planner (home)** — the Vance Nav Info List on a map from the selected base, with the range ring, a Nav Info List / P-coded fields switch, quick filters (fuel, RON, T-6 suitable, FBO, towered), and toggleable airspace: MOAs, restricted, warning and alert areas (on by default), IR / VR / SR training routes (off). Click a field for its FBO and phone, Land / Fuel / RON status, nav-list notes, FAA facts (runway, tower, fuel, hours) and GSA per diem; click an airspace for its scheduling activity, hours and procedures.
+- **Events** — destinations with events in a date range (From / To calendar boxes), by category and activity, with the PR ops chip. Loads only when opened.
+
+## The planner's data
+
+| File | Source | How it updates |
+|---|---|---|
+| `data/curated/navinfo.json` | Vance Nav Info List PDF (71 OSS/OSOP) | `python3 scripts/import-navinfo.py <pdf>` when a new list is published. `CODE_FIXES` in that script maps codes the list gets wrong (K01R → 0R1, KPBI → KDJT). |
+| `data/curated/ap1.json` | DoD FLIP AP/1A (SUA) and AP/1B (MTR) text exports | `node scripts/import-ap1.mjs <AP1A.txt> <AP1B.txt>` each 8-week FLIP cycle |
+| `data/generated/field-facts.json` | FAA NASR 28-day subscription + GSA per diem | `refresh-fields.yml`, weekly |
+| `data/generated/airspace-{sua,mtr}.json` | FAA SUA / MTR geometry merged with `ap1.json` | `refresh-fields.yml`, weekly |
+
+Planning reference only — the page says so. ForeFlight / FLIP / NOTAMs remain the source for what's actually allowed and open.
 
 ## Running it locally
 
@@ -25,7 +39,7 @@ The **PR ops** chip (Category row) shows events where military aircraft could pl
 - **MLB / MiLB team promotions** from the public MLB Stats API (`scripts/fetch-mlb-promotions.js`, no key) — "Military Appreciation Night" and similar, for every pro and minor-league ballpark near a curated place.
 - **`data/curated/pr-events.json`** — hand-researched games and events (NFL Salute to Service, college military games, Army–Navy, military bowls). Each entry tags the matching listing, or is added as its own event when no feed lists it.
 - **`data/curated/pr-venues.json`** — venues with documented T-6 / military flyovers; outdoor games there are tagged.
-- **Weekly leads** (`scripts/fetch-pr-leads.js`, optional keys below): a web-search sweep and DVIDS flyover history, shown as an unverified link list above the feed while the chip is on.
+- **Weekly leads** (`scripts/fetch-pr-leads.js`, optional keys below): a web-search sweep and DVIDS flyover history, collected into `data/generated/pr-leads.json` (the page no longer shows it since the Feed was removed).
 
 Tags flag *candidates*. Actual participation goes through the base's public affairs and the USAF Aerial Events process (requests ≥45 days out, typically 90–120), and there is no public feed of approved flyovers.
 
@@ -34,6 +48,7 @@ Tags flag *candidates*. Actual participation goes through the base's public affa
 Two scheduled workflows regenerate `data/generated/`:
 
 - **`.github/workflows/refresh-daily.yml`** — pulls Ticketmaster and SeatGeek events, weather, expands `recurring.json`, merges, validates, commits.
+- **`.github/workflows/refresh-fields.yml`** — weekly: NASR + per-diem field facts and the airspace layers (see above).
 - **`.github/workflows/refresh-weekly.yml`** — syncs Spotify top artists, resolves new Ticketmaster attraction IDs, rebuilds, checks link health.
 
 A third publishes the site:

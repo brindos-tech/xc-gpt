@@ -52,7 +52,10 @@ export function normalizeName(name) {
  *   that fell through to "misc", for the fetch script's summary log
  */
 export function categorize({ segment, genre, title }, unmapped) {
-  const byTitle = categoryFromTitle(title);
+  // A Music listing stays a concert whatever its title says — a band
+  // called "Airshow" is not an air show.
+  const music = SEGMENT_CATEGORY[normalizeName(segment)] === "concert";
+  const byTitle = music ? null : categoryFromTitle(title);
   if (byTitle) return byTitle;
   const byGenre = GENRE_CATEGORY[normalizeName(genre)];
   if (byGenre) return byGenre;

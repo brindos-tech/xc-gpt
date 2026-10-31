@@ -113,14 +113,14 @@
 }
 .detail-panel.open { transform: translateX(0); }
 
-/* #detailContent (not .detail-panel) is the scrolling element, and
+/* .dp-scroll (not .detail-panel) is the scrolling element, and
    .dp-close is its sibling rather than a scroll participant — the close
    button used to be position:absolute *inside* the scrolling panel, which
    meant its offset was relative to the scrolled content and it scrolled
    out of view with everything else. Splitting scroll (content) from
    position (panel) keeps the close button pinned to the panel's corner
    regardless of how far the content is scrolled. */
-.detail-panel #detailContent {
+.detail-panel .dp-scroll {
   position: absolute;
   inset: 0;
   overflow-y: auto;
@@ -293,8 +293,8 @@
     top: auto; left: 0; right: 0;
     bottom: calc(var(--tabbar-height-mobile) + env(safe-area-inset-bottom, 0px));
     width: auto;
-    /* a fixed height (not max-height) so #detailContent's inset:0 has a
-       real box to fill — see the #detailContent comment above for why it
+    /* a fixed height (not max-height) so .dp-scroll's inset:0 has a
+       real box to fill — see the .dp-scroll comment above for why it
        needs to be the scrolling element instead of .detail-panel itself.
        58vh leaves enough map visible above the sheet to keep your bearings;
        at the old 75vh it read as a full-screen takeover. */
@@ -328,3 +328,10 @@
      it has nothing to dismiss and no backdrop to dismiss it with. */
   .rail-backdrop, .rail-mobile-header, .detail-backdrop { display: none !important; }
 }
+
+/* -------- two pages: planner (home) + events -------- */
+/* The rail's sections and the date strip each belong to one page. */
+.app[data-page="planner"] [data-page="events"],
+.app[data-page="events"] [data-page="planner"] { display: none; }
+.app[data-page="planner"] .main-area { grid-template-rows: 1fr; }
+.app[data-page="planner"] .scrubber-wrap { display: none; }

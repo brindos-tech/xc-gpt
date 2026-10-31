@@ -8,11 +8,17 @@ export function stateToHash(state) {
   params.set("to", toDateKey(state.dateRange.end));
   params.set("origin", state.originId);
   params.set("r", String(state.rangeNm));
-  params.set("west", state.westOnly ? "1" : "0");
   if (state.categories.size) params.set("cat", Array.from(state.categories).join(","));
   if (state.activities.size) params.set("act", Array.from(state.activities).join(","));
   if (state.search) params.set("q", state.search);
   if (state.selectedPlaceId) params.set("place", state.selectedPlaceId);
+  // planner
+  if (state.fieldSource !== "nav") params.set("src", state.fieldSource);
+  if (state.fieldFilters.size) params.set("ff", Array.from(state.fieldFilters).join(","));
+  params.set("air", Array.from(state.airspace).join(","));
+  if (state.selectedFieldId) params.set("fld", state.selectedFieldId);
+  if (state.selectedAirspaceId) params.set("as", state.selectedAirspaceId);
+  if (state.tripDate) params.set("day", state.tripDate);
   return `#/${params.toString()}`;
 }
 
@@ -21,7 +27,12 @@ export function hashToState(hash, defaults) {
   const params = new URLSearchParams(clean);
   const patch = {};
 
-  if (params.has("v")) patch.view = params.get("v");
+  if (params.has("v")) {
+    // Pages that no longer exist (feed, places, artists, weekend recs) and
+    // the old "map" name all land on the events page.
+    const v = params.get("v");
+    patch.view = v === "planner" ? "planner" : "events";
+  }
   if (params.has("from")) patch.dateRange = { ...defaults.dateRange, start: parseDate(params.get("from")) };
   if (params.has("to")) {
     patch.dateRange = { ...(patch.dateRange || defaults.dateRange), end: parseDate(params.get("to")) };
@@ -39,11 +50,16 @@ export function hashToState(hash, defaults) {
 
   if (params.has("origin")) patch.originId = params.get("origin");
   if (params.has("r")) patch.rangeNm = Number(params.get("r"));
-  if (params.has("west")) patch.westOnly = params.get("west") === "1";
   if (params.has("cat")) patch.categories = new Set(params.get("cat").split(",").filter(Boolean));
   if (params.has("act")) patch.activities = new Set(params.get("act").split(",").filter(Boolean));
   if (params.has("q")) patch.search = params.get("q");
   if (params.has("place")) patch.selectedPlaceId = params.get("place");
+  if (params.has("src")) patch.fieldSource = params.get("src") === "p" ? "p" : "nav";
+  if (params.has("ff")) patch.fieldFilters = new Set(params.get("ff").split(",").filter(Boolean));
+  if (params.has("air")) patch.airspace = new Set(params.get("air").split(",").filter(Boolean));
+  if (params.has("fld")) patch.selectedFieldId = params.get("fld");
+  if (params.has("as")) patch.selectedAirspaceId = params.get("as");
+  if (params.has("day") && /^\d{4}-\d{2}-\d{2}$/.test(params.get("day"))) patch.tripDate = params.get("day");
 
   return patch;
 }

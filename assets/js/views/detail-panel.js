@@ -168,7 +168,7 @@ export function createDetailPanel({ store, meta, config }) {
     if (isNewlyOpening) {
       // move focus into the panel so keyboard/screen-reader users land
       // somewhere sensible, matching the standard dialog-open pattern.
-      closeBtn.focus();
+      closeBtn.focus({ preventScroll: true }); // the sheet is still sliding in off-screen; a plain focus() scrolls the clipped map area sideways to reveal it
     }
   }
 
