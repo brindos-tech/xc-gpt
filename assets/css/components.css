@@ -202,6 +202,10 @@
 
 /* -------- planner legend + field panel -------- */
 .planner-legend .legend-note { color: var(--muted); opacity: 0.8; }
+@media (max-width: 860px) {
+  .planner-legend { gap: 6px 10px; padding: 6px 10px; font-size: 0.68em; }
+  .planner-legend .legend-note { display: none; }
+}
 .fp-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
 .fp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
 .fp-cell { background: var(--panel2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 8px 10px; }

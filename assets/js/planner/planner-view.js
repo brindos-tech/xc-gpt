@@ -9,7 +9,8 @@ import { esc } from "./html.js";
 export const STATUS_COLORS = { go: "#3ddc97", check: "#e8c15e", nofuel: "#ff8a3d", no: "#e65a5a" };
 
 export function createPlannerView({ config, origin, loadJson, onFieldClick, onAirspaceClick, onAirspaceStatus }) {
-  const map = L.map("plannerMap", { zoomControl: true }).setView([origin.lat, origin.lon], 5);
+  // A phone's narrower map needs one zoom level less to show the whole ring.
+  const map = L.map("plannerMap", { zoomControl: true }).setView([origin.lat, origin.lon], window.innerWidth < 600 ? 4 : 5);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "&copy; OpenStreetMap", maxZoom: 12 }).addTo(map);
 
   // Airspace polygons/lines go on a canvas renderer in a lower pane (hundreds
