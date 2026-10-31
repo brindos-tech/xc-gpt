@@ -10,9 +10,6 @@ on:
   schedule:
     - cron: "43 5,17 * * *"
   workflow_dispatch: {}
-  push: # TEMPORARY — first run from the feature branch; remove before merge
-    branches: [claude/cloud-session-setup-i08vkf]
-    paths: [".github/workflows/refresh-wx.yml"]
 
 permissions:
   contents: write
@@ -35,12 +32,6 @@ jobs:
       # when the API changes.
       - name: Probe Open-Meteo response shape
         run: node scripts/fetch-wx.js --probe
-
-      - name: Probe aviationweather.gov CORS (temporary)
-        continue-on-error: true
-        run: |
-          curl -sS -D - -o /dev/null -H "Origin: https://brindos-tech.github.io" "https://aviationweather.gov/api/data/gairmet?format=json&hazard=ice" | grep -iE "^(HTTP|access-control|content-type)" || true
-          curl -sS -H "Origin: https://brindos-tech.github.io" "https://aviationweather.gov/api/data/gairmet?format=json&hazard=ice" | head -c 600; echo
 
       - name: Build weather grid
         run: node scripts/fetch-wx.js
