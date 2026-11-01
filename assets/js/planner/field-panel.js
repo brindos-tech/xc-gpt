@@ -176,6 +176,7 @@ export function fieldHtml(f, ctx) {
   return `
     <h3>${esc(f.code)} · ${esc(f.name)}</h3>
     <div class="dp-dist">${esc(f.city)} · ${Math.round(distanceNm)} nm from ${esc(origin.icao)} · ${formatFlightTime(mins)}</div>
+    <button type="button" class="chip trip-add ${ctx.inTrip ? "active" : ""}" data-trip-toggle="${esc(f.code)}">${ctx.inTrip ? "In trip — remove" : "Add to trip"}</button>
     <div class="fp-badges">
       <span class="badge">${esc(f.classification)}</span>
       ${f.approvalList && f.approvalList !== "None" ? `<span class="badge best-match">${esc(f.approvalList)}</span>` : ""}
@@ -251,6 +252,12 @@ export function createFieldPanel({ store }) {
   }
 
   closeBtn.addEventListener("click", close);
+  content.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-trip-toggle]");
+    if (!btn) return;
+    const code = btn.dataset.tripToggle;
+    store.setState((s) => ({ trip: s.trip.some((x) => x.code === code) ? s.trip.filter((x) => x.code !== code) : [...s.trip, { code, ron: false }] }));
+  });
   backdrop.addEventListener("click", close);
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && panel.classList.contains("open")) close();

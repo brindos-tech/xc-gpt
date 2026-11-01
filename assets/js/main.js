@@ -6,7 +6,10 @@ import { createPlannerView } from "./planner/planner-view.js";
 import { createFieldPanel } from "./planner/field-panel.js";
 import { mergeFields, selectFields } from "./planner/fields.js";
 import { createWxController } from "./planner/wx-controller.js";
-import { createComments } from "./planner/comments.js";
+import { createComments, loadCommentSummary } from "./planner/comments.js";
+import { createTripPanel } from "./views/trip-panel.js";
+import { crewCardHtml } from "./planner/crew-card.js";
+import { tripLegs, routeString, tripPerDiem } from "./planner/trip.js";
 
 const DATA_BASE = "data";
 
@@ -64,8 +67,41 @@ async function boot() {
   const freshnessText = $("freshnessText");
   const freshnessDot = $("freshnessDot");
 
+  const fieldsByCode = new Map(fields.map((f) => [f.code, f]));
   const filterRail = createFilterRail({ store, config });
   const fieldPanel = createFieldPanel({ store });
+
+  /** Fill the print-only crew card for the current trip and open the print dialog. */
+  function printCrewCard() {
+    const state = store.getState();
+    const origin = originsById.get(state.originId);
+    const stops = tripPanel.resolve(state);
+    if (!stops.length) return;
+    const [y, m, d] = state.tripDate.split("-").map(Number);
+    const tripDate = new Date(y, m - 1, d);
+    const fieldsList = stops.map((s) => s.field);
+    const dataNotes = [
+      navinfo.asOf && `Nav list ${navinfo.asOf}`,
+      factsFile?.nasrCycle && `FAA cycle ${factsFile.nasrCycle}`,
+      aircard?.exportDate && `AIR Card export ${aircard.exportDate}`,
+      approaches?.cycle && `d-TPP ${approaches.cycle}`,
+    ].filter(Boolean);
+    $("crewCard").innerHTML = crewCardHtml({
+      origin,
+      stops,
+      legs: tripLegs(origin, fieldsList, config, state.tripReturn),
+      cost: tripPerDiem(stops, tripDate),
+      tripDate,
+      route: routeString(origin, fieldsList, state.tripReturn),
+      stateTaxes: stateTax?.states,
+      dataNotes,
+    });
+    const prev = document.title;
+    document.title = `Crew card ${origin.icao} ${state.tripDate}`;
+    window.print();
+    document.title = prev;
+  }
+  const tripPanel = createTripPanel({ store, config, fieldsByCode, onPrint: printCrewCard });
   const comments = createComments({ host: $("fieldComments"), apiBase: config.commentsApi, today });
 
   // ---- planner ----
@@ -153,6 +189,8 @@ async function boot() {
     const selection = selectFields(fields, state, origin, config);
     planner.renderFields(selection, state.selectedFieldId, wx.fieldRing);
     wx.render(state);
+    const tripInfo = tripPanel.render(state, origin);
+    planner.setTrip(tripInfo.stops.length ? [[origin.lat, origin.lon], ...tripInfo.stops.map((s) => [s.field.lat, s.field.lon]), ...(state.tripReturn ? [[origin.lat, origin.lon]] : [])] : []);
     planner.setAirspace(state.airspace, state.selectedAirspaceId);
 
     const label = state.fieldSource === "p" ? "P-coded" : "nav-list";
@@ -181,7 +219,7 @@ async function boot() {
     }
     comments.show(field ? { subject: `field:${field.code}`, label: field.code } : airspace && airspace.type !== "TFR" ? { subject: `airspace:${airspace.id}`, label: airspace.name } : null);
     const [y, m, d] = state.tripDate.split("-").map(Number);
-    fieldPanel.render({ field, airspace, ctx: { origin, config, tripDate: new Date(y, m - 1, d), wxRows: field ? wx.fieldRows(field.code, state.tripDate) : null, stateTax: field ? stateTax?.states?.[field.state] : null, stateTaxAsOf: stateTax?.asOf } });
+    fieldPanel.render({ field, airspace, ctx: { origin, config, tripDate: new Date(y, m - 1, d), wxRows: field ? wx.fieldRows(field.code, state.tripDate) : null, stateTax: field ? stateTax?.states?.[field.state] : null, stateTaxAsOf: stateTax?.asOf, inTrip: field ? state.trip.some((x) => x.code === field.code) : false } });
   }
 
   function renderEvents(state) {
@@ -225,6 +263,19 @@ async function boot() {
   store.subscribe(render);
   initUrlState(store);
   render();
+
+  // average ratings for the pins; the page works without them if the API is down
+  loadCommentSummary(config.commentsApi).then((summary) => {
+    let any = false;
+    for (const f of fields) {
+      const r = summary[`field:${f.code}`];
+      if (r) {
+        f.rating = r;
+        any = true;
+      }
+    }
+    if (any) render();
+  });
 
   // The map container can report zero size if Leaflet initializes before the
   // CSS grid layout has settled — force a re-measure once layout is real.

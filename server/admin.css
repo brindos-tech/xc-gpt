@@ -19,3 +19,6 @@ li { background: var(--panel); border: 1px solid var(--border); border-radius: 1
 .facts { color: var(--muted); font-size: 0.88em; margin-top: 4px; }
 .notes { white-space: pre-wrap; margin-top: 6px; overflow-wrap: anywhere; }
 .actions { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+.badge { background: var(--danger); color: #fff; border-radius: 6px; padding: 0 7px; font-size: 0.75em; }
+li.report { border-color: var(--danger); }
+.chk { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); font-size: 0.9em; }

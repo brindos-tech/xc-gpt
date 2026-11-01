@@ -25,14 +25,17 @@ function el(tag, cls, text) {
 
 function render() {
   const q = $("filter").value.toLowerCase();
-  const shown = comments.filter((c) => !q || JSON.stringify(c).toLowerCase().includes(q));
-  $("count").textContent = `${shown.length} of ${comments.length}`;
+  const reportsOnly = $("reportsOnly").checked;
+  const shown = comments.filter((c) => (!reportsOnly || c.kind === "report") && (!q || JSON.stringify(c).toLowerCase().includes(q)));
+  const reports = comments.filter((c) => c.kind === "report").length;
+  $("count").textContent = `${shown.length} of ${comments.length}${reports ? ` · ${reports} report${reports === 1 ? "" : "s"}` : ""}`;
   const ul = $("list");
   ul.replaceChildren();
   for (const c of shown) {
     const li = el("li");
     const head = el("div", "head");
-    head.append(el("b", "", c.subject), el("span", "", c.rating ? "★".repeat(c.rating) : "no rating"), el("span", "", new Date(c.createdAt).toLocaleString()), el("span", "muted", `${c.name} · poster ${c.ipHash}`));
+    if (c.kind === "report") li.classList.add("report");
+    head.append(...(c.kind === "report" ? [el("b", "badge", "REPORT")] : []), el("b", "", c.subject), el("span", "", c.rating ? "★".repeat(c.rating) : "no rating"), el("span", "", new Date(c.createdAt).toLocaleString()), el("span", "muted", `${c.name} · poster ${c.ipHash}`));
     li.append(head);
     const facts = [
       c.visited && `visited ${c.visited}`,
@@ -85,4 +88,5 @@ $("login").addEventListener("submit", (e) => {
 });
 $("refresh").addEventListener("click", load);
 $("filter").addEventListener("input", render);
+$("reportsOnly").addEventListener("change", render);
 if (token) load();

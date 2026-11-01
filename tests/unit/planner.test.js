@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import { mergeFields, isPCoded, selectFields, fieldStatus, gfcStatus, perDiemFor, fiscalYear, telHref, matchesSearch, FIELD_FILTERS } from "../../assets/js/planner/fields.js";
 import { airspaceRows, airspaceTooltip } from "../../assets/js/planner/airspace.js";
 
-const config = { aircraft: { cruiseKts: 300 } };
-const vance = { lat: 36.3392, lon: -97.9166 };
+const config = { aircraft: { cruiseKts: 300, legRangeNm: 400 } };
+const vance = { lat: 36.3392, lon: -97.9166, icao: "KEND" };
 const nav = {
   fields: [
     { code: "KOKC", name: "Will Rogers World Airport", city: "Oklahoma City, OK", land: "Approved", fuel: "Approved", ron: "Approved", classification: "P (with DoD tenant)", fbo: "AAR Aircraft Services", suitability: ["T-6", "T-1", "T-38"], notes: "" },
@@ -46,7 +46,7 @@ test("range, source and quick filters", () => {
   assert.deepEqual(selectFields(fields, state({ fieldFilters: new Set(["dla"]) }), vance, config).fields.map((f) => f.code), ["KOKC"]);
   assert.deepEqual(selectFields(fields, state({ fieldFilters: new Set(["aircard"]) }), vance, config).fields.map((f) => f.code), ["KPNC", "KOKC"]);
   // RON and Towered are not toggles any more
-  assert.deepEqual(FIELD_FILTERS.map((f) => f.key), ["fuel", "dla", "aircard", "t6", "fbo", "military"]);
+  assert.deepEqual(FIELD_FILTERS.map((f) => f.key), ["fuel", "dla", "aircard", "t6", "fbo", "rated", "military"]);
   assert.equal(FIELD_FILTERS[0].label, "Fuel available");
   assert.equal(selectFields(fields, state({ rangeNm: 2000 }), vance, config).inRange, 3);
 });
@@ -388,4 +388,62 @@ test("tfr: WFS shapes merge with the list's types into slim features", async () 
   assert.equal(out[0].properties.title, "SAN ANGELO, TX, Sunday");
   assert.deepEqual(out[0].geometry.coordinates[0][0], [-100.1235, 31.1235], "coordinates rounded to 4 places");
   assert.equal(buildTfr(wfs, [])[0].properties.kind, "Security", "falls back to the WFS class");
+});
+
+// ---- trip builder ----
+test("trip: legs, range flags, route string and URL encoding", async () => {
+  const trip = await import("../../assets/js/planner/trip.js");
+  assert.equal(trip.encodeTrip([{ code: "KOKC", ron: true }, { code: "KTUL", ron: false }]), "KOKC*,KTUL");
+  assert.deepEqual(trip.decodeTrip("KOKC*,KTUL,bad!,"), [{ code: "KOKC", ron: true }, { code: "KTUL", ron: false }]);
+  const o = { icao: "KEND", lat: 36.3392, lon: -97.9166 };
+  const stops = [{ code: "KOKC", lat: 35.39, lon: -97.6 }, { code: "KMSY", lat: 29.99, lon: -90.26 }];
+  const r = trip.tripLegs(o, stops, config);
+  assert.equal(r.legs.length, 3, "out, across, and back to base");
+  assert.deepEqual(r.legs.map((l) => l.overRange), [false, true, true], "400 nm leg range");
+  assert.ok(Math.abs(r.totalMins - r.legs.reduce((s, l) => s + (l.nm / 300) * 60, 0)) < 1e-6);
+  assert.equal(trip.tripLegs(o, stops, config, false).legs.length, 2);
+  assert.equal(trip.routeString(o, stops), "KEND KOKC KMSY KEND");
+  assert.equal(trip.routeString(o, stops, false), "KEND KOKC KMSY");
+});
+
+test("trip: per diem — nights at each RON field, meals at 75% on the first and last day", async () => {
+  const { tripPerDiem } = await import("../../assets/js/planner/trip.js");
+  const field = (code, lodging, meals) => ({ code, perDiem: { 2027: { area: code, lodging: Array(12).fill(lodging), meals } } });
+  const date = new Date(2026, 10, 7); // FY2027
+  assert.deepEqual(tripPerDiem([{ field: field("KA", 100, 60), ron: false }], date), { nights: 0, days: 1, lodging: 0, meals: 0, total: 0, missing: [] });
+  // one night: 2 days, both 75%
+  const one = tripPerDiem([{ field: field("KA", 100, 60), ron: true }], date);
+  assert.equal(one.nights, 1);
+  assert.equal(one.lodging, 100);
+  assert.equal(one.meals, 90);
+  assert.equal(one.total, 190);
+  // two nights at different rates: 3 days — 0.75 × A, 1.0 × B, 0.75 × B
+  const two = tripPerDiem([{ field: field("KA", 100, 60), ron: true }, { field: field("KB", 150, 80), ron: true }], date);
+  assert.equal(two.lodging, 250);
+  assert.equal(two.meals, 0.75 * 60 + 80 + 0.75 * 80);
+  const missing = tripPerDiem([{ field: { code: "KZ" }, ron: true }], date);
+  assert.deepEqual(missing.missing, ["KZ"]);
+});
+
+test("trip: the crew card carries the legs, each stop's phone and approvals, and the disclaimer", async () => {
+  const { crewCardHtml } = await import("../../assets/js/planner/crew-card.js");
+  const trip = await import("../../assets/js/planner/trip.js");
+  const f = fields.find((x) => x.code === "KOKC");
+  const stops = [{ field: { ...f, state: "OK", lat: 35.39, lon: -97.6 }, ron: true }];
+  const html = crewCardHtml({
+    origin: vance,
+    stops,
+    legs: trip.tripLegs(vance, [stops[0].field], config),
+    cost: trip.tripPerDiem(stops, new Date(2026, 10, 7)),
+    tripDate: new Date(2026, 10, 7),
+    route: trip.routeString(vance, [stops[0].field]),
+    stateTaxes: { OK: { name: "Oklahoma", status: "sales", note: "GSA lists CBA exempt.", url: "x" } },
+    dataNotes: ["Nav list 2026-09-28"],
+  });
+  assert.match(html, /Crew card · KEND/);
+  assert.match(html, /KEND KOKC KEND/);
+  assert.match(html, /1\. KOKC/);
+  assert.match(html, /AAR AIRCRAFT SERVICES/i);
+  assert.match(html, /Planning reference only/);
+  assert.match(html, /Nav list 2026-09-28/);
 });

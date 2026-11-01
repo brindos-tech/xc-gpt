@@ -25,8 +25,11 @@ export function validateComment(body, now = new Date()) {
   if (!SUBJECT_RE.test(subject)) return { ok: false, error: "Unknown subject." };
 
   const isField = subject.startsWith("field:");
+  // "report" = a correction or problem report for the owner; never shown publicly
+  const kind = body.kind === "report" ? "report" : "comment";
   const v = {
     subject,
+    kind,
     name: clean(body.name, LIMITS.name) || "Anonymous",
     rating: null,
     freeFood: "",
@@ -67,6 +70,13 @@ export function validateComment(body, now = new Date()) {
 
   for (const key of ["name", "fees", "planespotters", "amenities", "notes"]) {
     if (LINK.test(v[key])) return { ok: false, error: "Links aren't allowed in comments." };
+  }
+  if (kind === "report") {
+    // a report is just words: no ratings or field answers ride along
+    v.rating = null;
+    v.freeFood = v.crewCar = v.aircard = "";
+    v.fees = v.planespotters = v.amenities = "";
+    if (v.notes.length < 10) return { ok: false, error: "Tell us what's wrong (a sentence or two)." };
   }
   const hasContent = v.rating || v.notes || v.fees || v.planespotters || v.amenities || v.freeFood || v.crewCar || v.aircard;
   if (!hasContent) return { ok: false, error: "Add a rating or a note first." };
