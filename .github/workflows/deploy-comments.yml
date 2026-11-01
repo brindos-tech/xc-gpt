@@ -1,0 +1,38 @@
+name: Deploy comments API
+
+# Deploys server/ to Fly.io whenever it changes on main. Does nothing until the
+# FLY_API_TOKEN repository secret exists (see server/README.md), so merging
+# this before the Fly app is set up is harmless.
+on:
+  push:
+    branches: [main]
+    paths: ["server/**", ".github/workflows/deploy-comments.yml"]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-comments
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    env:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+    steps:
+      - name: Skip until the Fly token is set
+        if: ${{ env.FLY_API_TOKEN == '' }}
+        run: echo "FLY_API_TOKEN is not set; skipping. See server/README.md."
+
+      - uses: actions/checkout@v4
+        if: ${{ env.FLY_API_TOKEN != '' }}
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+        if: ${{ env.FLY_API_TOKEN != '' }}
+
+      - name: Deploy
+        if: ${{ env.FLY_API_TOKEN != '' }}
+        working-directory: server
+        run: flyctl deploy --remote-only

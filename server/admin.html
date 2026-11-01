@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>XC GPT comments — admin</title>
+<link rel="stylesheet" href="/admin/app.css">
+</head>
+<body>
+<header>
+  <h1>Comments log</h1>
+  <form id="login">
+    <input type="password" id="token" placeholder="Admin token" autocomplete="current-password" aria-label="Admin token">
+    <button>Load</button>
+  </form>
+</header>
+<main>
+  <div class="bar">
+    <input type="search" id="filter" placeholder="Filter: field, name, text…" aria-label="Filter comments">
+    <span id="count"></span>
+    <button id="refresh" type="button">Refresh</button>
+  </div>
+  <p id="msg" role="status"></p>
+  <ul id="list"></ul>
+</main>
+<script src="/admin/app.js"></script>
+</body>
+</html>
