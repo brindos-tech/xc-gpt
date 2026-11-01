@@ -368,3 +368,24 @@ test("state tax data: every state and DC, valid statuses, GSA links; sheet shows
   assert.match(ks, /centrally billed account only/);
   assert.doesNotMatch(ks, /Kansas: lodging tax exempt/);
 });
+
+// ---- TFR feed ----
+test("tfr: WFS shapes merge with the list's types into slim features", async () => {
+  const { buildTfr, notamId } = await import("../../scripts/fetch-tfr.js");
+  assert.equal(notamId("6/4240-1-FDC-F"), "6/4240");
+  const ring = [[-100.123456, 31.123456], [-100.1, 31.2], [-100.0, 31.1], [-100.123456, 31.123456]];
+  const wfs = {
+    features: [
+      { geometry: { type: "Polygon", coordinates: [ring] }, properties: { NOTAM_KEY: "6/4240-1-FDC-F", TITLE: " SAN ANGELO, TX, Sunday ", STATE: "TX", LEGAL: "SECURITY", LAST_MODIFICATION_DATETIME: "202603052027" } },
+      { geometry: { type: "Point", coordinates: [0, 0] }, properties: { NOTAM_KEY: "6/1-1-FDC-F" } },
+      { geometry: { type: "Polygon", coordinates: [ring] }, properties: {} },
+    ],
+  };
+  const out = buildTfr(wfs, [{ notam_id: "6/4240", type: "VIP" }]);
+  assert.equal(out.length, 1, "points and entries without a NOTAM are dropped");
+  assert.equal(out[0].properties.id, "TFR:6/4240");
+  assert.equal(out[0].properties.kind, "VIP movement");
+  assert.equal(out[0].properties.title, "SAN ANGELO, TX, Sunday");
+  assert.deepEqual(out[0].geometry.coordinates[0][0], [-100.1235, 31.1235], "coordinates rounded to 4 places");
+  assert.equal(buildTfr(wfs, [])[0].properties.kind, "Security", "falls back to the WFS class");
+});

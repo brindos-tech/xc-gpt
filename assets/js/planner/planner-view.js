@@ -34,7 +34,12 @@ export function createPlannerView({ config, origin, loadJson, onFieldClick, onAi
   const pinLayer = L.layerGroup().addTo(map);
 
   // ---- airspace ----
-  const files = { sua: { url: "generated/airspace-sua.json", data: null, promise: null }, mtr: { url: "generated/airspace-mtr.json", data: null, promise: null } };
+  const files = {
+    sua: { url: "generated/airspace-sua.json", data: null, promise: null },
+    mtr: { url: "generated/airspace-mtr.json", data: null, promise: null },
+    // TFRs change hourly: read them straight from the wx-data branch (CORS-open raw URL), else the copy shipped with the site
+    tfr: { url: "generated/wx/tfr.json", remote: config.tfrUrl, data: null, promise: null },
+  };
   const groups = new Map(); // layer key -> { group: L.layerGroup, entries: [{ lyr, geom, props, dist }], count }
   const featuresById = new Map();
   let wanted = new Set();
@@ -42,7 +47,10 @@ export function createPlannerView({ config, origin, loadJson, onFieldClick, onAi
 
   function loadFile(kind) {
     const f = files[kind];
-    f.promise ??= loadJson(f.url).then((d) => {
+    f.promise ??= (f.remote
+      ? fetch(f.remote, { cache: "no-cache" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))).catch(() => loadJson(f.url))
+      : loadJson(f.url)
+    ).then((d) => {
       f.data = d;
       for (const feat of d.features) featuresById.set(feat.properties.id, feat.properties);
       return d;
@@ -179,7 +187,7 @@ export function createPlannerView({ config, origin, loadJson, onFieldClick, onAi
     },
     getAirspace: (id) => featuresById.get(id) || null,
     // an airspace id from a shared link needs its file loaded before it can be shown
-    ensureAirspaceData: (id) => (id?.startsWith("MOA:") || /^[RWA]:/.test(id || "") ? loadFile("sua") : id ? loadFile("mtr") : Promise.resolve()),
+    ensureAirspaceData: (id) => (id?.startsWith("TFR:") ? loadFile("tfr") : id?.startsWith("MOA:") || /^[RWA]:/.test(id || "") ? loadFile("sua") : id ? loadFile("mtr") : Promise.resolve()),
     map,
     invalidateSize: () => map.invalidateSize(),
     flyTo: (lat, lon) => map.flyTo([lat, lon], Math.max(map.getZoom(), 8), { duration: 0.6 }),

@@ -224,7 +224,12 @@ export function airspaceHtml(p) {
     <div class="fp-facts">${rows || `<div class="muted small">No details on file.</div>`}</div>
     ${p.sop ? `<details class="fp-notes"><summary>Special operating procedures</summary><div>${esc(p.sop)}</div></details>` : ""}
     ${p.remarks ? `<details class="fp-notes"><summary>Remarks</summary><div>${esc(p.remarks)}</div></details>` : ""}
-    <div class="fp-disclaimer">From FAA data and DoD FLIP AP/1A &amp; AP/1B (eff. 3 Sep 2026). Planning reference only — use current FLIP, NOTAMs and the scheduling activity for actual use.</div>`;
+    ${
+      p.type === "TFR"
+        ? `<div class="fp-links"><a href="https://tfr.faa.gov/tfr3/?page=detail_${esc(String(p.notam || "").replace("/", "_"))}" target="_blank" rel="noopener noreferrer">FAA TFR page ↗</a><a href="https://tfr.faa.gov/" target="_blank" rel="noopener noreferrer">All TFRs ↗</a></div>
+    <div class="fp-disclaimer">Shape and details from the FAA TFR site, refreshed hourly — it can be out of date and may omit altitudes and times. Always check the NOTAM and a current briefing; TFRs can appear or change at any time.</div>`
+        : `<div class="fp-disclaimer">From FAA data and DoD FLIP AP/1A &amp; AP/1B (eff. 3 Sep 2026). Planning reference only — use current FLIP, NOTAMs and the scheduling activity for actual use.</div>`
+    }`;
 }
 
 export function createFieldPanel({ store }) {

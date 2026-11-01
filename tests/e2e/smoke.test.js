@@ -16,7 +16,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { chromium } from "playwright";
 import { serve } from "./serve.js";
-import { writeFakeWx } from "./fake-wx.js";
+import { writeFakeWx, writeFakeTfr } from "./fake-wx.js";
 
 let site;
 let browser;
@@ -29,6 +29,7 @@ before(async () => {
   // deterministic approach data, whatever the weekly build last produced
   writeFileSync(path.join(dir, "data/generated/approaches.json"), JSON.stringify({ cycle: "test", airports: { KOKC: ["ILS RWY 35R", "LOC BC RWY 17L", "VOR-A"], KPNC: ["RNAV (GPS) RWY 17"] } }));
   writeFakeWx(dir, JSON.parse(readFileSync("data/curated/config.json", "utf-8")), JSON.parse(readFileSync("data/generated/field-facts.json", "utf-8")));
+  writeFakeTfr(dir);
   execFileSync("node", ["scripts/stamp-version.js", dir, "e2etest1"]);
   site = await serve(dir);
   browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
@@ -48,7 +49,7 @@ async function openPage(viewport = { width: 1280, height: 900 }) {
   page.on("pageerror", (err) => errors.push(err.message));
 
   // Map tiles are irrelevant here and must not make the test network-bound.
-  await page.route(/tile\.openstreetmap\.org|mesonet\.agron\.iastate\.edu/, (route) => route.abort());
+  await page.route(/tile\.openstreetmap\.org|mesonet\.agron\.iastate\.edu|raw\.githubusercontent\.com/, (route) => route.abort());
   if (process.env.LEAFLET_DIR) {
     await page.route(/cdnjs\.cloudflare\.com\/ajax\/libs\/leaflet\/1\.9\.4\//, (route) => {
       const name = new URL(route.request().url()).pathname.split("/").pop().replace(".min", "");
@@ -179,7 +180,7 @@ test("data is fetched with the deploy version, not a per-load timestamp", async 
   const dataUrls = [];
   page.on("request", (r) => r.url().includes("/data/") && dataUrls.push(r.url()));
   try {
-    await page.route(/tile\.openstreetmap\.org|mesonet\.agron\.iastate\.edu/, (route) => route.abort());
+    await page.route(/tile\.openstreetmap\.org|mesonet\.agron\.iastate\.edu|raw\.githubusercontent\.com/, (route) => route.abort());
     if (process.env.LEAFLET_DIR) {
       await page.route(/cdnjs\.cloudflare\.com/, (route) =>
         route.fulfill({
@@ -361,6 +362,28 @@ test("comments: shown on a field and an airspace, post a comment, form survives 
     await page.click("#fieldClose");
     await page.waitForSelector("#fieldPanel:not(.open)");
     assert.equal(await page.isHidden("#fieldComments"), true);
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("TFRs are on by default, drawn, clickable, and open a sheet linking to the FAA", async () => {
+  const { page, context, errors } = await openPage();
+  try {
+    assert.equal(await page.isChecked('[data-air-toggle="TFR"]'), true);
+    await page.waitForFunction(() => /\d/.test(document.querySelector('[data-air-status="TFR"]')?.textContent || ""), null, { timeout: 15000 });
+    assert.match(await page.textContent('[data-air-status="TFR"]'), /1/);
+    // select it through the URL (the canvas shape itself isn't a DOM node)
+    await page.goto(`${site.url}#/v=planner&air=TFR&as=${encodeURIComponent("TFR:6/9999")}`);
+    await page.reload(); // a shared link: the area's file isn't loaded yet
+    await page.waitForSelector("#fieldPanel.open");
+    const text = await page.textContent("#fieldContent");
+    assert.match(text, /TFR 6\/9999/);
+    assert.match(text, /Temporary Flight Restriction/);
+    assert.match(text, /Test City, OK/);
+    assert.equal(await page.locator('#fieldContent a[href*="tfr.faa.gov"]').count(), 2);
+    assert.equal(await page.isHidden("#fieldComments"), true, "no comments on a TFR");
     assert.deepEqual(errors, []);
   } finally {
     await context.close();

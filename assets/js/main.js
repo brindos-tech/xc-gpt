@@ -179,7 +179,7 @@ async function boot() {
         planner.ensureAirspaceData(state.selectedAirspaceId).then(render).catch(() => {});
       }
     }
-    comments.show(field ? { subject: `field:${field.code}`, label: field.code } : airspace ? { subject: `airspace:${airspace.id}`, label: airspace.name } : null);
+    comments.show(field ? { subject: `field:${field.code}`, label: field.code } : airspace && airspace.type !== "TFR" ? { subject: `airspace:${airspace.id}`, label: airspace.name } : null);
     const [y, m, d] = state.tripDate.split("-").map(Number);
     fieldPanel.render({ field, airspace, ctx: { origin, config, tripDate: new Date(y, m - 1, d), wxRows: field ? wx.fieldRows(field.code, state.tripDate) : null, stateTax: field ? stateTax?.states?.[field.state] : null, stateTaxAsOf: stateTax?.asOf } });
   }
