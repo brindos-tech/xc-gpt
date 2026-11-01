@@ -1,0 +1,324 @@
+{
+ "asOf": "2026-07-01",
+ "source": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/",
+ "disclaimer": "From GSA SmartPay's state tax pages. Local (city/county) lodging taxes can still apply \u2014 confirm with the hotel.",
+ "states": {
+  "AK": {
+   "name": "Alaska",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/alaska",
+   "status": "sales",
+   "note": "Alaska has no state sales tax. Municipal and county governments may assess other taxes with their own exemption rules."
+  },
+  "AL": {
+   "name": "Alabama",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/alabama",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "AR": {
+   "name": "Arkansas",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/arkansas",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "AZ": {
+   "name": "Arizona",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/arizona",
+   "status": "cba",
+   "note": "Individually billed accounts are not exempt from transaction privilege tax; centrally billed accounts may not be either (the merchant can request an exemption)."
+  },
+  "CA": {
+   "name": "California",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/california",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "CO": {
+   "name": "Colorado",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/colorado",
+   "status": "form",
+   "note": "Colorado's government-credit-card affidavit is listed for the travel card (DR 1367 was consolidated into DR 5002).",
+   "form": "DR 5002 Standard Colorado Affidavit of Exempt Sale"
+  },
+  "CT": {
+   "name": "Connecticut",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/connecticut",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "DC": {
+   "name": "District of Columbia",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/district-of-columbia",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "DE": {
+   "name": "Delaware",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/delaware",
+   "status": "exempt",
+   "note": "The federal government is exempt from the occupancy tax.",
+   "form": "Form 6100: Exemption Certificate from Tax on Occupancy of Hotel, Motel and Tourist Home Rooms"
+  },
+  "FL": {
+   "name": "Florida",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/florida",
+   "status": "exempt",
+   "note": "Florida says a certificate of exemption is not required for federal government employees (a merchant may still ask for one for its records)."
+  },
+  "GA": {
+   "name": "Georgia",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/georgia",
+   "status": "cba",
+   "note": "The $5.00 hotel-motel fee does not apply to hotel rooms rented by the federal government when a centrally billed card is the form of payment.",
+   "form": "State of Georgia Certificate of Exemption of Local Hotel/Motel Excise Tax"
+  },
+  "HI": {
+   "name": "Hawaii",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/hawaii",
+   "status": "cba",
+   "note": "Individually billed accounts are not exempt from the general excise tax (GET) or the transient accommodations tax (TAT); centrally billed accounts may be exempt from GET."
+  },
+  "IA": {
+   "name": "Iowa",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/iowa",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "ID": {
+   "name": "Idaho",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/idaho",
+   "status": "form",
+   "note": "Lodging tax exemption form is listed for the travel card.",
+   "form": "Form ST-104HM Tax Exemption on Lodging Accommodations"
+  },
+  "IL": {
+   "name": "Illinois",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/illinois",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "IN": {
+   "name": "Indiana",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/indiana",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "KS": {
+   "name": "Kansas",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/kansas",
+   "status": "cba",
+   "note": "Individually billed accounts are not exempt from the transient guest tax; centrally billed accounts are exempt from state sales tax.",
+   "form": "Form ST-28H Sales and/or Transient Guest Tax Exemption Certificate for Lodging"
+  },
+  "KY": {
+   "name": "Kentucky",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/kentucky",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "LA": {
+   "name": "Louisiana",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/louisiana",
+   "status": "form",
+   "note": "Hotel lodging sales/use tax exemption form for government employees.",
+   "form": "Form R-1376 Government Employees Hotel Lodging Sales/Use Tax Exemption Certificate"
+  },
+  "MA": {
+   "name": "Massachusetts",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/massachusetts",
+   "status": "exempt",
+   "note": "Individually billed accounts may be exempt from the occupancy excise tax; no form is required, but give the hotel a government ID and a letter or electronic proof that you are traveling at the federal government's direction (reason, dates, location)."
+  },
+  "MD": {
+   "name": "Maryland",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/maryland",
+   "status": "sales",
+   "note": "Centrally billed accounts are exempt from state sales tax, but a Maryland Sales and Use Tax Exemption Certificate may be required."
+  },
+  "ME": {
+   "name": "Maine",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/maine",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "MI": {
+   "name": "Michigan",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/michigan",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "MN": {
+   "name": "Minnesota",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/minnesota",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "MO": {
+   "name": "Missouri",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/missouri",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "MS": {
+   "name": "Mississippi",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/mississippi",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "MT": {
+   "name": "Montana",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/montana",
+   "status": "cba",
+   "note": "Individually billed accounts are not exempt from the lodging sales tax; centrally billed accounts are exempt."
+  },
+  "NC": {
+   "name": "North Carolina",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/north-carolina",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "ND": {
+   "name": "North Dakota",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/north-dakota",
+   "status": "form",
+   "note": "Exemption certificate for government lodging accommodations is listed for the travel card.",
+   "form": "SFN 21937 Exemption Certificate for Government and Qualifying School Lodging Accommodations"
+  },
+  "NE": {
+   "name": "Nebraska",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/nebraska",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "NH": {
+   "name": "New Hampshire",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/new-hampshire",
+   "status": "cba",
+   "note": "Individually billed accounts are not exempt from the meals and rental tax; centrally billed accounts are exempt."
+  },
+  "NJ": {
+   "name": "New Jersey",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/new-jersey",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "NM": {
+   "name": "New Mexico",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/new-mexico",
+   "status": "cba",
+   "note": "Individually billed accounts are not exempt from gross receipts tax; centrally billed accounts may be exempt (lodging is eligible)."
+  },
+  "NV": {
+   "name": "Nevada",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/nevada",
+   "status": "cba",
+   "note": "Individually billed accounts are not exempt from state sales tax; centrally billed accounts are exempt."
+  },
+  "NY": {
+   "name": "New York",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/new-york",
+   "status": "form",
+   "note": "State and local sales tax on hotel occupancy. The form can't be used for locally imposed hotel occupancy taxes (e.g., local bed tax).",
+   "form": "Form ST-129"
+  },
+  "OH": {
+   "name": "Ohio",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/ohio",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "OK": {
+   "name": "Oklahoma",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/oklahoma",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "OR": {
+   "name": "Oregon",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/oregon",
+   "status": "exempt",
+   "note": "Individually and centrally billed accounts are exempt from the state transient lodging tax. No certificate is needed; the hotel keeps reasonable proof the stay was federal business."
+  },
+  "PA": {
+   "name": "Pennsylvania",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/pennsylvania",
+   "status": "form",
+   "note": "Exemption certificate is listed for the travel card.",
+   "form": "Form REV-1220 (TR) Exemption Certificate"
+  },
+  "RI": {
+   "name": "Rhode Island",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/rhode-island",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "SC": {
+   "name": "South Carolina",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/south-carolina",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "SD": {
+   "name": "South Dakota",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/south-dakota",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "TN": {
+   "name": "Tennessee",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/tennessee",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "TX": {
+   "name": "Texas",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/texas",
+   "status": "form",
+   "note": "Texas hotel occupancy tax exemption form is listed for the travel card.",
+   "form": "Form 12-302 Texas Hotel Occupancy Tax Exemption Certification"
+  },
+  "UT": {
+   "name": "Utah",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/utah",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "VA": {
+   "name": "Virginia",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/virginia",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "VT": {
+   "name": "Vermont",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/vermont",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "WA": {
+   "name": "Washington",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/washington",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "WI": {
+   "name": "Wisconsin",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/wisconsin",
+   "status": "form",
+   "note": "Sales and use tax exemption certificate is listed for the travel and purchase card.",
+   "form": "Form S-211 Wisconsin Sales and Use Tax Exemption Certificate"
+  },
+  "WV": {
+   "name": "West Virginia",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/west-virginia",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  },
+  "WY": {
+   "name": "Wyoming",
+   "url": "https://smartpay.gsa.gov/smarttax/tax-information-by-state/wyoming",
+   "status": "sales",
+   "note": "GSA lists centrally billed accounts as exempt from state sales tax and shows nothing lodging-specific for travelers."
+  }
+ }
+}

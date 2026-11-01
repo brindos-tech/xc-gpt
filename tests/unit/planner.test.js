@@ -274,3 +274,97 @@ test("approaches: fields filter on ALL selected types", () => {
   assert.deepEqual(sel(["RNAV"]), ["KPNC"]);
   assert.deepEqual(withA.find((f) => f.code === "KOKC").approachTypes, ["ILS", "LOCBC", "VOR", "CIRCLING"]);
 });
+
+// ---- sun and hours ----
+const sunmod = await import("../../assets/js/planner/sun.js");
+const hoursmod = await import("../../assets/js/planner/hours.js");
+
+test("sun: sunrise/sunset match known values within a few minutes, at the field's own time", () => {
+  const near = (instant, tz, h, m) => {
+    const got = sunmod.minutesOfDay(instant, tz);
+    assert.ok(Math.abs(got - (h * 60 + m)) <= 4, `${sunmod.clock(instant, tz)} vs ${h}:${m}`);
+  };
+  const ny = sunmod.sunTimes("2026-06-21", 40.64, -73.78);
+  near(ny.sunrise, "America/New_York", 5, 25);
+  near(ny.sunset, "America/New_York", 20, 30);
+  const la = sunmod.sunTimes("2026-12-21", 33.94, -118.41); // evening falls on the next UTC day
+  near(la.sunrise, "America/Los_Angeles", 6, 54);
+  near(la.sunset, "America/Los_Angeles", 16, 47);
+  assert.ok(la.dusk > la.sunset && la.dawn < la.sunrise);
+  assert.equal(sunmod.sunTimes("2026-06-21", 89, 0), null, "polar day has no sunset");
+});
+
+test("time zones: split states are decided by position; the abbreviation follows daylight time", () => {
+  assert.equal(sunmod.fieldTimeZone("OK", 36.4, -97.9), "America/Chicago");
+  assert.equal(sunmod.fieldTimeZone("TX", 31.8, -106.4), "America/Denver"); // El Paso
+  assert.equal(sunmod.fieldTimeZone("TX", 29.4, -100.8), "America/Chicago"); // Del Rio
+  assert.equal(sunmod.fieldTimeZone("FL", 30.4, -87.2), "America/Chicago"); // Pensacola
+  assert.equal(sunmod.fieldTimeZone("FL", 27.9, -82.5), "America/New_York");
+  assert.equal(sunmod.fieldTimeZone("AZ", 33.4, -112), "America/Phoenix");
+  assert.equal(sunmod.zoneAbbr(new Date("2026-07-01T18:00:00Z"), "America/Chicago"), "CDT");
+  assert.equal(sunmod.zoneAbbr(new Date("2026-11-07T18:00:00Z"), "America/Chicago"), "CST");
+  assert.equal(sunmod.tzOffsetMin("America/Chicago", new Date("2026-07-01T18:00:00Z")), -300);
+});
+
+test("hours: FAA attendance text read for a weekday, with Z times converted", () => {
+  const chi = "America/Chicago";
+  const at = (t, day) => hoursmod.hoursForDay(t, day, chi);
+  const SAT = "2026-11-07";
+  const MON = "2026-11-09";
+  assert.equal(at("24/7", SAT).kind, "always");
+  assert.equal(at("MON-FRI 0800-1700", SAT).kind, "closed");
+  assert.deepEqual(at("MON-FRI 0800-1700", MON), { kind: "open", openMin: 480, closeMin: 1020 });
+  assert.deepEqual(at("0600-2200", SAT), { kind: "open", openMin: 360, closeMin: 1320 });
+  assert.deepEqual(at("MON-FRI 0700-2300; SAT-SUN 0700-2100", SAT), { kind: "open", openMin: 420, closeMin: 1260 });
+  // 1600Z-0000Z on a Saturday in CST (UTC-6) is 10:00 AM-6:00 PM
+  assert.deepEqual(at("MON-FRI 1400-0400Z++; SAT-SUN 1600-0000Z++", SAT), { kind: "open", openMin: 600, closeMin: 1080 });
+  assert.equal(at("MON-THU 1530-0800Z; FRI 1630-0200Z++; SAT CLSD; SUN 2200-0200Z++; HOL CLSD", SAT).kind, "closed");
+  assert.equal(at("MON 1500-0200Z+; TUE-THU 1600-0200Z+; FRI 1600-0000Z+; CLSD SAT, SUN AND HOL.", SAT).kind, "closed");
+  assert.equal(at("UNATNDD", SAT).kind, "unknown");
+  assert.equal(at("MON-FRI", SAT).kind, "unknown", "days with no times is not guessed at");
+  assert.equal(at("", SAT).kind, "unknown");
+  assert.equal(at("APR-OCT 0700-2000; NOV-MAR 0700-1900", SAT).closeMin, 1140, "picks the season");
+  assert.equal(hoursmod.fmtMin(1020), "5:00 PM");
+  assert.equal(hoursmod.fmtMin(1500), "1:00 AM");
+});
+
+test("field sheet helper: closed weekend and closing before sunset are flagged", async () => {
+  const { sunHours } = await import("../../assets/js/planner/field-panel.js");
+  const f = { lat: 36.38, lon: -97.79, state: "OK", attendance: "MON-FRI 0800-1700" };
+  const sat = sunHours(f, new Date(2026, 10, 7));
+  assert.equal(sat.hours.kind, "closed");
+  assert.ok(sat.flags.some((x) => x.level === "bad"));
+  const mon = sunHours(f, new Date(2026, 10, 9)); // sunset ≈ 5:27 PM, FBO closes at 5:00 PM
+  assert.ok(mon.flags.some((x) => /before sunset/.test(x.text)));
+  assert.match(mon.sunText, /Sunset 5:\d\d PM/);
+  assert.equal(sunHours({ lat: null, lon: null }, new Date()), null);
+});
+
+// ---- state lodging tax (GSA SmartPay) ----
+test("state tax data: every state and DC, valid statuses, GSA links; sheet shows the badge only when exempt", async () => {
+  const { readFileSync } = await import("node:fs");
+  const tax = JSON.parse(readFileSync("data/curated/state-tax.json", "utf-8"));
+  const codes = Object.keys(tax.states);
+  assert.equal(codes.length, 51);
+  for (const [code, t] of Object.entries(tax.states)) {
+    assert.ok(["exempt", "form", "cba", "sales"].includes(t.status), `${code} status`);
+    assert.match(t.url, /^https:\/\/smartpay\.gsa\.gov\/smarttax\/tax-information-by-state\/[a-z-]+$/);
+    assert.ok(t.note.length > 20);
+  }
+  assert.equal(tax.states.OR.status, "exempt");
+  assert.equal(tax.states.KS.status, "cba");
+  assert.equal(tax.states.OK.status, "sales", "Oklahoma: nothing lodging-specific listed");
+
+  const { fieldHtml } = await import("../../assets/js/planner/field-panel.js");
+  const base = { code: "KXXX", name: "Test Field", city: "Testville, TX", classification: "Civil", land: "Approved", fuel: "Approved", ron: "Approved", lat: 31, lon: -100, state: "TX", approvalList: "None", suitability: [], aircard: [], approaches: [] };
+  const ctx = (st) => ({ origin: vance, config, tripDate: new Date(2026, 10, 7), stateTax: tax.states[st], stateTaxAsOf: tax.asOf });
+  const tx = fieldHtml(base, ctx("TX"));
+  assert.match(tx, /Texas: lodging tax exempt \(form\)/);
+  assert.match(tx, /Form 12-302/);
+  const ok = fieldHtml({ ...base, state: "OK" }, ctx("OK"));
+  assert.doesNotMatch(ok, /lodging tax exempt/);
+  assert.match(ok, /No lodging exemption listed/);
+  const ks = fieldHtml({ ...base, state: "KS" }, ctx("KS"));
+  assert.match(ks, /centrally billed account only/);
+  assert.doesNotMatch(ks, /Kansas: lodging tax exempt/);
+});

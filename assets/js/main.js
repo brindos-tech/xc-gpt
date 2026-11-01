@@ -35,13 +35,14 @@ if ("serviceWorker" in navigator) {
 async function boot() {
   // The planner is the home page, so only its data loads up front. The
   // events page (≈2 MB of event data) loads the first time it's opened.
-  const [config, navinfo, factsFile, meta, aircard, approaches] = await Promise.all([
+  const [config, navinfo, factsFile, meta, aircard, approaches, stateTax] = await Promise.all([
     loadJson("curated/config.json"),
     loadJson("curated/navinfo.json"),
     loadJson("generated/field-facts.json").catch(() => null),
     loadJson("generated/meta.json").catch(() => null),
     loadJson("curated/aircard.json").catch(() => null),
     loadJson("generated/approaches.json").catch(() => null),
+    loadJson("curated/state-tax.json").catch(() => null),
   ]);
 
   const originsById = new Map(config.origins.map((o) => [o.id, o]));
@@ -180,7 +181,7 @@ async function boot() {
     }
     comments.show(field ? { subject: `field:${field.code}`, label: field.code } : airspace ? { subject: `airspace:${airspace.id}`, label: airspace.name } : null);
     const [y, m, d] = state.tripDate.split("-").map(Number);
-    fieldPanel.render({ field, airspace, ctx: { origin, config, tripDate: new Date(y, m - 1, d), wxRows: field ? wx.fieldRows(field.code, state.tripDate) : null } });
+    fieldPanel.render({ field, airspace, ctx: { origin, config, tripDate: new Date(y, m - 1, d), wxRows: field ? wx.fieldRows(field.code, state.tripDate) : null, stateTax: field ? stateTax?.states?.[field.state] : null, stateTaxAsOf: stateTax?.asOf } });
   }
 
   function renderEvents(state) {

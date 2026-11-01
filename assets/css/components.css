@@ -336,3 +336,12 @@
 .cm-post { background: var(--accent); color: #0b1a12; border: none; border-radius: var(--radius-sm); padding: 8px 16px; font: inherit; font-weight: 600; cursor: pointer; }
 .cm-post:disabled { opacity: 0.6; cursor: wait; }
 .cm-status { color: var(--gold); }
+
+.fp-flag { font-size: 0.85em; margin-top: 3px; }
+.fp-flag.warn { color: var(--gold); }
+.fp-flag.bad { color: var(--danger, #e65a5a); }
+
+.fp-tax { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border); display: grid; gap: 3px; font-size: 0.9em; }
+.badge.tax-ok { color: var(--accent2, #3ddc97); border-color: rgba(61,220,151,0.5); background: rgba(61,220,151,0.08); }
+.badge.tax-warn { color: var(--gold); border-color: rgba(232,193,94,0.5); }
+.badge.tax-muted { color: var(--muted); }
