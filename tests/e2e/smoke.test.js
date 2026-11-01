@@ -297,3 +297,63 @@ test("approach chips filter fields and the sheet lists the approaches", async ()
     await context.close();
   }
 });
+
+test("comments: shown on a field and an airspace, post a comment, form survives sheet re-renders", async () => {
+  const { page, context, errors } = await openPage();
+  const store = [];
+  const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type", "access-control-allow-methods": "GET, POST, OPTIONS" };
+  await page.route(/xc-gpt-comments\.fly\.dev/, async (route) => {
+    const req = route.request();
+    if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
+    if (req.method() === "POST") {
+      const body = req.postDataJSON();
+      assert.ok(body.elapsedMs >= 0 && body.subject === "field:KOKC");
+      const comment = { id: `c${store.length}`, createdAt: new Date().toISOString(), freeFood: "", crewCar: "", aircard: "", fees: "", planespotters: "", amenities: "", visited: "", ...body };
+      store.unshift(comment);
+      return route.fulfill({ status: 201, headers: cors, json: { comment } });
+    }
+    const subject = new URL(req.url()).searchParams.get("subject");
+    return route.fulfill({ status: 200, headers: cors, json: { comments: store.filter((c) => c.subject === subject) } });
+  });
+  try {
+    await page.locator('#plannerMap [data-field="KOKC"]').dispatchEvent("click");
+    await page.waitForSelector("#fieldPanel.open");
+    await page.waitForSelector("#fieldComments .cm-list");
+    assert.match(await page.textContent("#fieldComments"), /No comments yet/);
+
+    // open the form, write something, then let the sheet re-render underneath (trip date change)
+    await page.click("[data-cm-open]");
+    await page.fill('#fieldComments [name="notes"]', "Great FBO, free cookies");
+    await page.click('#fieldComments .cm-rating label:nth-of-type(4)');
+    await page.selectOption('#fieldComments [name="freeFood"]', "yes");
+    await page.fill('#fieldComments [name="fees"]', "$20 ramp");
+    await page.waitForTimeout(2600); // the form has to have been open a human-ish while
+    const dayChip = page.locator("[data-wx-day]").nth(1);
+    if (await dayChip.count()) {
+      await page.click("#wxCollapse");
+      await page.locator("[data-wx-day]:not([disabled])").nth(1).click();
+    }
+    assert.equal(await page.inputValue('#fieldComments [name="notes"]'), "Great FBO, free cookies", "typing survives the sheet re-rendering");
+
+    await page.click("#fieldComments .cm-post");
+    await page.waitForSelector("#fieldComments .cm-item");
+    const text = await page.textContent("#fieldComments");
+    assert.match(text, /Great FBO, free cookies/);
+    assert.match(text, /Free food ✓/);
+    assert.match(text, /\$20 ramp/);
+    assert.match(text, /1 comment/);
+    assert.equal(store.length, 1);
+    assert.equal(store[0].rating, "4");
+
+    // the honeypot is not visible to people
+    assert.equal(await page.locator('#fieldComments [name="website"]').isVisible(), false);
+
+    // another field has its own (empty) thread, and an airspace area gets a field-free form
+    await page.click("#fieldClose");
+    await page.waitForSelector("#fieldPanel:not(.open)");
+    assert.equal(await page.isHidden("#fieldComments"), true);
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});

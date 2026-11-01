@@ -6,6 +6,7 @@ import { createPlannerView } from "./planner/planner-view.js";
 import { createFieldPanel } from "./planner/field-panel.js";
 import { mergeFields, selectFields } from "./planner/fields.js";
 import { createWxController } from "./planner/wx-controller.js";
+import { createComments } from "./planner/comments.js";
 
 const DATA_BASE = "data";
 
@@ -64,6 +65,7 @@ async function boot() {
 
   const filterRail = createFilterRail({ store, config });
   const fieldPanel = createFieldPanel({ store });
+  const comments = createComments({ host: $("fieldComments"), apiBase: config.commentsApi, today });
 
   // ---- planner ----
   const planner = createPlannerView({
@@ -176,6 +178,7 @@ async function boot() {
         planner.ensureAirspaceData(state.selectedAirspaceId).then(render).catch(() => {});
       }
     }
+    comments.show(field ? { subject: `field:${field.code}`, label: field.code } : airspace ? { subject: `airspace:${airspace.id}`, label: airspace.name } : null);
     const [y, m, d] = state.tripDate.split("-").map(Number);
     fieldPanel.render({ field, airspace, ctx: { origin, config, tripDate: new Date(y, m - 1, d), wxRows: field ? wx.fieldRows(field.code, state.tripDate) : null } });
   }
@@ -212,6 +215,7 @@ async function boot() {
       eventsPage?.closeDetail();
       renderPlanner(state);
     } else {
+      comments.show(null);
       fieldPanel.render({ field: null, airspace: null });
       renderEvents(state);
     }

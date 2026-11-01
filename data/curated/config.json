@@ -18,7 +18,7 @@
       "id": "laughlin",
       "icao": "KDLF",
       "name": "Laughlin AFB",
-      "lat": 29.3600,
+      "lat": 29.36,
       "lon": -100.7782
     },
     {
@@ -72,5 +72,6 @@
       "seasonal": 1.1,
       "recurring": 1.0
     }
-  }
+  },
+  "commentsApi": "https://xc-gpt-comments.fly.dev"
 }
