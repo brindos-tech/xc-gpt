@@ -17,12 +17,10 @@ jobs:
           const BASE = "https://smartpay.gsa.gov/smarttax/tax-information-by-state/";
           const text = (html) => html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/g, " ").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&#39;|&rsquo;/g, "'").replace(/\s+/g, " ").trim();
           const get = async (u) => { const r = await fetch(u, { headers: { "User-Agent": "Mozilla/5.0" } }); return r.ok ? r.text() : `HTTP ${r.status}`; };
-          const idx = await get(BASE);
-          console.log("INDEX length", idx.length, idx.slice(0, 120));
-          const slugs = [...new Set([...idx.matchAll(/tax-information-by-state\/([a-z-]+)/g)].map((m) => m[1]))];
-          console.log("SLUGS", slugs.length, slugs.join(","));
+          const slugs = "alabama alaska arizona arkansas california colorado connecticut delaware district-of-columbia florida georgia hawaii idaho illinois indiana iowa kansas kentucky louisiana maine maryland massachusetts michigan minnesota mississippi missouri montana nebraska nevada new-hampshire new-jersey new-mexico new-york north-carolina north-dakota ohio oklahoma oregon pennsylvania rhode-island south-carolina south-dakota tennessee texas utah vermont virginia washington west-virginia wisconsin wyoming".split(" ");
           for (const s of slugs) {
             const t = text(await get(BASE + s));
+            if (t.length < 400) { console.log(`\n##### ${s} SHORT: ${t.slice(0, 300)}`); continue; }
             const sentences = t.split(/(?<=[.!?])\s+/).filter((x) => /lodging|hotel|transient|occupancy|exempt|room/i.test(x));
             console.log(`\n##### ${s} (${t.length} chars)\n` + sentences.slice(0, 14).join("\n").slice(0, 2200));
           }

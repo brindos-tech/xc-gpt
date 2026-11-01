@@ -20,5 +20,6 @@ jobs:
           probe "https://tfr.faa.gov/tfrapi/getTfrList"
           probe "https://tfr.faa.gov/geoserver/TFR/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=TFR:V_TFR_LOC&maxFeatures=2&outputFormat=application/json&srsname=EPSG:4326"
           probe "https://services6.arcgis.com/ssFJjBXIUyZDrSYZ/arcgis/rest/services/Temporary_Flight_Restrictions/FeatureServer/0/query?where=1%3D1&outFields=*&f=geojson&resultRecordCount=2"
-          probe "https://tfr.faa.gov/tfr3/export/json"
-          probe "https://tfr.faa.gov/tfr2/list.html"
+          curl -sS -m 30 "https://tfr.faa.gov/geoserver/TFR/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=TFR:V_TFR_LOC&maxFeatures=4&outputFormat=application/json&srsname=EPSG:4326" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log("count",j.totalFeatures,j.features.length);for(const f of j.features){const g=f.geometry;console.log(f.id,g.type,JSON.stringify(f.properties).slice(0,900))}})'
+          echo "=== total count"
+          curl -sS -m 30 "https://tfr.faa.gov/geoserver/TFR/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=TFR:V_TFR_LOC&resultType=hits" | head -c 400; echo
