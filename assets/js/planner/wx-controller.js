@@ -1,11 +1,10 @@
 // The planner's weather layer: a day picker (today … +7), a local-time slider,
-// overlay toggles, the map images, per-field forecast, and a click-for-point
-// forecast. Everything comes from the model grid in data/generated/wx/ — a
+// overlay toggles, the map images and the per-field forecast. Everything comes from the model grid in data/generated/wx/ — a
 // planning aid, not a weather brief.
 import { toDateKey, addDays, formatUpdatedAgo, parseDate } from "../format.js";
 import { createWxData } from "./wx-data.js";
 import { renderStyle, gridBounds, WX_STYLES } from "./wx-raster.js";
-import { CAT_COLORS, CAT_NAMES, ICE_LABELS, THUN_LABELS, NO_CEILING, flightCategory, ceilingText, visText, precipText } from "./wx-model.js";
+import { CAT_COLORS, flightCategory } from "./wx-model.js";
 import { esc } from "./html.js";
 
 export const WX_LAYERS = [
@@ -43,7 +42,6 @@ export function createWxController({ store, map, loadJson, today, onChange }) {
   let drawnKey = "";
   let radarLayer = null;
   let lastRenderKey = "";
-  let popup = null;
 
   // ---- time selection ----
   function stepsFor(dateKey) {
@@ -215,7 +213,7 @@ export function createWxController({ store, map, loadJson, today, onChange }) {
 
   /** Ring colour for a field pin: MVFR or worse (and thunder). null = nothing to flag. */
   function fieldRing(code) {
-    if (!ready || store.getState().wxLayers.size === 0) return null;
+    if (!ready || !store.getState().wxLayers.has("cat")) return null; // rings follow the Flight category toggle
     const f = fieldNow(code);
     if (!f) return null;
     const cat = flightCategory(f.ceil, f.vis);
@@ -233,26 +231,6 @@ export function createWxController({ store, map, loadJson, today, onChange }) {
       .filter(Boolean);
     return rows.length ? rows : null;
   }
-
-  // ---- point forecast ----
-  function pointHtml(p, step) {
-    const cat = flightCategory(p.ceil, p.vis);
-    return `<b>${new Date(step).toLocaleString([], { weekday: "short", hour: "numeric", timeZoneName: "short" })}</b><br>
-      <span style="color:${CAT_COLORS[cat]}">${CAT_NAMES[cat]}</span> · ceiling ${ceilingText(p.ceil)} · vis ${visText(p.vis)}<br>
-      Icing low: ${ICE_LABELS[p.lice]} · high: ${ICE_LABELS[p.hice]}<br>
-      Precip: ${precipText(p.prec)} · thunder: ${THUN_LABELS[p.thun]}<br>
-      <span class="muted">Model grid estimate, not a briefing</span>`;
-  }
-
-  map.on("click", (e) => {
-    if (!ready) return;
-    const state = store.getState();
-    const step = currentStep(state);
-    if (!step || !state.wxLayers.size) return;
-    const p = wxData.pointAt(step, e.latlng.lat, e.latlng.lng);
-    if (!p) return;
-    popup = L.popup({ maxWidth: 260 }).setLatLng(e.latlng).setContent(pointHtml(p, step)).openOn(map);
-  });
 
   // ---- lifecycle ----
   async function load() {
@@ -286,9 +264,5 @@ export function createWxController({ store, map, loadJson, today, onChange }) {
     }
   }
 
-  function hide() {
-    if (popup) map.closePopup(popup);
-  }
-
-  return { render, hide, fieldRing, fieldRows, get ready() { return ready; } };
+  return { render, fieldRing, fieldRows, get ready() { return ready; } };
 }

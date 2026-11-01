@@ -1,6 +1,6 @@
 .app {
   display: grid;
-  grid-template-rows: var(--header-height) 1fr var(--tabbar-height);
+  grid-template-rows: var(--header-height) var(--tabbar-height) 1fr;
   height: 100vh;
   height: 100dvh;
 }
@@ -148,37 +148,45 @@
    collapsed affordance. */
 .scrubber-summary { display: none; }
 
-/* -------- bottom tab bar -------- */
+/* -------- page tabs (top, under the header) -------- */
 .tab-bar {
   display: flex;
+  gap: 6px;
+  padding: 6px 18px 0;
   background: #12141a;
-  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   overflow-x: auto;
 }
 .tab-bar button {
-  flex: 1;
-  background: none;
-  border: none;
+  flex: 0 1 200px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
   color: var(--muted);
-  padding: 0 12px;
+  padding: 0 22px;
   /* Desktop sizes this row via the .app grid track, but the mobile media
      query below switches that track to `auto` — without a min-height the
-     buttons collapse to bare text height (~17px), far under a usable tap
-     target. */
-  min-height: 44px;
-  font-size: 0.82em;
-  font-weight: 600;
+     buttons collapse to bare text height, far under a usable tap target. */
+  min-height: 42px;
+  font-size: 1em;
+  font-weight: 700;
+  letter-spacing: 0.01em;
   white-space: nowrap;
-  border-top: 2px solid transparent;
-  transition: color 0.15s, border-color 0.15s;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
 }
 .tab-bar button:hover { color: var(--text); }
-.tab-bar button.active { color: var(--accent); border-top-color: var(--accent); }
+.tab-bar button.active {
+  color: #0b1a12;
+  background: var(--accent);
+  border-color: var(--accent);
+}
 
 /* ================= responsive ================= */
 @media (max-width: 860px) {
   html, body { overflow: auto; }
-  .app { height: auto; min-height: 100dvh; grid-template-rows: auto 1fr auto; }
+  .app { height: auto; min-height: 100dvh; grid-template-rows: auto auto 1fr; }
   .app-header { flex-wrap: wrap; height: auto; padding: 10px 14px; }
   .header-search { order: 3; max-width: none; flex-basis: 100%; }
 
@@ -186,7 +194,7 @@
   .filter-rail {
     position: fixed;
     left: 0; right: 0;
-    bottom: calc(var(--tabbar-height-mobile) + env(safe-area-inset-bottom, 0px));
+    bottom: env(safe-area-inset-bottom, 0px);
     max-height: 60vh;
     border-right: none;
     border-top: 1px solid var(--border);
@@ -271,19 +279,8 @@
   .scrubber-wrap.collapsed .scrubber-body { display: none; }
   .scrubber-wrap.collapsed { padding-top: 2px; padding-bottom: 2px; }
 
-  .tab-bar {
-    /* iOS home-indicator clearance, so the last row of tabs stays tappable */
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
-  /* Five labels have to fit a phone's width without the bar turning into a
-     horizontal scroller — "Weekend Recs" alone is wider than two of the
-     others, so the padding gets tightened here rather than letting the last
-     tab sit half off-screen. Height is untouched: the tap target stays. */
-  .tab-bar button {
-    min-height: var(--tabbar-height-mobile);
-    font-size: 0.78em;
-    padding: 0 5px;
-  }
+  .tab-bar { padding: 6px 12px 0; gap: 6px; }
+  .tab-bar button { flex: 1; min-height: var(--tabbar-height-mobile); padding: 0 8px; font-size: 1.02em; }
 
   .main-area { grid-template-rows: 1fr auto; }
   .detail-panel {
@@ -291,7 +288,7 @@
        viewport, not to a container that can sit below the fold. */
     position: fixed;
     top: auto; left: 0; right: 0;
-    bottom: calc(var(--tabbar-height-mobile) + env(safe-area-inset-bottom, 0px));
+    bottom: env(safe-area-inset-bottom, 0px);
     width: auto;
     /* a fixed height (not max-height) so .dp-scroll's inset:0 has a
        real box to fill — see the .dp-scroll comment above for why it
