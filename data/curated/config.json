@@ -73,5 +73,6 @@
       "recurring": 1.0
     }
   },
-  "commentsApi": "https://xc-gpt-comments.fly.dev"
+  "commentsApi": "https://xc-gpt-comments.fly.dev",
+  "tfrUrl": "https://raw.githubusercontent.com/brindos-tech/xc-gpt/wx-data/wx/tfr.json"
 }

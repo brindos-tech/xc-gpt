@@ -36,6 +36,10 @@ jobs:
       - name: Build weather grid
         run: node scripts/fetch-wx.js
 
+      # the forecast publish replaces the whole branch, so include fresh TFRs
+      - name: Fetch TFRs
+        run: node scripts/fetch-tfr.js
+
       - name: Publish to wx-data
         run: |
           set -e

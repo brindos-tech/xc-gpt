@@ -16,7 +16,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { chromium } from "playwright";
 import { serve } from "./serve.js";
-import { writeFakeWx } from "./fake-wx.js";
+import { writeFakeWx, writeFakeTfr } from "./fake-wx.js";
 
 let site;
 let browser;
@@ -29,6 +29,7 @@ before(async () => {
   // deterministic approach data, whatever the weekly build last produced
   writeFileSync(path.join(dir, "data/generated/approaches.json"), JSON.stringify({ cycle: "test", airports: { KOKC: ["ILS RWY 35R", "LOC BC RWY 17L", "VOR-A"], KPNC: ["RNAV (GPS) RWY 17"] } }));
   writeFakeWx(dir, JSON.parse(readFileSync("data/curated/config.json", "utf-8")), JSON.parse(readFileSync("data/generated/field-facts.json", "utf-8")));
+  writeFakeTfr(dir);
   execFileSync("node", ["scripts/stamp-version.js", dir, "e2etest1"]);
   site = await serve(dir);
   browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
@@ -48,7 +49,7 @@ async function openPage(viewport = { width: 1280, height: 900 }) {
   page.on("pageerror", (err) => errors.push(err.message));
 
   // Map tiles are irrelevant here and must not make the test network-bound.
-  await page.route(/tile\.openstreetmap\.org|mesonet\.agron\.iastate\.edu/, (route) => route.abort());
+  await page.route(/tile\.openstreetmap\.org|mesonet\.agron\.iastate\.edu|raw\.githubusercontent\.com/, (route) => route.abort());
   if (process.env.LEAFLET_DIR) {
     await page.route(/cdnjs\.cloudflare\.com\/ajax\/libs\/leaflet\/1\.9\.4\//, (route) => {
       const name = new URL(route.request().url()).pathname.split("/").pop().replace(".min", "");
@@ -179,7 +180,7 @@ test("data is fetched with the deploy version, not a per-load timestamp", async 
   const dataUrls = [];
   page.on("request", (r) => r.url().includes("/data/") && dataUrls.push(r.url()));
   try {
-    await page.route(/tile\.openstreetmap\.org|mesonet\.agron\.iastate\.edu/, (route) => route.abort());
+    await page.route(/tile\.openstreetmap\.org|mesonet\.agron\.iastate\.edu|raw\.githubusercontent\.com/, (route) => route.abort());
     if (process.env.LEAFLET_DIR) {
       await page.route(/cdnjs\.cloudflare\.com/, (route) =>
         route.fulfill({
@@ -331,7 +332,7 @@ test("comments: shown on a field and an airspace, post a comment, form survives 
     assert.match(await page.textContent("#fieldComments"), /No comments yet/);
 
     // open the form, write something, then let the sheet re-render underneath (trip date change)
-    await page.click("[data-cm-open]");
+    await page.click('[data-cm-open="comment"]');
     await page.fill('#fieldComments [name="notes"]', "Great FBO, free cookies");
     await page.click('#fieldComments .cm-rating label:nth-of-type(4)');
     await page.selectOption('#fieldComments [name="freeFood"]', "yes");
@@ -355,12 +356,117 @@ test("comments: shown on a field and an airspace, post a comment, form survives 
     assert.equal(store[0].rating, "4");
 
     // the honeypot is not visible to people
-    assert.equal(await page.locator('#fieldComments [name="website"]').isVisible(), false);
+    assert.equal(await page.locator('#fieldComments [name="website"]').first().isVisible(), false);
 
     // another field has its own (empty) thread, and an airspace area gets a field-free form
     await page.click("#fieldClose");
     await page.waitForSelector("#fieldPanel:not(.open)");
     assert.equal(await page.isHidden("#fieldComments"), true);
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("TFRs are on by default, drawn, clickable, and open a sheet linking to the FAA", async () => {
+  const { page, context, errors } = await openPage();
+  try {
+    assert.equal(await page.isChecked('[data-air-toggle="TFR"]'), true);
+    await page.waitForFunction(() => /\d/.test(document.querySelector('[data-air-status="TFR"]')?.textContent || ""), null, { timeout: 15000 });
+    assert.match(await page.textContent('[data-air-status="TFR"]'), /1/);
+    // select it through the URL (the canvas shape itself isn't a DOM node)
+    await page.goto(`${site.url}#/v=planner&air=TFR&as=${encodeURIComponent("TFR:6/9999")}`);
+    await page.reload(); // a shared link: the area's file isn't loaded yet
+    await page.waitForSelector("#fieldPanel.open");
+    const text = await page.textContent("#fieldContent");
+    assert.match(text, /TFR 6\/9999/);
+    assert.match(text, /Temporary Flight Restriction/);
+    assert.match(text, /Test City, OK/);
+    assert.equal(await page.locator('#fieldContent a[href*="tfr.faa.gov"]').count(), 2);
+    assert.equal(await page.isHidden("#fieldComments"), true, "no comments on a TFR");
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("trip builder: add stops from the sheet, legs and per diem, route string, crew card", async () => {
+  const { page, context, errors } = await openPage();
+  try {
+    await page.evaluate(() => (window.print = () => (window.__printed = true)));
+    await page.locator('#plannerMap [data-field="KOKC"]').dispatchEvent("click");
+    await page.waitForSelector("#fieldPanel.open");
+    await page.click('[data-trip-toggle="KOKC"]');
+    await page.waitForSelector("#tripBody .trip-stop");
+    assert.match(await page.textContent("#tripBody"), /KOKC/);
+    assert.match(await page.textContent('[data-trip-toggle="KOKC"]'), /remove/);
+    assert.match(await page.evaluate(() => location.hash), /trip=KOKC/);
+    assert.match(await page.textContent("#tripBody"), /KEND KOKC KEND/);
+    assert.match(await page.textContent("#tripBody"), /No RON stops/);
+
+    // RON adds a night of per diem; a second stop is reorderable
+    await page.check("#tripBody [data-trip-ron]");
+    await page.waitForFunction(() => /1 night/.test(document.getElementById("tripBody").textContent));
+    assert.match(await page.evaluate(() => location.hash), /trip=KOKC(%2A|\*)/);
+    await page.click("#fieldClose");
+    await page.locator('#plannerMap [data-field="KPNC"]').dispatchEvent("click");
+    await page.click('[data-trip-toggle="KPNC"]');
+    await page.waitForFunction(() => document.querySelectorAll("#tripBody .trip-stop").length === 2);
+    await page.click('#tripBody [data-trip="up"][data-i="1"]');
+    await page.waitForFunction(() => /KEND KPNC KOKC KEND/.test(document.getElementById("tripBody").textContent));
+
+    // the crew card is filled and the print dialog requested
+    await page.click('#tripBody [data-trip="print"]');
+    assert.equal(await page.evaluate(() => window.__printed), true);
+    const card = await page.textContent("#crewCard");
+    assert.match(card, /Crew card · KEND/);
+    assert.match(card, /1\. KPNC/);
+    assert.match(card, /2\. KOKC/);
+    assert.match(card, /Planning reference only/);
+
+    await page.click('#tripBody [data-trip="clear"]');
+    await page.waitForFunction(() => !document.querySelector("#tripBody .trip-stop"));
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("ratings show on pins (label + 'Has comments' chip) and a problem report goes to the owner only", async () => {
+  const { page, context, errors } = await openPage();
+  const posts = [];
+  const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type", "access-control-allow-methods": "GET, POST, OPTIONS" };
+  await page.route(/xc-gpt-comments\.fly\.dev/, async (route) => {
+    const req = route.request();
+    if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
+    if (req.method() === "POST") {
+      posts.push(req.postDataJSON());
+      return route.fulfill({ status: 201, headers: cors, json: { comment: { id: "r1", kind: "report" } } });
+    }
+    if (new URL(req.url()).pathname === "/summary") return route.fulfill({ status: 200, headers: cors, json: { summary: { "field:KOKC": { n: 3, avg: 4.5 } } } });
+    return route.fulfill({ status: 200, headers: cors, json: { comments: [] } });
+  });
+  try {
+    // reload so the summary request goes through the mock
+    await page.reload();
+    await page.waitForFunction(() => document.querySelectorAll("#plannerMap [data-field]").length > 0);
+    await page.click('[data-ff="rated"]');
+    await page.waitForFunction(() => document.querySelectorAll("#plannerMap [data-field]").length === 1);
+    await page.click(".leaflet-control-zoom-in"); // labels appear from zoom 6
+    await page.waitForFunction(() => /★4\.5/.test(document.querySelector("#plannerMap .rating-label")?.textContent || ""));
+
+    await page.locator('#plannerMap [data-field="KOKC"]').dispatchEvent("click");
+    await page.waitForSelector("#fieldComments .cm-buttons");
+    await page.click('[data-cm-open="report"]');
+    assert.equal(await page.isVisible("#fieldComments .cm-report"), true);
+    await page.fill('#fieldComments .cm-report [name="notes"]', "The FBO phone number on this sheet is out of date.");
+    await page.waitForTimeout(2600);
+    await page.click("#fieldComments .cm-report .cm-post");
+    await page.waitForFunction(() => /owner will see/.test(document.querySelector("#fieldComments .cm-thanks")?.textContent || ""));
+    assert.equal(posts.length, 1);
+    assert.equal(posts[0].kind, "report");
+    assert.equal(posts[0].subject, "field:KOKC");
+    assert.equal(await page.locator("#fieldComments .cm-item").count(), 0, "a report never appears in the public list");
     assert.deepEqual(errors, []);
   } finally {
     await context.close();

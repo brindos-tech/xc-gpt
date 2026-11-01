@@ -40,3 +40,12 @@ export function writeFakeWx(siteDir, config, factsFile) {
   writeFileSync(path.join(dir, "fields.json"), JSON.stringify(files.fields));
   for (const [date, day] of Object.entries(files.days)) writeFileSync(path.join(dir, `${date}.json`), JSON.stringify(day));
 }
+
+/** A synthetic TFR near Vance, in the shape scripts/fetch-tfr.js publishes. */
+export function writeFakeTfr(siteDir) {
+  const ring = [[-98.3, 36.1], [-97.5, 36.1], [-97.5, 36.6], [-98.3, 36.6], [-98.3, 36.1]];
+  writeFileSync(
+    path.join(siteDir, "data/generated/wx/tfr.json"),
+    JSON.stringify({ builtAt: new Date().toISOString(), type: "FeatureCollection", features: [{ type: "Feature", geometry: { type: "Polygon", coordinates: [ring] }, properties: { id: "TFR:6/9999", type: "TFR", name: "TFR 6/9999", title: "Test City, OK, Saturday, November 7, 2026 Local", kind: "Hazards", state: "OK", notam: "6/9999", modified: "202611010100" } }] })
+  );
+}

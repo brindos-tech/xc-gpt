@@ -32,9 +32,15 @@ export function createPlannerView({ config, origin, loadJson, onFieldClick, onAi
     color: "#ff8a3d", weight: 1.5, dashArray: "6,6", fill: false, opacity: 0.6, interactive: false, renderer: pinRenderer,
   }).addTo(map);
   const pinLayer = L.layerGroup().addTo(map);
+  const tripLine = L.polyline([], { color: "#ff8a3d", weight: 3, opacity: 0.9, dashArray: "2,7", interactive: false, renderer: pinRenderer }).addTo(map);
 
   // ---- airspace ----
-  const files = { sua: { url: "generated/airspace-sua.json", data: null, promise: null }, mtr: { url: "generated/airspace-mtr.json", data: null, promise: null } };
+  const files = {
+    sua: { url: "generated/airspace-sua.json", data: null, promise: null },
+    mtr: { url: "generated/airspace-mtr.json", data: null, promise: null },
+    // TFRs change hourly: read them straight from the wx-data branch (CORS-open raw URL), else the copy shipped with the site
+    tfr: { url: "generated/wx/tfr.json", remote: config.tfrUrl, data: null, promise: null },
+  };
   const groups = new Map(); // layer key -> { group: L.layerGroup, entries: [{ lyr, geom, props, dist }], count }
   const featuresById = new Map();
   let wanted = new Set();
@@ -42,7 +48,10 @@ export function createPlannerView({ config, origin, loadJson, onFieldClick, onAi
 
   function loadFile(kind) {
     const f = files[kind];
-    f.promise ??= loadJson(f.url).then((d) => {
+    f.promise ??= (f.remote
+      ? fetch(f.remote, { cache: "no-cache" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))).catch(() => loadJson(f.url))
+      : loadJson(f.url)
+    ).then((d) => {
       f.data = d;
       for (const feat of d.features) featuresById.set(feat.properties.id, feat.properties);
       return d;
@@ -117,7 +126,13 @@ export function createPlannerView({ config, origin, loadJson, onFieldClick, onAi
   }
 
   // ---- fields ----
+  let lastRender = null;
+  let labelsOn = false;
+  const LABEL_ZOOM = 6;
+
   function renderFields({ fields }, selectedFieldId, ringFor) {
+    lastRender = [{ fields }, selectedFieldId, ringFor];
+    labelsOn = map.getZoom() >= LABEL_ZOOM;
     pinLayer.clearLayers();
     for (const f of fields) {
       const status = fieldStatus(f);
@@ -135,11 +150,15 @@ export function createPlannerView({ config, origin, loadJson, onFieldClick, onAi
         renderer: pinRenderer,
       });
       marker.bindTooltip(
-        `<b>${esc(f.code)}</b> — ${esc(f.name)}<br>${esc(f.city)} · ${Math.round(f.distanceNm)} nm${f.fbo ? `<br>${esc(f.fbo)}` : ""}<br><span style="color:var(--muted)">${STATUS_LABELS[status]}</span>`,
+        `<b>${esc(f.code)}</b> — ${esc(f.name)}<br>${esc(f.city)} · ${Math.round(f.distanceNm)} nm${f.fbo ? `<br>${esc(f.fbo)}` : ""}<br><span style="color:var(--muted)">${STATUS_LABELS[status]}</span>${f.rating?.n ? `<br><span style="color:var(--gold)">★ ${f.rating.avg ?? "–"}</span> <span style="color:var(--muted)">${f.rating.n} comment${f.rating.n === 1 ? "" : "s"}</span>` : ""}`,
         { className: "map-tooltip", direction: "top", offset: [0, -6] }
       );
       marker.on("click", () => onFieldClick(f.id));
       marker.addTo(pinLayer);
+      // rated fields wear their average as a small gold label once zoomed in enough to read it
+      if (labelsOn && f.rating?.avg) {
+        L.marker([f.lat, f.lon], { icon: L.divIcon({ className: "rating-label", html: `★${f.rating.avg}`, iconSize: [34, 14], iconAnchor: [-9, 7] }), interactive: false, keyboard: false }).addTo(pinLayer);
+      }
 
       const el = marker.getElement();
       if (el) {
@@ -156,6 +175,10 @@ export function createPlannerView({ config, origin, loadJson, onFieldClick, onAi
       }
     }
   }
+
+  map.on("zoomend", () => {
+    if (lastRender && labelsOn !== map.getZoom() >= LABEL_ZOOM) renderFields(...lastRender);
+  });
 
   function setOrigin(o) {
     originMarker.setLatLng([o.lat, o.lon]);
@@ -179,7 +202,9 @@ export function createPlannerView({ config, origin, loadJson, onFieldClick, onAi
     },
     getAirspace: (id) => featuresById.get(id) || null,
     // an airspace id from a shared link needs its file loaded before it can be shown
-    ensureAirspaceData: (id) => (id?.startsWith("MOA:") || /^[RWA]:/.test(id || "") ? loadFile("sua") : id ? loadFile("mtr") : Promise.resolve()),
+    ensureAirspaceData: (id) => (id?.startsWith("TFR:") ? loadFile("tfr") : id?.startsWith("MOA:") || /^[RWA]:/.test(id || "") ? loadFile("sua") : id ? loadFile("mtr") : Promise.resolve()),
+    /** Draw the trip: [[lat, lon], …] from base through the stops (and back). */
+    setTrip: (points) => tripLine.setLatLngs(points),
     map,
     invalidateSize: () => map.invalidateSize(),
     flyTo: (lat, lon) => map.flyTo([lat, lon], Math.max(map.getZoom(), 8), { duration: 0.6 }),

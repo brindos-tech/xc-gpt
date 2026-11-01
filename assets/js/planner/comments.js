@@ -7,6 +7,17 @@ import { esc } from "./html.js";
 import { parseDate, formatUpdatedAgo } from "../format.js";
 
 const STAR = "★";
+
+/** { "field:KOKC": { n, avg } } for every subject with comments; {} if the API is unreachable. */
+export async function loadCommentSummary(apiBase) {
+  if (!apiBase) return {};
+  try {
+    const res = await fetch(`${apiBase}/summary`);
+    return res.ok ? (await res.json()).summary || {} : {};
+  } catch {
+    return {};
+  }
+}
 const TRI = [["", "—"], ["yes", "Yes"], ["no", "No"]];
 const tag = (label, v) => (v === "yes" ? `<span class="cm-tag ok">${label} ✓</span>` : v === "no" ? `<span class="cm-tag no">${label} ✗</span>` : "");
 
@@ -31,6 +42,16 @@ function commentHtml(c) {
 }
 
 const select = (name, label) => `<label>${label}<select name="${name}">${TRI.map(([v, t]) => `<option value="${v}">${t}</option>`).join("")}</select></label>`;
+
+function reportFormHtml(label) {
+  return `<form class="cm-form cm-report" novalidate hidden data-kind="report">
+    <div class="muted small">Something wrong or out of date for ${esc(label)}? This goes to the site owner only — it isn't posted publicly.</div>
+    <label>What's wrong?<textarea name="notes" rows="3" maxlength="1500" placeholder="e.g. FBO phone number changed to…, fuel is no longer available, hours are wrong"></textarea></label>
+    <label>Your name (optional)<input name="name" maxlength="40" autocomplete="nickname"></label>
+    <div class="cm-hp" aria-hidden="true"><label>Website<input name="website" tabindex="-1" autocomplete="off"></label></div>
+    <div class="cm-actions"><button type="submit" class="cm-post">Send report</button><span class="cm-status" role="status"></span></div>
+  </form>`;
+}
 
 function formHtml(isField, today) {
   const nameValue = (() => {
@@ -76,11 +97,15 @@ export function createComments({ host, apiBase, today = new Date() }) {
   const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
   host.addEventListener("click", (e) => {
-    if (e.target.closest("[data-cm-open]")) {
-      const form = host.querySelector(".cm-form");
+    const openBtn = e.target.closest("[data-cm-open]");
+    if (openBtn) {
+      const form = host.querySelector(openBtn.dataset.cmOpen === "report" ? ".cm-report" : ".cm-form:not(.cm-report)");
       form.hidden = !form.hidden;
-      if (!form.hidden) openedAt = Date.now();
-      e.target.closest("[data-cm-open]").setAttribute("aria-expanded", String(!form.hidden));
+      if (!form.hidden) {
+        openedAt = Date.now();
+        host.querySelectorAll(".cm-form").forEach((f) => f !== form && (f.hidden = true));
+      }
+      openBtn.setAttribute("aria-expanded", String(!form.hidden));
     } else if (e.target.closest("[data-clear-rating]")) {
       host.querySelectorAll('input[name="rating"]').forEach((r) => (r.checked = false));
     } else if (e.target.closest("[data-cm-retry]")) {
@@ -99,11 +124,12 @@ export function createComments({ host, apiBase, today = new Date() }) {
       const res = await fetch(`${apiBase}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, subject, elapsedMs: Date.now() - openedAt }),
+        body: JSON.stringify({ ...data, subject, kind: form.dataset.kind === "report" ? "report" : "comment", elapsedMs: Date.now() - openedAt }),
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error || `Couldn't post (${res.status}).`);
-      if (body.comment?.id && body.comment.id !== "ok") comments = [body.comment, ...comments];
+      const isReport = form.dataset.kind === "report";
+      if (!isReport && body.comment?.id && body.comment.id !== "ok") comments = [body.comment, ...comments];
       try {
         if (data.name) localStorage.setItem("xcgpt-name", data.name);
       } catch {
@@ -112,9 +138,14 @@ export function createComments({ host, apiBase, today = new Date() }) {
       form.reset();
       form.querySelector('[name="name"]').value = data.name || "";
       form.hidden = true;
-      host.querySelector("[data-cm-open]")?.setAttribute("aria-expanded", "false");
+      host.querySelectorAll("[data-cm-open]").forEach((b) => b.setAttribute("aria-expanded", "false"));
       renderList();
       msg.textContent = "";
+      if (isReport) {
+        const note = host.querySelector(".cm-thanks");
+        note.textContent = "Thanks — the owner will see your report.";
+        setTimeout(() => (note.textContent = ""), 6000);
+      }
     } catch (err) {
       msg.textContent = err.message;
     } finally {
@@ -169,8 +200,13 @@ export function createComments({ host, apiBase, today = new Date() }) {
     host.hidden = false;
     host.innerHTML = `<h4>Comments · ${esc(label)}</h4>
       <div class="cm-list"></div>
-      <button type="button" class="cm-open" data-cm-open aria-expanded="false">Add a comment</button>
-      ${formHtml(key.startsWith("field:"), todayKey)}`;
+      <div class="cm-buttons">
+        <button type="button" class="cm-open" data-cm-open="comment" aria-expanded="false">Add a comment</button>
+        <button type="button" class="cm-link" data-cm-open="report" aria-expanded="false">Report a problem</button>
+        <span class="cm-thanks muted small" role="status"></span>
+      </div>
+      ${formHtml(key.startsWith("field:"), todayKey)}
+      ${reportFormHtml(label)}`;
     load();
   }
 

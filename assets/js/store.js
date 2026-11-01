@@ -22,6 +22,8 @@ function defaultState(config, today) {
     // ---- planner ----
     fieldSource: "nav", // "nav" = Vance Nav Info List, "p" = P-coded fields
     fieldFilters: new Set(), // keys of FIELD_FILTERS (assets/js/planner/fields.js)
+    trip: [], // [{ code, ron }] — the trip builder's stops, in order
+    tripReturn: true, // legs end back at the base
     approachTypes: new Set(), // training filter: fields that have ALL of these approach types
     airspace: new Set(DEFAULT_AIRSPACE),
     selectedFieldId: null,

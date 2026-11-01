@@ -1,5 +1,6 @@
 // Bidirectional state <-> location.hash, so a link fully reproduces a view.
 import { toDateKey, parseDate } from "./format.js";
+import { encodeTrip, decodeTrip } from "./planner/trip.js";
 
 export function stateToHash(state) {
   const params = new URLSearchParams();
@@ -15,6 +16,8 @@ export function stateToHash(state) {
   // planner
   if (state.fieldSource !== "nav") params.set("src", state.fieldSource);
   if (state.fieldFilters.size) params.set("ff", Array.from(state.fieldFilters).join(","));
+  if (state.trip?.length) params.set("trip", encodeTrip(state.trip));
+  if (state.tripReturn === false) params.set("ret", "0");
   if (state.approachTypes?.size) params.set("app", Array.from(state.approachTypes).join(","));
   params.set("air", Array.from(state.airspace).join(","));
   if (state.selectedFieldId) params.set("fld", state.selectedFieldId);
@@ -59,6 +62,8 @@ export function hashToState(hash, defaults) {
   if (params.has("place")) patch.selectedPlaceId = params.get("place");
   if (params.has("src")) patch.fieldSource = params.get("src") === "p" ? "p" : "nav";
   if (params.has("ff")) patch.fieldFilters = new Set(params.get("ff").split(",").filter(Boolean));
+  if (params.has("trip")) patch.trip = decodeTrip(params.get("trip"));
+  if (params.get("ret") === "0") patch.tripReturn = false;
   if (params.has("app")) patch.approachTypes = new Set(params.get("app").split(",").filter(Boolean));
   if (params.has("air")) patch.airspace = new Set(params.get("air").split(",").filter(Boolean));
   if (params.has("fld")) patch.selectedFieldId = params.get("fld");

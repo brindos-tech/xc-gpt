@@ -14,14 +14,20 @@ A nav planner for T-6 cross-country missions, with the events map that started t
 | `data/curated/ap1.json` | DoD FLIP AP/1A (SUA) and AP/1B (MTR) text exports | `node scripts/import-ap1.mjs <AP1A.txt> <AP1B.txt>` each 8-week FLIP cycle |
 | `data/generated/field-facts.json` | FAA NASR 28-day subscription + GSA per diem | `refresh-fields.yml`, weekly |
 | `data/generated/approaches.json` | FAA d-TPP metadata (`d-TPP_Metafile.xml`, 28-day cycle): instrument approach chart names per field | `refresh-approaches.yml`, weekly (commits only on change). `assets/js/planner/approaches.js` classifies them into ILS / LOC / LOC BC / VOR / RNAV / TACAN / NDB / Hi approach / circling-only for the planner's Approaches filter |
+| `data/curated/state-tax.json` | GSA SmartPay state tax pages (updated 1 Jul 2026): per state, whether federal travelers are exempt from lodging/occupancy tax (exempt / exempt with a form / centrally billed accounts only / nothing lodging-specific), with the form and the GSA page link | by hand when GSA updates its pages (re-read each state's page at https://smartpay.gsa.gov/smarttax/tax-information-by-state/) |
+| `wx/tfr.json` (on `wx-data`) | FAA TFR site (WFS shapes + list types) | `refresh-tfr.yml` hourly; the page reads it straight from the branch (raw.githubusercontent.com), so TFRs don't wait for a deploy |
 | `data/generated/airspace-{sua,mtr}.json` | FAA SUA / MTR geometry merged with `ap1.json` | `refresh-fields.yml`, weekly |
 | `wx/` (branch `wx-data`, served at `data/generated/wx/`) | Open-Meteo GFS pressure-level forecast, 1° grid + every nav-list field, 3-hourly for 8 days | `refresh-wx.yml`, twice daily; **not committed to main** — force-published as one commit on `wx-data`, which `deploy-pages.yml` copies into the site |
 
 Planning reference only — the page says so. ForeFlight / FLIP / NOTAMs remain the source for what's actually allowed and open.
 
+### Trip builder and crew card
+
+“Add to trip” on a field sheet puts it in the rail's **Trip** list: reorder, mark RON, return to base. It shows legs and flight time from the base (flagging legs beyond the 400 nm leg range), a GSA per diem estimate (lodging per RON field, meals at 75 % on the first and last day), a route string to paste into ForeFlight, and **Print crew card** — a one-page-per-stop printout (FBO + phone, approvals, gov't fuel merchants, hours/sunset, per diem, lodging-tax note). Trips live in the URL (`trip=KOKC*,KTUL`, `*` = RON). Field sheets also show sunrise/sunset/twilight in the field's own time and flag FBO hours (read from the FAA attendance text) that are closed that day or end before sunset.
+
 ### Comments
 
-Anyone can rate and comment on a field/FBO or an airspace area/route from its sheet (rating, free food, fees, crew car, AIR Card accepted, planespotters, other amenities, date visited, notes). They're stored by a small API on Fly.io (`server/`, see `server/README.md` for the one-time setup); the site reaches it through `commentsApi` in `data/curated/config.json`. The owner reads and deletes comments at `<api>/admin`. If the API is down the sheets just say comments are offline.
+Anyone can rate and comment on a field/FBO or an airspace area/route from its sheet (rating, free food, fees, crew car, AIR Card accepted, planespotters, other amenities, date visited, notes). They're stored by a small API on Fly.io (`server/`, see `server/README.md` for the one-time setup); the site reaches it through `commentsApi` in `data/curated/config.json`. The owner reads and deletes comments at `<api>/admin`. “Report a problem” on a sheet sends a private correction report (never shown publicly, flagged **REPORT** in the admin log); rated fields show a gold ★ label on the map and a “Has comments” filter. If the API is down the sheets just say comments are offline.
 
 ### Weather overlays
 
@@ -61,6 +67,7 @@ Two scheduled workflows regenerate `data/generated/`:
 - **`.github/workflows/refresh-daily.yml`** — pulls Ticketmaster and SeatGeek events, weather, expands `recurring.json`, merges, validates, commits.
 - **`.github/workflows/deploy-comments.yml`** — deploys `server/` to Fly on changes (skips until the `FLY_API_TOKEN` secret exists).
 - **`.github/workflows/refresh-approaches.yml`** — weekly: approach charts per field from the FAA d-TPP.
+- **`.github/workflows/refresh-tfr.yml`** — hourly: TFRs into the `wx-data` branch (see above).
 - **`.github/workflows/refresh-wx.yml`** — twice daily: the forecast grid, published to the `wx-data` branch (see above).
 - **`.github/workflows/refresh-fields.yml`** — weekly: NASR + per-diem field facts and the airspace layers (see above).
 - **`.github/workflows/refresh-weekly.yml`** — syncs Spotify top artists, resolves new Ticketmaster attraction IDs, rebuilds, checks link health.

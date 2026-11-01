@@ -176,3 +176,22 @@ test("comments survive a restart, and deletes stay deleted", async () => {
     await stop();
   }
 });
+
+test("reports: stored for the owner only, never in the public list or averages", async () => {
+  await start();
+  try {
+    await post({ subject: "field:KOKC", rating: 4, notes: "nice", ...human });
+    const r = await post({ subject: "field:KOKC", kind: "report", rating: 1, notes: "The FBO phone number on the sheet is wrong.", ...human }, { "Fly-Client-IP": "7.7.7.7" });
+    assert.equal(r.status, 201);
+    assert.equal((await post({ subject: "field:KOKC", kind: "report", notes: "bad", ...human }, { "Fly-Client-IP": "8.8.8.8" })).status, 400, "a report needs a sentence");
+    const list = (await (await fetch(`${base}/comments?subject=field:KOKC`)).json()).comments;
+    assert.equal(list.length, 1);
+    assert.equal(list[0].kind, "comment");
+    assert.deepEqual((await (await fetch(`${base}/summary`)).json()).summary["field:KOKC"], { n: 1, avg: 4 }, "the report's rating is ignored");
+    const all = (await (await admin("/admin/comments")).json()).comments;
+    const report = all.find((c) => c.kind === "report");
+    assert.ok(report && report.rating === null && /phone number/.test(report.notes));
+  } finally {
+    await stop();
+  }
+});

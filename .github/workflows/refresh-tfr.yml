@@ -1,0 +1,52 @@
+name: Refresh TFRs
+
+# Hourly: temporary flight restrictions from the FAA (scripts/fetch-tfr.js).
+# Published into the same `wx-data` branch as the forecast (the weather run
+# also refreshes tfr.json, so the two never clobber each other). The page reads
+# tfr.json straight from that branch, so TFRs are never older than the last
+# run here — no site deploy is needed.
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-wx
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Fetch TFRs
+        run: node scripts/fetch-tfr.js
+
+      - name: Publish to wx-data
+        run: |
+          set -e
+          tmp="$(mktemp -d)"
+          cp data/generated/wx/tfr.json "$tmp/tfr.json"
+          git config user.name "xc-gpt-bot"
+          git config user.email "actions@users.noreply.github.com"
+          # keep the forecast files that are already on wx-data, if any
+          if git fetch --depth=1 origin wx-data; then
+            git checkout --orphan wx-data-tmp FETCH_HEAD
+          else
+            git checkout --orphan wx-data-tmp
+            git rm -rf -q .
+            mkdir wx
+          fi
+          mkdir -p wx
+          cp "$tmp/tfr.json" wx/tfr.json
+          git add wx
+          git commit -q -m "tfr data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push --force origin HEAD:wx-data

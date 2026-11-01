@@ -42,12 +42,13 @@ export function openStore(file) {
       for (const id of ids) this.remove(id);
       return ids.length;
     },
-    bySubject: (subject, limit = 100) => newest([...byId.values()].filter((c) => c.subject === subject)).slice(0, limit),
+    bySubject: (subject, limit = 100) => newest([...byId.values()].filter((c) => c.subject === subject && c.kind !== "report")).slice(0, limit),
     all: (limit = 500) => newest([...byId.values()]).slice(0, limit),
     /** { subject: { n, avg } } for every subject that has comments. */
     summary() {
       const out = {};
       for (const c of byId.values()) {
+        if (c.kind === "report") continue;
         const s = (out[c.subject] ||= { n: 0, rated: 0, sum: 0 });
         s.n++;
         if (c.rating) {

@@ -8,6 +8,9 @@ import { APPROACH_TYPES } from "./approaches.js";
 import { gfcStatus, perDiemFor, telHref, STATUS_LABELS, fieldStatus } from "./fields.js";
 import { airspaceRows, typeName } from "./airspace.js";
 import { esc } from "./html.js";
+import { toDateKey } from "../format.js";
+import { sunTimes, fieldTimeZone, clock, zoneAbbr, minutesOfDay } from "./sun.js";
+import { hoursForDay, fmtMin } from "./hours.js";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -22,6 +25,59 @@ function row(label, valueHtml) {
 }
 
 const FUEL_CAP = 6;
+
+const TAX_LABELS = {
+  exempt: { text: "Lodging tax exempt", cls: "ok" },
+  form: { text: "Lodging tax exempt with a form", cls: "ok" },
+  cba: { text: "Exempt on a centrally billed account only", cls: "warn" },
+  sales: { text: "No lodging exemption listed", cls: "muted" },
+};
+
+/** GSA's note on state lodging tax for federal travelers. `tax` is one entry of data/curated/state-tax.json. */
+function stateTaxHtml(tax, asOf) {
+  if (!tax) return "";
+  const l = TAX_LABELS[tax.status] || TAX_LABELS.sales;
+  return `<div class="fp-tax">
+    <div><b>${esc(tax.name)} lodging tax</b> <span class="badge tax-${l.cls}">${esc(l.text)}</span></div>
+    <div class="muted small">${esc(tax.note)}${tax.form ? ` Form: ${esc(tax.form)}.` : ""}</div>
+    <div class="muted small">Per GSA SmartPay${asOf ? ` (updated ${esc(asOf)})` : ""} · <a href="${esc(tax.url)}" target="_blank" rel="noopener noreferrer">${esc(tax.name)} page ↗</a> · local city/county taxes can still apply; confirm with the hotel.</div>
+  </div>`;
+}
+
+/**
+ * Sun and FBO hours for the trip day, in the field's own time. The flags are
+ * conveniences read from the FAA attendance text; the raw text always shows.
+ */
+export function sunHours(f, tripDate) {
+  if (!Number.isFinite(f.lat) || !Number.isFinite(f.lon)) return null;
+  const day = toDateKey(tripDate);
+  const tz = fieldTimeZone(f.state, f.lat, f.lon);
+  const sun = sunTimes(day, f.lat, f.lon);
+  const hours = hoursForDay(f.attendance, day, tz);
+  const flags = [];
+  let hoursText = "";
+  if (hours.kind === "always") hoursText = "24 hours";
+  else if (hours.kind === "closed") {
+    hoursText = "Closed that day";
+    flags.push({ level: "bad", text: "attendance says closed on this day" });
+  } else if (hours.kind === "open") {
+    hoursText = `${fmtMin(hours.openMin)} – ${fmtMin(hours.closeMin)}`;
+    if (sun) {
+      const set = minutesOfDay(sun.sunset, tz);
+      if (hours.closeMin < set) flags.push({ level: "warn", text: `closes before sunset (${clock(sun.sunset, tz)})` });
+    }
+  } else hoursText = hours.why ? `${hours.why}` : "";
+  return { tz, abbr: sun ? zoneAbbr(sun.sunset, tz) : "", sun, sunText: sun ? `Sunrise ${clock(sun.sunrise, tz)} · Sunset ${clock(sun.sunset, tz)} · Civil twilight ends ${clock(sun.dusk, tz)}` : "Sun doesn't rise or set that day", hours, hoursText, flags };
+}
+
+function sunHoursHtml(f, tripDate) {
+  const sh = sunHours(f, tripDate);
+  if (!sh) return "";
+  const raw = f.attendance ? `<span class="muted small"> (${esc(f.attendance)})</span>` : "";
+  const flags = sh.flags.map((x) => `<div class="fp-flag ${x.level}">⚠ ${esc(x.text)}</div>`).join("");
+  return `${row(`Sun · ${esc(sh.abbr || "local")}`, esc(sh.sunText))}
+    ${row("FBO hours", `${esc(sh.hoursText || "not listed")}${raw}${flags}`)}`;
+}
 
 /** The model forecast at the field for the selected day (3-hourly, local time). */
 function forecastHtml(rows, tripDate) {
@@ -120,10 +176,12 @@ export function fieldHtml(f, ctx) {
   return `
     <h3>${esc(f.code)} · ${esc(f.name)}</h3>
     <div class="dp-dist">${esc(f.city)} · ${Math.round(distanceNm)} nm from ${esc(origin.icao)} · ${formatFlightTime(mins)}</div>
+    <button type="button" class="chip trip-add ${ctx.inTrip ? "active" : ""}" data-trip-toggle="${esc(f.code)}">${ctx.inTrip ? "In trip — remove" : "Add to trip"}</button>
     <div class="fp-badges">
       <span class="badge">${esc(f.classification)}</span>
       ${f.approvalList && f.approvalList !== "None" ? `<span class="badge best-match">${esc(f.approvalList)}</span>` : ""}
       ${(f.suitability || []).map((s) => `<span class="badge">${esc(s)}</span>`).join("")}
+      ${ctx.stateTax && (ctx.stateTax.status === "exempt" || ctx.stateTax.status === "form") ? `<span class="badge tax-ok" title="${esc(ctx.stateTax.note)}">${esc(ctx.stateTax.name)}: lodging tax exempt${ctx.stateTax.status === "form" ? " (form)" : ""}</span>` : ""}
     </div>
     <div class="fp-grid" title="${esc(STATUS_LABELS[status])}">
       ${approvalCell("Land", f.land)}${approvalCell("Fuel", f.fuel)}${approvalCell("RON", f.ron)}
@@ -139,7 +197,7 @@ export function fieldHtml(f, ctx) {
       ${row("Elevation", f.elevFt != null ? `${f.elevFt.toLocaleString("en-US")}′` : null)}
       ${row("Tower", f.tower ? esc(f.tower === "NON-ATCT" ? "Non-towered" : f.tower) : null)}
       ${row("Fuel types", f.fuelTypes?.length ? esc(f.fuelTypes.join(", ")) : null)}
-      ${row("Attended", f.attendance ? esc(f.attendance) : null)}
+      ${sunHoursHtml(f, tripDate)}
       ${row("Hangar", f.hangar ? "Transient hangar available" : null)}
       ${row("Landing fee", f.landingFee === true ? "Yes" : f.landingFee === false ? "None listed" : null)}
     </div>
@@ -147,6 +205,7 @@ export function fieldHtml(f, ctx) {
     <div class="fp-perdiem">
       <h5>GSA per diem · ${MONTHS[tripDate.getMonth()]}</h5>
       ${pd ? `<div class="fp-pd"><div><b>$${pd.lodging ?? "—"}</b><span>lodging / night</span></div><div><b>$${pd.meals ?? "—"}</b><span>meals &amp; incidentals</span></div></div><div class="muted small">${esc(pd.area)} · FY${pd.fy}${f.county ? ` · ${esc(f.county)} Co.` : ""}</div>` : `<div class="muted small">No FY${tripDate.getMonth() >= 9 ? tripDate.getFullYear() + 1 : tripDate.getFullYear()} rate found for this field's county.</div>`}
+      ${stateTaxHtml(ctx.stateTax, ctx.stateTaxAsOf)}
     </div>
     ${approachesHtml(f)}
     ${hotelHtml(f, tripDate)}
@@ -166,7 +225,12 @@ export function airspaceHtml(p) {
     <div class="fp-facts">${rows || `<div class="muted small">No details on file.</div>`}</div>
     ${p.sop ? `<details class="fp-notes"><summary>Special operating procedures</summary><div>${esc(p.sop)}</div></details>` : ""}
     ${p.remarks ? `<details class="fp-notes"><summary>Remarks</summary><div>${esc(p.remarks)}</div></details>` : ""}
-    <div class="fp-disclaimer">From FAA data and DoD FLIP AP/1A &amp; AP/1B (eff. 3 Sep 2026). Planning reference only — use current FLIP, NOTAMs and the scheduling activity for actual use.</div>`;
+    ${
+      p.type === "TFR"
+        ? `<div class="fp-links"><a href="https://tfr.faa.gov/tfr3/?page=detail_${esc(String(p.notam || "").replace("/", "_"))}" target="_blank" rel="noopener noreferrer">FAA TFR page ↗</a><a href="https://tfr.faa.gov/" target="_blank" rel="noopener noreferrer">All TFRs ↗</a></div>
+    <div class="fp-disclaimer">Shape and details from the FAA TFR site, refreshed hourly — it can be out of date and may omit altitudes and times. Always check the NOTAM and a current briefing; TFRs can appear or change at any time.</div>`
+        : `<div class="fp-disclaimer">From FAA data and DoD FLIP AP/1A &amp; AP/1B (eff. 3 Sep 2026). Planning reference only — use current FLIP, NOTAMs and the scheduling activity for actual use.</div>`
+    }`;
 }
 
 export function createFieldPanel({ store }) {
@@ -188,6 +252,12 @@ export function createFieldPanel({ store }) {
   }
 
   closeBtn.addEventListener("click", close);
+  content.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-trip-toggle]");
+    if (!btn) return;
+    const code = btn.dataset.tripToggle;
+    store.setState((s) => ({ trip: s.trip.some((x) => x.code === code) ? s.trip.filter((x) => x.code !== code) : [...s.trip, { code, ron: false }] }));
+  });
   backdrop.addEventListener("click", close);
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && panel.classList.contains("open")) close();

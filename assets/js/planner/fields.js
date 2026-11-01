@@ -32,6 +32,7 @@ export const FIELD_FILTERS = [
   { key: "aircard", label: "AIR Card on-site", test: (f) => (f.aircard || []).some((m) => m.onSite) },
   { key: "t6", label: "T-6 suitable", test: (f) => (f.suitability || []).includes("T-6") },
   { key: "fbo", label: "Has FBO", test: (f) => Boolean(f.fbo) },
+  { key: "rated", label: "Has comments", test: (f) => (f.rating?.n || 0) > 0 },
   { key: "military", label: "Military / joint", test: (f) => /Military|MIL\/CIV|with DoD tenant/.test(f.classification || "") },
 ];
 

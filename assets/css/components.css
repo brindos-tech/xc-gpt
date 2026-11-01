@@ -336,3 +336,53 @@
 .cm-post { background: var(--accent); color: #0b1a12; border: none; border-radius: var(--radius-sm); padding: 8px 16px; font: inherit; font-weight: 600; cursor: pointer; }
 .cm-post:disabled { opacity: 0.6; cursor: wait; }
 .cm-status { color: var(--gold); }
+
+.fp-flag { font-size: 0.85em; margin-top: 3px; }
+.fp-flag.warn { color: var(--gold); }
+.fp-flag.bad { color: var(--danger, #e65a5a); }
+
+.fp-tax { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border); display: grid; gap: 3px; font-size: 0.9em; }
+.badge.tax-ok { color: var(--accent2, #3ddc97); border-color: rgba(61,220,151,0.5); background: rgba(61,220,151,0.08); }
+.badge.tax-warn { color: var(--gold); border-color: rgba(232,193,94,0.5); }
+.badge.tax-muted { color: var(--muted); }
+
+/* ---- trip builder (rail) ---- */
+.trip-list { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 6px; }
+.trip-base { display: flex; justify-content: space-between; gap: 8px; font-weight: 600; font-size: 0.9em; padding: 4px 0; }
+.trip-stop { background: var(--panel2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 7px 9px; display: grid; gap: 3px; }
+.trip-ctl { display: flex; align-items: center; gap: 6px; font-size: 0.85em; }
+.trip-ctl label { margin-right: auto; display: inline-flex; gap: 4px; align-items: center; color: var(--muted); }
+.trip-ctl button { background: none; border: 1px solid var(--border); color: var(--text); border-radius: 6px; min-width: 28px; padding: 1px 6px; cursor: pointer; }
+.trip-ctl button:disabled { opacity: 0.3; cursor: default; }
+.trip-return { display: flex; gap: 6px; align-items: center; font-size: 0.85em; color: var(--muted); }
+.trip-total, .trip-cost { font-size: 0.88em; margin-top: 4px; }
+.trip-actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+.bad-text { color: var(--danger, #e65a5a); }
+.warn-text { color: var(--gold); }
+.trip-add { margin: 6px 0 4px; }
+
+/* ---- crew card: only exists on paper ---- */
+#crewCard { display: none; }
+@media print {
+  body > *:not(#crewCard) { display: none !important; }
+  html, body { background: #fff !important; height: auto !important; overflow: visible !important; }
+  #crewCard { display: block; color: #111; background: #fff; font: 11pt/1.35 system-ui, sans-serif; padding: 0; }
+  #crewCard h2 { font-size: 16pt; margin: 0 0 2pt; }
+  #crewCard h3 { font-size: 12.5pt; margin: 0 0 4pt; border-bottom: 1.5pt solid #111; padding-bottom: 2pt; }
+  #crewCard h3 small { font-weight: 400; color: #444; font-size: 10pt; }
+  #crewCard .cc-route { font: 600 12pt ui-monospace, monospace; margin-bottom: 8pt; }
+  #crewCard table { width: 100%; border-collapse: collapse; margin-bottom: 8pt; }
+  #crewCard th, #crewCard td { text-align: left; vertical-align: top; padding: 2pt 6pt 2pt 0; font-size: 10pt; }
+  #crewCard th { width: 22%; color: #333; font-weight: 600; }
+  #crewCard .cc-legs th { width: auto; border-bottom: 1pt solid #111; }
+  #crewCard .cc-total td { font-weight: 700; border-top: 1pt solid #111; }
+  #crewCard .cc-stop { break-inside: avoid; margin-bottom: 10pt; }
+  #crewCard .cc-muted { color: #555; }
+  #crewCard .cc-foot { font-size: 9pt; color: #333; border-top: 1pt solid #999; padding-top: 4pt; }
+  @page { margin: 14mm; }
+}
+
+.cm-buttons { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin-top: 12px; }
+.cm-buttons .cm-open { margin-top: 0; }
+.cm-thanks { color: var(--accent2, #3ddc97); }
+.rating-label { color: var(--gold); font: 700 11px/14px system-ui, sans-serif; text-shadow: 0 0 3px #000, 0 0 3px #000; pointer-events: none; white-space: nowrap; }
