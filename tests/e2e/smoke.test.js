@@ -41,7 +41,12 @@ after(async () => {
   if (dir) rmSync(dir, { recursive: true, force: true });
 });
 
-async function openPage(viewport = { width: 1280, height: 900 }) {
+/**
+ * @param opts.setup  runs before the page loads (install page.route mocks here — reloading to pick them up
+ *                    is slow and flaky on CI)
+ * @param opts.hash   the "#/…" state to load with, like a shared link
+ */
+async function openPage(viewport = { width: 1280, height: 900 }, opts = {}) {
   // Service workers off: they take requests out of reach of page.route.
   const context = await browser.newContext({ viewport, serviceWorkers: "block" });
   const page = await context.newPage();
@@ -57,7 +62,8 @@ async function openPage(viewport = { width: 1280, height: 900 }) {
     });
   }
 
-  await page.goto(site.url);
+  await opts.setup?.(page);
+  await page.goto(site.url + (opts.hash || ""));
   await page.waitForFunction(() => document.getElementById("freshnessText")?.textContent.includes("loading") === false);
   return { page, context, errors };
 }
@@ -369,15 +375,13 @@ test("comments: shown on a field and an airspace, post a comment, form survives 
 });
 
 test("TFRs are on by default, drawn, clickable, and open a sheet linking to the FAA", async () => {
-  const { page, context, errors } = await openPage();
+  const { page, context, errors } = await openPage(undefined, { hash: `#/v=planner&air=TFR&as=${encodeURIComponent("TFR:6/9999")}` });
   try {
+    // opened from a shared link: the TFR file loads on demand and the sheet opens
+    await page.waitForSelector("#fieldPanel.open", { timeout: 15000 });
     assert.equal(await page.isChecked('[data-air-toggle="TFR"]'), true);
     await page.waitForFunction(() => /\d/.test(document.querySelector('[data-air-status="TFR"]')?.textContent || ""), null, { timeout: 15000 });
     assert.match(await page.textContent('[data-air-status="TFR"]'), /1/);
-    // select it through the URL (the canvas shape itself isn't a DOM node)
-    await page.goto(`${site.url}#/v=planner&air=TFR&as=${encodeURIComponent("TFR:6/9999")}`);
-    await page.reload(); // a shared link: the area's file isn't loaded yet
-    await page.waitForSelector("#fieldPanel.open");
     const text = await page.textContent("#fieldContent");
     assert.match(text, /TFR 6\/9999/);
     assert.match(text, /Temporary Flight Restriction/);
@@ -433,22 +437,22 @@ test("trip builder: add stops from the sheet, legs and per diem, route string, c
 });
 
 test("ratings show on pins (label + 'Has comments' chip) and a problem report goes to the owner only", async () => {
-  const { page, context, errors } = await openPage();
   const posts = [];
   const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type", "access-control-allow-methods": "GET, POST, OPTIONS" };
-  await page.route(/xc-gpt-comments\.fly\.dev/, async (route) => {
-    const req = route.request();
-    if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
-    if (req.method() === "POST") {
-      posts.push(req.postDataJSON());
-      return route.fulfill({ status: 201, headers: cors, json: { comment: { id: "r1", kind: "report" } } });
-    }
-    if (new URL(req.url()).pathname === "/summary") return route.fulfill({ status: 200, headers: cors, json: { summary: { "field:KOKC": { n: 3, avg: 4.5 } } } });
-    return route.fulfill({ status: 200, headers: cors, json: { comments: [] } });
+  const { page, context, errors } = await openPage(undefined, {
+    setup: (p) =>
+      p.route(/xc-gpt-comments\.fly\.dev/, async (route) => {
+        const req = route.request();
+        if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
+        if (req.method() === "POST") {
+          posts.push(req.postDataJSON());
+          return route.fulfill({ status: 201, headers: cors, json: { comment: { id: "r1", kind: "report" } } });
+        }
+        if (new URL(req.url()).pathname === "/summary") return route.fulfill({ status: 200, headers: cors, json: { summary: { "field:KOKC": { n: 3, avg: 4.5 } } } });
+        return route.fulfill({ status: 200, headers: cors, json: { comments: [] } });
+      }),
   });
   try {
-    // reload so the summary request goes through the mock
-    await page.reload();
     await page.waitForFunction(() => document.querySelectorAll("#plannerMap [data-field]").length > 0);
     await page.click('[data-ff="rated"]');
     await page.waitForFunction(() => document.querySelectorAll("#plannerMap [data-field]").length === 1);
