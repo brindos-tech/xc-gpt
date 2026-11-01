@@ -265,6 +265,10 @@ test("weather bar: day picker, time slider, overlays, field forecast", async () 
     await page.waitForFunction((b) => document.getElementById("wxTimeLabel").textContent !== b, before);
     assert.match(await page.evaluate(() => location.hash), /wxt=\d{4}-\d{2}-\d{2}T\d{2}%3A\d{2}Z/);
 
+    // clicking the map, or a field, never pops a weather bubble over it
+    await page.mouse.click(700, 450);
+    assert.equal(await page.locator(".leaflet-popup").count(), 0);
+
     // layers toggle off/on and a field sheet shows its forecast table
     await page.click('[data-wx-layer="thun"]');
     assert.equal(await page.locator('[data-wx-layer="thun"].active').count(), 0);
@@ -273,6 +277,7 @@ test("weather bar: day picker, time slider, overlays, field forecast", async () 
     await page.waitForSelector("#fieldPanel.open");
     const text = await page.textContent("#fieldContent");
     assert.match(text, /Forecast at the field/);
+    assert.equal(await page.locator(".leaflet-popup").count(), 0);
     assert.match(text, /not a weather brief/);
     assert.deepEqual(errors, []);
   } finally {
