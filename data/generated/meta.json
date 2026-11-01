@@ -1,26 +1,26 @@
 {
-  "buildId": "build-1793538950477",
-  "buildAt": "2026-11-01T13:15:50.477Z",
-  "eventCount": 28270,
+  "buildId": "build-1793543730529",
+  "buildAt": "2026-11-01T14:35:30.529Z",
+  "eventCount": 28307,
   "sources": {
     "ticketmaster": {
       "status": "ok",
-      "lastSuccess": "2026-11-01T13:15:50.477Z",
+      "lastSuccess": "2026-11-01T14:35:30.529Z",
       "droppedForUnknownPlace": 100
     },
     "seatgeek": {
       "status": "ok",
-      "lastSuccess": "2026-11-01T13:15:50.477Z",
-      "events": 18367
+      "lastSuccess": "2026-11-01T14:35:30.529Z",
+      "events": 18368
     },
     "spotify": {
       "status": "ok",
-      "lastSuccess": "2026-10-25T12:27:32.543Z",
+      "lastSuccess": "2026-11-01T14:11:53.014Z",
       "message": "Synced 50 top artists."
     },
     "recurring": {
       "status": "ok",
-      "lastSuccess": "2026-11-01T13:15:50.477Z"
+      "lastSuccess": "2026-11-01T14:35:30.529Z"
     }
   },
   "pr": {
@@ -28,48 +28,37 @@
     "fromCuratedList": 29
   },
   "dedupe": {
-    "merges": 24615,
+    "merges": 24569,
     "addOnListingsDropped": 337
   },
   "linkHealth": {
-    "https://www.turntableindy.com/events/gavn-10-31-2026-indianapolis": {
-      "ok": false,
-      "status": 404,
-      "checkedAt": "2026-10-25T12:56:36.675Z"
-    },
     "https://selectaseat.com/blippi": {
       "ok": false,
       "status": null,
       "error": "fetch failed",
-      "checkedAt": "2026-10-25T12:56:36.675Z"
+      "checkedAt": "2026-11-01T14:50:00.461Z"
     },
     "https://www.unionstagepresents.com/shows/teen-jesus-and-the-jean-teasers-08-nov": {
       "ok": false,
       "status": 404,
-      "checkedAt": "2026-10-25T12:56:36.676Z"
+      "checkedAt": "2026-11-01T14:50:00.461Z"
     },
     "https://www.blackhillsstockshow.com": {
       "ok": false,
       "status": null,
       "error": "fetch failed",
-      "checkedAt": "2026-10-25T12:56:36.677Z"
+      "checkedAt": "2026-11-01T14:50:00.463Z"
     },
     "https://usairandseashow.com": {
       "ok": false,
       "status": null,
       "error": "fetch failed",
-      "checkedAt": "2026-10-25T12:56:36.677Z"
+      "checkedAt": "2026-11-01T14:50:00.463Z"
     },
     "https://www.chicago.gov/city/en/depts/dca/supp_info/air_and_watershow.html": {
       "ok": false,
       "status": 404,
-      "checkedAt": "2026-10-25T12:56:36.677Z"
-    },
-    "https://www.scotfest.com": {
-      "ok": false,
-      "status": null,
-      "error": "fetch failed",
-      "checkedAt": "2026-10-25T12:56:36.677Z"
+      "checkedAt": "2026-11-01T14:50:00.463Z"
     }
   }
 }
