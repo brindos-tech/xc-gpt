@@ -4,6 +4,7 @@
 // "events"; layout.css hides the ones that don't belong to the current page.
 import { FIELD_FILTERS } from "../planner/fields.js";
 import { AIRSPACE_LAYERS } from "../planner/airspace.js";
+import { APPROACH_TYPES } from "../planner/approaches.js";
 
 const CATEGORIES = ["concert", "festival", "rodeo", "fair", "sports", "art", "food", "outdoors", "holiday"];
 const ACTIVITIES = [
@@ -28,6 +29,7 @@ export function createFilterRail({ store, config }) {
   const fieldSourceSwitch = $("fieldSourceSwitch");
   const fieldFilterChips = $("fieldFilterChips");
   const airspaceToggles = $("airspaceToggles");
+  const approachChips = $("approachChips");
   const railReset = $("railReset");
   const railToggleBtn = $("railToggle");
   const filterRail = $("filterRail");
@@ -61,6 +63,7 @@ export function createFilterRail({ store, config }) {
     <button type="button" data-src="nav">Nav Info List</button>
     <button type="button" data-src="p">P-coded fields</button>`;
   fieldFilterChips.innerHTML = FIELD_FILTERS.map((f) => `<button class="chip" data-ff="${f.key}">${f.label}</button>`).join("");
+  approachChips.innerHTML = APPROACH_TYPES.map((t) => `<button class="chip" data-app="${t.key}" title="${t.title}">${t.label}</button>`).join("");
   airspaceToggles.innerHTML = AIRSPACE_LAYERS.map(
     (l) => `
       <div class="toggle-row" data-air="${l.key}">
@@ -113,6 +116,14 @@ export function createFilterRail({ store, config }) {
     store.setState({ fieldFilters: ff });
   });
 
+  approachChips.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-app]");
+    if (!btn) return;
+    const app = new Set(store.getState().approachTypes);
+    app.has(btn.dataset.app) ? app.delete(btn.dataset.app) : app.add(btn.dataset.app);
+    store.setState({ approachTypes: app });
+  });
+
   airspaceToggles.addEventListener("change", (e) => {
     const input = e.target.closest("[data-air-toggle]");
     if (!input) return;
@@ -148,6 +159,7 @@ export function createFilterRail({ store, config }) {
     activityChips.querySelectorAll("[data-act]").forEach((btn) => btn.classList.toggle("active", state.activities.has(btn.dataset.act)));
     fieldSourceSwitch.querySelectorAll("[data-src]").forEach((btn) => btn.classList.toggle("active", btn.dataset.src === state.fieldSource));
     fieldFilterChips.querySelectorAll("[data-ff]").forEach((btn) => btn.classList.toggle("active", state.fieldFilters.has(btn.dataset.ff)));
+    approachChips.querySelectorAll("[data-app]").forEach((btn) => btn.classList.toggle("active", state.approachTypes.has(btn.dataset.app)));
     airspaceToggles.querySelectorAll("[data-air-toggle]").forEach((i) => (i.checked = state.airspace.has(i.dataset.airToggle)));
     document.querySelector(".app").dataset.page = state.view;
   }

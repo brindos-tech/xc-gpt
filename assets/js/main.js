@@ -34,16 +34,17 @@ if ("serviceWorker" in navigator) {
 async function boot() {
   // The planner is the home page, so only its data loads up front. The
   // events page (≈2 MB of event data) loads the first time it's opened.
-  const [config, navinfo, factsFile, meta, aircard] = await Promise.all([
+  const [config, navinfo, factsFile, meta, aircard, approaches] = await Promise.all([
     loadJson("curated/config.json"),
     loadJson("curated/navinfo.json"),
     loadJson("generated/field-facts.json").catch(() => null),
     loadJson("generated/meta.json").catch(() => null),
     loadJson("curated/aircard.json").catch(() => null),
+    loadJson("generated/approaches.json").catch(() => null),
   ]);
 
   const originsById = new Map(config.origins.map((o) => [o.id, o]));
-  const fields = mergeFields(navinfo, factsFile, aircard);
+  const fields = mergeFields(navinfo, factsFile, aircard, approaches);
 
   // The real current date at local midnight — not the build date. Event
   // dates parse to local midnight, and the window test compares against it,

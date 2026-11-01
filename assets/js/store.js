@@ -22,6 +22,7 @@ function defaultState(config, today) {
     // ---- planner ----
     fieldSource: "nav", // "nav" = Vance Nav Info List, "p" = P-coded fields
     fieldFilters: new Set(), // keys of FIELD_FILTERS (assets/js/planner/fields.js)
+    approachTypes: new Set(), // training filter: fields that have ALL of these approach types
     airspace: new Set(DEFAULT_AIRSPACE),
     selectedFieldId: null,
     selectedAirspaceId: null,

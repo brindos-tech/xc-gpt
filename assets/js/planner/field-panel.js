@@ -4,6 +4,7 @@
 import { formatFlightTime } from "../format.js";
 import { greatCircleNm, flightMinutes } from "../geo.js";
 import { CAT_NAMES, CAT_COLORS, ceilingText, visText, precipText, ICE_LABELS, THUN_LABELS } from "./wx-model.js";
+import { APPROACH_TYPES } from "./approaches.js";
 import { gfcStatus, perDiemFor, telHref, STATUS_LABELS, fieldStatus } from "./fields.js";
 import { airspaceRows, typeName } from "./airspace.js";
 import { esc } from "./html.js";
@@ -39,6 +40,18 @@ function forecastHtml(rows, tripDate) {
     </table></div>
     <div class="muted small">Model-derived estimate for the nearest grid point — a planning aid, not a weather brief. Get a standard briefing before you fly.</div>
   </div>`;
+}
+
+/** Published instrument approaches, tagged by training type; the list folds away. */
+function approachesHtml(f) {
+  const list = f.approaches || [];
+  if (!list.length) return "";
+  const types = (f.approachTypes || []).map((k) => APPROACH_TYPES.find((t) => t.key === k)?.label).filter(Boolean);
+  return `<details class="fp-notes fp-approaches">
+    <summary>Instrument approaches (${list.length}) · ${esc(types.join(", ") || "—")}</summary>
+    <ul class="fp-app-list">${list.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>
+    <div class="muted small">FAA civil charts (d-TPP). Military-only procedures aren’t included — check FLIP.</div>
+  </details>`;
 }
 
 function hotelHtml(f, tripDate) {
@@ -135,6 +148,7 @@ export function fieldHtml(f, ctx) {
       <h5>GSA per diem · ${MONTHS[tripDate.getMonth()]}</h5>
       ${pd ? `<div class="fp-pd"><div><b>$${pd.lodging ?? "—"}</b><span>lodging / night</span></div><div><b>$${pd.meals ?? "—"}</b><span>meals &amp; incidentals</span></div></div><div class="muted small">${esc(pd.area)} · FY${pd.fy}${f.county ? ` · ${esc(f.county)} Co.` : ""}</div>` : `<div class="muted small">No FY${tripDate.getMonth() >= 9 ? tripDate.getFullYear() + 1 : tripDate.getFullYear()} rate found for this field's county.</div>`}
     </div>
+    ${approachesHtml(f)}
     ${hotelHtml(f, tripDate)}
     <div class="fp-links">
       <a href="https://www.airnav.com/airport/${encodeURIComponent(f.code)}" target="_blank" rel="noopener noreferrer">AirNav ↗</a>
