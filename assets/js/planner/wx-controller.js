@@ -215,7 +215,7 @@ export function createWxController({ store, map, loadJson, today, onChange }) {
 
   /** Ring colour for a field pin: MVFR or worse (and thunder). null = nothing to flag. */
   function fieldRing(code) {
-    if (!ready || store.getState().wxLayers.size === 0) return null;
+    if (!ready || !store.getState().wxLayers.has("cat")) return null; // rings follow the Flight category toggle
     const f = fieldNow(code);
     if (!f) return null;
     const cat = flightCategory(f.ceil, f.vis);

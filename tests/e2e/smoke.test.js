@@ -239,9 +239,13 @@ test("weather bar: day picker, time slider, overlays, field forecast", async () 
     await page.click("#wxCollapse");
     assert.equal(await page.isVisible("#wxBody"), true);
     assert.equal(await page.locator('[data-wx-layer="radar"].active').count(), 1);
+    // radar-only means no flight-category rings on the pins; turning Flight category on adds them
+    const ringed = () => page.evaluate(() => [...document.querySelectorAll("#plannerMap [data-field]")].filter((el) => Number.parseFloat(el.getAttribute("stroke-width")) >= 3).length);
+    assert.equal(await ringed(), 0);
     // turning overlays on draws them as map images
     for (const k of ["cat", "lice", "hice", "thun"]) await page.click(`[data-wx-layer="${k}"]`);
     await page.waitForFunction(() => document.querySelectorAll("#plannerMap .leaflet-wx-pane img").length >= 3);
+    await page.waitForFunction(() => [...document.querySelectorAll("#plannerMap [data-field]")].some((el) => Number.parseFloat(el.getAttribute("stroke-width")) >= 3));
 
     // picking a later day moves the whole app's trip date and the slider range
     const days = page.locator("[data-wx-day]:not([disabled])");
