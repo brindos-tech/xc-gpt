@@ -258,6 +258,9 @@ test("approaches: chart names classify into training types", () => {
   assert.deepEqual(c("RNAV (GPS) Y RWY 17"), ["RNAV"]); // a letter before RWY is not circling-only
   assert.deepEqual(c("TACAN RWY 31"), ["TACAN"]);
   assert.deepEqual(c("NDB RWY 4"), ["NDB"]);
+  assert.deepEqual(c("HI-ILS OR LOC Z RWY 17"), ["HI"]);
+  assert.deepEqual(c("HI-TACAN-J"), ["HI"]); // not "circling-only"
+  assert.deepEqual(c("HI-LOC/DME BC RWY 33"), ["HI"]);
   assert.deepEqual(ap.approachTypes(["VOR-A", "ILS RWY 35", "LOC BC RWY 17"]), ["ILS", "LOCBC", "VOR", "CIRCLING"]);
 });
 

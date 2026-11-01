@@ -11,7 +11,7 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { cpSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { chromium } from "playwright";
@@ -26,6 +26,8 @@ before(async () => {
   dir = mkdtempSync(path.join(tmpdir(), "xc-site-"));
   for (const f of ["index.html", "manifest.webmanifest", "sw.js"]) cpSync(f, path.join(dir, f));
   for (const d of ["assets", "data"]) cpSync(d, path.join(dir, d), { recursive: true });
+  // deterministic approach data, whatever the weekly build last produced
+  writeFileSync(path.join(dir, "data/generated/approaches.json"), JSON.stringify({ cycle: "test", airports: { KOKC: ["ILS RWY 35R", "LOC BC RWY 17L", "VOR-A"], KPNC: ["RNAV (GPS) RWY 17"] } }));
   writeFakeWx(dir, JSON.parse(readFileSync("data/curated/config.json", "utf-8")), JSON.parse(readFileSync("data/generated/field-facts.json", "utf-8")));
   execFileSync("node", ["scripts/stamp-version.js", dir, "e2etest1"]);
   site = await serve(dir);
@@ -268,6 +270,28 @@ test("weather bar: day picker, time slider, overlays, field forecast", async () 
     const text = await page.textContent("#fieldContent");
     assert.match(text, /Forecast at the field/);
     assert.match(text, /not a weather brief/);
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("approach chips filter fields and the sheet lists the approaches", async () => {
+  const { page, context, errors } = await openPage();
+  try {
+    const all = await pins(page).count();
+    await page.click('[data-app="LOCBC"]');
+    await page.waitForFunction((n) => document.querySelectorAll("#plannerMap [data-field]").length < n, all);
+    assert.equal(await pins(page).count(), 1);
+    assert.match(await page.evaluate(() => location.hash), /app=LOCBC/);
+    await page.locator('#plannerMap [data-field="KOKC"]').dispatchEvent("click");
+    await page.waitForSelector("#fieldPanel.open");
+    const text = await page.textContent("#fieldContent");
+    assert.match(text, /Instrument approaches \(3\)/);
+    assert.match(text, /LOC BC RWY 17L/);
+    // a second type narrows further, a type nobody has leaves nothing
+    await page.click('[data-app="TACAN"]');
+    await page.waitForFunction(() => document.querySelectorAll("#plannerMap [data-field]").length === 0);
     assert.deepEqual(errors, []);
   } finally {
     await context.close();

@@ -1,8 +1,8 @@
 // Instrument-approach types for the planner's training filter. Chart names
 // come from the FAA d-TPP metadata (scripts/fetch-approaches.js), e.g.
 // "ILS OR LOC RWY 17R", "LOC BC RWY 35", "VOR-A", "RNAV (GPS) Y RWY 31".
-// Civil procedures only: DoD-only (e.g. FLIP hi-altitude) approaches aren't
-// in this data.
+// The d-TPP carries the high-altitude (HI-…) approaches at joint-use and
+// military fields; DoD-only procedures that aren't in the d-TPP are missing.
 
 export const APPROACH_TYPES = [
   { key: "ILS", label: "ILS", title: "ILS (precision) approach" },
@@ -12,6 +12,7 @@ export const APPROACH_TYPES = [
   { key: "RNAV", label: "RNAV / GPS", title: "RNAV (GPS) / RNP or GPS approach" },
   { key: "TACAN", label: "TACAN", title: "TACAN approach" },
   { key: "NDB", label: "NDB", title: "NDB approach" },
+  { key: "HI", label: "Hi approach", title: "High-altitude (penetration) approach: HI-ILS, HI-TACAN, HI-VOR…" },
   { key: "CIRCLING", label: "Circling-only", title: "Approach with circling minimums only (no straight-in, e.g. VOR-A)" },
 ];
 export const APPROACH_LABELS = Object.fromEntries(APPROACH_TYPES.map((t) => [t.key, t.label]));
@@ -20,6 +21,8 @@ export const APPROACH_LABELS = Object.fromEntries(APPROACH_TYPES.map((t) => [t.k
 export function classifyApproach(name) {
   const n = String(name || "").toUpperCase();
   const out = new Set();
+  // A hi approach is its own thing for training: HI-ILS isn't ILS practice.
+  if (/^HI-/.test(n)) return out.add("HI");
   if (/\bILS\b/.test(n)) out.add("ILS");
   if (/\bLOC\b.*\bBC\b|\bLOC\/DME BC\b|BACK ?COURSE/.test(n)) out.add("LOCBC");
   else if (/\bLOC\b|\bLDA\b|\bSDF\b/.test(n)) out.add("LOC");

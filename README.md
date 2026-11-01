@@ -13,6 +13,7 @@ A nav planner for T-6 cross-country missions, with the events map that started t
 | `data/curated/aircard.json` | AIR Card merchant export (CSV) | `python3 scripts/import-aircard.py <csv>` — manual re-export; the file goes stale, and the field sheet shows each merchant's last-updated date. Merchant e-mail addresses are dropped; only fields on the nav list are kept. |
 | `data/curated/ap1.json` | DoD FLIP AP/1A (SUA) and AP/1B (MTR) text exports | `node scripts/import-ap1.mjs <AP1A.txt> <AP1B.txt>` each 8-week FLIP cycle |
 | `data/generated/field-facts.json` | FAA NASR 28-day subscription + GSA per diem | `refresh-fields.yml`, weekly |
+| `data/generated/approaches.json` | FAA d-TPP metadata (`d-TPP_Metafile.xml`, 28-day cycle): instrument approach chart names per field | `refresh-approaches.yml`, weekly (commits only on change). `assets/js/planner/approaches.js` classifies them into ILS / LOC / LOC BC / VOR / RNAV / TACAN / NDB / Hi approach / circling-only for the planner's Approaches filter |
 | `data/generated/airspace-{sua,mtr}.json` | FAA SUA / MTR geometry merged with `ap1.json` | `refresh-fields.yml`, weekly |
 | `wx/` (branch `wx-data`, served at `data/generated/wx/`) | Open-Meteo GFS pressure-level forecast, 1° grid + every nav-list field, 3-hourly for 8 days | `refresh-wx.yml`, twice daily; **not committed to main** — force-published as one commit on `wx-data`, which `deploy-pages.yml` copies into the site |
 
@@ -54,6 +55,7 @@ Tags flag *candidates*. Actual participation goes through the base's public affa
 Two scheduled workflows regenerate `data/generated/`:
 
 - **`.github/workflows/refresh-daily.yml`** — pulls Ticketmaster and SeatGeek events, weather, expands `recurring.json`, merges, validates, commits.
+- **`.github/workflows/refresh-approaches.yml`** — weekly: approach charts per field from the FAA d-TPP.
 - **`.github/workflows/refresh-wx.yml`** — twice daily: the forecast grid, published to the `wx-data` branch (see above).
 - **`.github/workflows/refresh-fields.yml`** — weekly: NASR + per-diem field facts and the airspace layers (see above).
 - **`.github/workflows/refresh-weekly.yml`** — syncs Spotify top artists, resolves new Ticketmaster attraction IDs, rebuilds, checks link health.

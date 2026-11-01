@@ -8,9 +8,6 @@ on:
   schedule:
     - cron: "29 8 * * 1" # Mondays 08:29 UTC
   workflow_dispatch: {}
-  push: # TEMPORARY — first run from the feature branch; remove before merge
-    branches: [claude/cloud-session-setup-i08vkf]
-    paths: [".github/workflows/refresh-approaches.yml"]
 
 permissions:
   contents: write
@@ -28,10 +25,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-
-      - name: Probe d-TPP shape
-        continue-on-error: true
-        run: node scripts/fetch-approaches.js --probe
 
       - name: Build approaches
         run: node scripts/fetch-approaches.js
