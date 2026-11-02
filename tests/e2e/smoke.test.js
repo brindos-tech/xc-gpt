@@ -537,3 +537,22 @@ test("flight plan: type a field in the rail to add it, with keyboard selection",
     await context.close();
   }
 });
+
+test("airspace fades out during a zoom and is back, redrawn, afterwards", async () => {
+  const { page, context, errors } = await openPage();
+  try {
+    await page.waitForFunction(() => /\d/.test(document.querySelector('[data-air-status="MOA"]')?.textContent || ""), null, { timeout: 15000 });
+    await page.evaluate(() => {
+      const pane = document.querySelector(".leaflet-airspace-pane");
+      window.__sawZooming = false;
+      new MutationObserver(() => pane.classList.contains("zooming") && (window.__sawZooming = true)).observe(pane, { attributes: true, attributeFilter: ["class"] });
+    });
+    await page.click(".leaflet-control-zoom-in");
+    await page.waitForFunction(() => window.__sawZooming === true);
+    await page.waitForFunction(() => !document.querySelector(".leaflet-airspace-pane").classList.contains("zooming"), null, { timeout: 5000 });
+    await page.waitForFunction(() => getComputedStyle(document.querySelector(".leaflet-airspace-pane")).opacity === "1", null, { timeout: 3000 }); // faded back in
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});

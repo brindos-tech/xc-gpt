@@ -48,6 +48,13 @@ export function createPlannerView({ config, origin, loadJson, onFieldClick, onAi
   map.createPane("wx").style.zIndex = 320; // forecast images sit under the airspace
   map.createPane("airspace").style.zIndex = 350;
   const airspaceRenderer = L.canvas({ pane: "airspace", padding: 0.3 });
+  // The canvas is a bitmap: while the basemap eases through a zoom it is only
+  // stretched, so outlines thicken and shapes seem to jump in size before the
+  // redraw snaps them back. Fade the airspace out for the zoom and back in
+  // once it has been redrawn at the new scale.
+  const airspacePane = map.getPane("airspace");
+  map.on("zoomstart", () => airspacePane.classList.add("zooming"));
+  map.on("zoomend", () => requestAnimationFrame(() => requestAnimationFrame(() => airspacePane.classList.remove("zooming"))));
   const pinRenderer = L.svg();
 
   const originMarker = L.circleMarker([origin.lat, origin.lon], { radius: 6, color: "#fff", fillColor: "#fff", fillOpacity: 1, weight: 2, renderer: pinRenderer })

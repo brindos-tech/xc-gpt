@@ -46,3 +46,7 @@
 @media (max-width: 860px) {
   .map-legend { font-size: 0.72em; gap: 10px; padding: 8px 10px; }
 }
+
+/* airspace fades out while the map zooms (see planner-view.js) */
+.leaflet-airspace-pane { transition: opacity 0.14s ease-out; }
+.leaflet-airspace-pane.zooming { opacity: 0; transition-duration: 0.1s; }
