@@ -479,3 +479,38 @@ test("trip: the crew card carries the legs, each stop's phone and approvals, and
   assert.match(html, /Planning reference only/);
   assert.match(html, /Nav list 2026-09-28/);
 });
+
+// ---- reviews ----
+test("reviews: subjects resolve to fields/airspace, rankings are damped, perks list yes answers", async () => {
+  const rv = await import("../../assets/js/planner/reviews.js");
+  const byCode = new Map(fields.map((f) => [f.code, f]));
+  const kokc = rv.subjectInfo("field:KOKC", byCode);
+  assert.equal(kokc.kind, "field");
+  assert.equal(kokc.title, "KOKC · Will Rogers World Airport");
+  assert.match(kokc.sub, /AAR Aircraft Services/);
+  const moa = rv.subjectInfo("airspace:MOA:VANCE 1A MOA", byCode);
+  assert.deepEqual([moa.kind, moa.id, moa.title, moa.sub], ["air", "MOA:VANCE 1A MOA", "VANCE 1A MOA", "Military Operations Area"]);
+  assert.equal(rv.subjectInfo("field:KZZZ", byCode).known, false);
+
+  const summary = {
+    "field:KOKC": { n: 10, avg: 4.8, perks: { food: [4, 0], car: [1, 3], card: [2, 0] } },
+    "field:KPNC": { n: 1, avg: 5, perks: { food: [1, 0], car: [0, 0], card: [0, 0] } },
+    "airspace:MOA:VANCE 1A MOA": { n: 3, avg: 4, perks: { food: [0, 0], car: [0, 0], card: [0, 0] } },
+    "field:KLAX": { n: 2, avg: null, perks: { food: [0, 0], car: [0, 0], card: [0, 0] } },
+  };
+  const top = rv.rankSubjects(summary, byCode, { sort: "top" }).map((r) => r.subject);
+  assert.deepEqual(top, ["field:KOKC", "field:KPNC", "airspace:MOA:VANCE 1A MOA"], "ten 4.8s beat a single 5; unrated subjects aren't ranked");
+  assert.deepEqual(rv.rankSubjects(summary, byCode, { sort: "top", type: "air" }).map((r) => r.subject), ["airspace:MOA:VANCE 1A MOA"]);
+  assert.deepEqual(rv.rankSubjects(summary, byCode, { sort: "top", q: "ponca" }).map((r) => r.subject), ["field:KPNC"]);
+  assert.deepEqual(rv.rankSubjects(summary, byCode, { sort: "food" }).map((r) => r.subject), ["field:KOKC", "field:KPNC"]);
+  assert.deepEqual(rv.rankSubjects(summary, byCode, { sort: "car" }).map((r) => r.subject), ["field:KOKC"], "only fields with a yes");
+  assert.ok(rv.rankScore(5, 1) < rv.rankScore(4.8, 10));
+
+  const feed = [
+    { subject: "field:KOKC", name: "Lt A", notes: "Cookies at the desk", fees: "", amenities: "", planespotters: "" },
+    { subject: "airspace:MOA:VANCE 1A MOA", name: "Capt B", notes: "Hot on Fridays", fees: "", amenities: "", planespotters: "" },
+  ];
+  assert.equal(rv.filterFeed(feed, byCode, { type: "field" }).length, 1);
+  assert.equal(rv.filterFeed(feed, byCode, { q: "cookies" }).length, 1);
+  assert.equal(rv.filterFeed(feed, byCode, { q: "vance" }).length, 1, "matches the area's name");
+});

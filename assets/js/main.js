@@ -8,6 +8,7 @@ import { mergeFields, selectFields } from "./planner/fields.js";
 import { createWxController } from "./planner/wx-controller.js";
 import { createComments, loadCommentSummary } from "./planner/comments.js";
 import { createTripPanel } from "./views/trip-panel.js";
+import { createReviewsPage } from "./views/reviews-page.js";
 import { crewCardHtml } from "./planner/crew-card.js";
 import { tripLegs, routeString, tripPerDiem } from "./planner/trip.js";
 
@@ -61,7 +62,7 @@ async function boot() {
 
   const $ = (id) => document.getElementById(id);
   const app = document.querySelector(".app");
-  const panes = { planner: $("pane-planner"), events: $("pane-events") };
+  const panes = { planner: $("pane-planner"), reviews: $("pane-reviews"), events: $("pane-events") };
   const tabBar = $("tabBar");
   const searchInput = $("globalSearch");
   const freshnessText = $("freshnessText");
@@ -101,6 +102,7 @@ async function boot() {
     window.print();
     document.title = prev;
   }
+  const reviewsPage = createReviewsPage({ root: $("reviewsPage"), store, apiBase: config.commentsApi, fieldsByCode });
   const tripPanel = createTripPanel({ store, config, fieldsByCode, getOrigin: () => originsById.get(store.getState().originId), onPrint: printCrewCard });
   const comments = createComments({ host: $("fieldComments"), apiBase: config.commentsApi, today });
 
@@ -162,6 +164,9 @@ async function boot() {
       const asOf = navinfo.asOf ? parseDate(navinfo.asOf).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "2-digit" }) : "unknown date";
       freshnessText.textContent = `Nav list ${asOf}${factsFile?.nasrCycle ? ` · FAA ${factsFile.nasrCycle}` : ""}`;
       freshnessDot.className = "source-dot " + (factsFile ? "ok" : "stale");
+    } else if (view === "reviews") {
+      freshnessText.textContent = "Reviews from crews";
+      freshnessDot.className = "source-dot ok";
     } else {
       freshnessText.textContent = "Bootstrap data (no CI run yet)";
       freshnessDot.className = "source-dot stale";
@@ -181,9 +186,9 @@ async function boot() {
     app.dataset.page = view;
     Object.entries(panes).forEach(([key, el]) => el.classList.toggle("active", key === view));
     tabBar.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b.dataset.view === view));
-    searchInput.placeholder = view === "planner" ? "Search fields, FBOs…" : "Search places, events…";
+    searchInput.placeholder = view === "planner" ? "Search fields, FBOs…" : view === "reviews" ? "Search reviews…" : "Search places, events…";
     // Leaflet measures 0×0 inside a hidden pane.
-    requestAnimationFrame(() => (view === "planner" ? planner.invalidateSize() : eventsPage?.invalidateSize()));
+    if (view !== "reviews") requestAnimationFrame(() => (view === "planner" ? planner.invalidateSize() : eventsPage?.invalidateSize()));
     if (view === "events") ensureEventsPage();
   }
 
@@ -271,6 +276,10 @@ async function boot() {
     if (state.view === "planner") {
       eventsPage?.closeDetail();
       renderPlanner(state);
+    } else if (state.view === "reviews") {
+      comments.show(null);
+      fieldPanel.render({ field: null, airspace: null });
+      reviewsPage.render(state);
     } else {
       comments.show(null);
       fieldPanel.render({ field: null, airspace: null });

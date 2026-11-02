@@ -2,7 +2,8 @@
 //
 //   GET    /health
 //   GET    /comments?subject=field:KOKC     public, newest first
-//   GET    /summary                         public, { subject: { n, avg } }
+//   GET    /summary                         public, { subject: { n, avg, perks } }
+//   GET    /feed?limit=60                   public, newest comments across all subjects
 //   POST   /comments                        public, rate limited
 //   GET    /admin                           the log page (needs the token once)
 //   GET    /admin/comments                  Bearer ADMIN_TOKEN: everything, with poster hashes
@@ -167,6 +168,10 @@ export function createApp({ dataFile, adminToken, allowedOrigins = [], ipSalt, n
       const subject = url.searchParams.get("subject") || "";
       if (!subject) return send(req, res, 400, { error: "subject required." });
       return send(req, res, 200, { comments: store.bySubject(subject).map(publicView) });
+    }
+    if (url.pathname === "/feed" && req.method === "GET") {
+      const limit = Math.max(1, Math.min(200, Number(url.searchParams.get("limit")) || 60));
+      return send(req, res, 200, { comments: store.recent(limit).map(publicView) });
     }
     if (url.pathname === "/summary" && req.method === "GET") return send(req, res, 200, { summary: store.summary() });
 

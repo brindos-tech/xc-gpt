@@ -556,3 +556,85 @@ test("airspace fades out during a zoom and is back, redrawn, afterwards", async 
     await context.close();
   }
 });
+
+test("reviews tab: recent reviews, top rated, perks, and 'view on map'", async () => {
+  const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type", "access-control-allow-methods": "GET, POST, OPTIONS" };
+  const feed = [
+    { id: "a", subject: "field:KOKC", name: "Capt Test", rating: 5, freeFood: "yes", crewCar: "no", aircard: "yes", fees: "$20 ramp", planespotters: "", amenities: "", visited: "2026-10-24", notes: "Cookies at the desk and a fast fuel truck.", createdAt: new Date(Date.now() - 3600000).toISOString() },
+    { id: "b", subject: "airspace:MOA:VANCE 1A MOA", name: "Lt Two", rating: 3, freeFood: "", crewCar: "", aircard: "", fees: "", planespotters: "", amenities: "", visited: "", notes: "Hot most Fridays.", createdAt: new Date(Date.now() - 7200000).toISOString() },
+  ];
+  const summary = {
+    "field:KOKC": { n: 4, avg: 4.5, perks: { food: [3, 0], car: [0, 1], card: [2, 0] } },
+    "field:KPNC": { n: 1, avg: 5, perks: { food: [0, 0], car: [1, 0], card: [0, 0] } },
+    "airspace:MOA:VANCE 1A MOA": { n: 1, avg: 3, perks: { food: [0, 0], car: [0, 0], card: [0, 0] } },
+  };
+  const { page, context, errors } = await openPage(undefined, {
+    setup: (p) =>
+      p.route(/xc-gpt-comments\.fly\.dev/, (route) => {
+        const u = new URL(route.request().url());
+        if (route.request().method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
+        if (u.pathname === "/feed") return route.fulfill({ status: 200, headers: cors, json: { comments: feed } });
+        if (u.pathname === "/summary") return route.fulfill({ status: 200, headers: cors, json: { summary } });
+        return route.fulfill({ status: 200, headers: cors, json: { comments: [] } });
+      }),
+  });
+  try {
+    await page.click('#tabBar [data-view="reviews"]');
+    await page.waitForSelector("#reviewsPage .rv-card");
+    assert.equal(await page.locator("#tabBar button.active").textContent(), "Reviews");
+    assert.equal(await page.isHidden("#filterRail"), true, "no rail on this page");
+    assert.match(await page.evaluate(() => location.hash), /v=reviews/);
+    let text = await page.textContent("#reviewsPage");
+    assert.match(text, /KOKC · Will Rogers World Airport/);
+    assert.match(text, /Cookies at the desk/);
+    assert.match(text, /Free food ✓/);
+    assert.match(text, /VANCE 1A MOA/);
+
+    // type filter, then the rankings
+    await page.click('[data-rv-type="air"]');
+    await page.waitForFunction(() => document.querySelectorAll("#reviewsPage .rv-card").length === 1);
+    await page.click('[data-rv-type="all"]');
+    await page.click('[data-rv-sort="top"]');
+    await page.waitForSelector("#reviewsPage .rv-row");
+    const rows = await page.locator("#reviewsPage .rv-row .rv-title").allTextContents();
+    assert.match(rows[0], /KOKC/, "4 reviews at 4.5 beat 1 review at 5");
+    assert.match(rows[1], /KPNC|Ponca/);
+    await page.click('[data-rv-sort="car"]');
+    await page.waitForFunction(() => document.querySelectorAll("#reviewsPage .rv-row").length === 1);
+    assert.match(await page.textContent("#reviewsPage .rv-row"), /KPNC/);
+
+    // header search filters the page, and "view on map" opens the field on the planner
+    await page.click('[data-rv-sort="recent"]');
+    await page.fill("#globalSearch", "cookies");
+    await page.waitForFunction(() => document.querySelectorAll("#reviewsPage .rv-card").length === 1);
+    await page.click("#reviewsPage .rv-title");
+    await page.waitForSelector("#fieldPanel.open");
+    assert.equal(await page.locator("#tabBar button.active").textContent(), "Planner");
+    assert.match(await page.textContent("#fieldContent"), /KOKC/);
+
+    // an airspace review opens that area's sheet
+    await page.click("#fieldClose");
+    await page.click('#tabBar [data-view="reviews"]');
+    await page.fill("#globalSearch", "");
+    await page.waitForSelector('#reviewsPage [data-rv-kind="air"]');
+    await page.click('#reviewsPage [data-rv-kind="air"]');
+    await page.waitForSelector("#fieldPanel.open", { timeout: 15000 });
+    await page.waitForFunction(() => /VANCE 1A MOA/.test(document.getElementById("fieldContent").textContent), null, { timeout: 15000 });
+    assert.match(await page.textContent("#fieldContent"), /Military Operations Area/);
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("reviews tab says so when the comments server is unreachable", async () => {
+  const { page, context, errors } = await openPage(undefined, { setup: (p) => p.route(/xc-gpt-comments\.fly\.dev/, (r) => r.abort()) });
+  try {
+    await page.click('#tabBar [data-view="reviews"]');
+    await page.waitForFunction(() => /offline/i.test(document.getElementById("reviewsPage").textContent));
+    assert.match(await page.textContent("#reviewsPage"), /Retry/);
+    assert.deepEqual(errors.filter((e) => !/Failed to fetch|NetworkError/.test(e)), []);
+  } finally {
+    await context.close();
+  }
+});

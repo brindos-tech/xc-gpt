@@ -70,7 +70,9 @@ test("anyone can post and read comments; poster hashes stay private", async () =
     clock += 11 * 60 * 1000; // outside the 10 minute posting window
     await post({ subject: "field:KOKC", rating: 3, ...human });
     const sum = await (await fetch(`${base}/summary`)).json();
-    assert.deepEqual(sum.summary["field:KOKC"], { n: 2, avg: 4 });
+    assert.equal(sum.summary["field:KOKC"].n, 2);
+    assert.equal(sum.summary["field:KOKC"].avg, 4);
+    assert.deepEqual(sum.summary["field:KOKC"].perks, { food: [1, 0], car: [0, 1], card: [1, 0] }, "yes/no counts for the perks");
     assert.equal((await fetch(`${base}/health`)).status, 200);
   } finally {
     await stop();
@@ -187,10 +189,30 @@ test("reports: stored for the owner only, never in the public list or averages",
     const list = (await (await fetch(`${base}/comments?subject=field:KOKC`)).json()).comments;
     assert.equal(list.length, 1);
     assert.equal(list[0].kind, "comment");
-    assert.deepEqual((await (await fetch(`${base}/summary`)).json()).summary["field:KOKC"], { n: 1, avg: 4 }, "the report's rating is ignored");
+    const sumK = (await (await fetch(`${base}/summary`)).json()).summary["field:KOKC"];
+    assert.equal(sumK.n, 1);
+    assert.equal(sumK.avg, 4, "the report's rating is ignored");
     const all = (await (await admin("/admin/comments")).json()).comments;
     const report = all.find((c) => c.kind === "report");
     assert.ok(report && report.rating === null && /phone number/.test(report.notes));
+  } finally {
+    await stop();
+  }
+});
+
+test("feed: newest comments across every subject, no reports, no poster hashes, capped", async () => {
+  await start();
+  try {
+    for (const [i, subject] of ["field:KOKC", "airspace:MOA:VANCE 1A MOA", "field:KPNC"].entries()) {
+      clock += 11 * 60 * 1000;
+      await post({ subject, rating: 3 + i % 3, notes: `n${i}`, ...human });
+    }
+    clock += 11 * 60 * 1000;
+    await post({ subject: "field:KOKC", kind: "report", notes: "A private correction for the owner.", ...human });
+    const feed = (await (await fetch(`${base}/feed?limit=2`, { headers: { Origin: ORIGIN } })).json()).comments;
+    assert.deepEqual(feed.map((c) => c.notes), ["n2", "n1"], "newest first, limited");
+    assert.ok(feed.every((c) => c.kind !== "report" && c.ipHash === undefined));
+    assert.equal((await (await fetch(`${base}/feed`)).json()).comments.length, 3);
   } finally {
     await stop();
   }

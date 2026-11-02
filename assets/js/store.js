@@ -15,7 +15,7 @@ function defaultState(config, today) {
     activities: new Set(),
     minScale: null, // null = no floor; show everything in range
     search: "",
-    // "planner" (nav-info fields, the home page) | "events" (the events map)
+    // "planner" (nav-info fields, the home page) | "reviews" | "events" (the events map)
     view: "planner",
     selectedPlaceId: null,
     selectedEventId: null,
@@ -24,6 +24,8 @@ function defaultState(config, today) {
     fieldFilters: new Set(), // keys of FIELD_FILTERS (assets/js/planner/fields.js)
     trip: [], // [{ code, ron }] — the trip builder's stops, in order
     tripReturn: true, // legs end back at the base
+    reviewsSort: "recent", // reviews tab: recent | top | food | car | card
+    reviewsType: "all", // all | field | air
     approachTypes: new Set(), // training filter: fields that have ALL of these approach types
     airspace: new Set(DEFAULT_AIRSPACE),
     selectedFieldId: null,

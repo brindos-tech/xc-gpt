@@ -43,20 +43,29 @@ export function openStore(file) {
       return ids.length;
     },
     bySubject: (subject, limit = 100) => newest([...byId.values()].filter((c) => c.subject === subject && c.kind !== "report")).slice(0, limit),
+    /** Newest public comments across every subject (reports excluded). */
+    recent: (limit = 60) => newest([...byId.values()].filter((c) => c.kind !== "report")).slice(0, limit),
     all: (limit = 500) => newest([...byId.values()]).slice(0, limit),
-    /** { subject: { n, avg } } for every subject that has comments. */
+    /**
+     * { subject: { n, avg, perks } } for every subject that has comments;
+     * perks = { food|car|card: [yes, no] } counts of the field answers.
+     */
     summary() {
       const out = {};
       for (const c of byId.values()) {
         if (c.kind === "report") continue;
-        const s = (out[c.subject] ||= { n: 0, rated: 0, sum: 0 });
+        const s = (out[c.subject] ||= { n: 0, rated: 0, sum: 0, perks: { food: [0, 0], car: [0, 0], card: [0, 0] } });
         s.n++;
         if (c.rating) {
           s.rated++;
           s.sum += c.rating;
         }
+        for (const [key, field] of [["food", "freeFood"], ["car", "crewCar"], ["card", "aircard"]]) {
+          if (c[field] === "yes") s.perks[key][0]++;
+          else if (c[field] === "no") s.perks[key][1]++;
+        }
       }
-      return Object.fromEntries(Object.entries(out).map(([k, s]) => [k, { n: s.n, avg: s.rated ? Math.round((s.sum / s.rated) * 10) / 10 : null }]));
+      return Object.fromEntries(Object.entries(out).map(([k, s]) => [k, { n: s.n, avg: s.rated ? Math.round((s.sum / s.rated) * 10) / 10 : null, perks: s.perks }]));
     },
     size: () => byId.size,
   };

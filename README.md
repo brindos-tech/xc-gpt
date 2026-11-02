@@ -25,6 +25,10 @@ Planning reference only — the page says so. ForeFlight / FLIP / NOTAMs remain 
 
 “Add to trip” on a field sheet puts it in the rail's **Trip** list: reorder, mark RON, return to base. It shows legs and flight time from the base (flagging legs beyond the 400 nm leg range), a GSA per diem estimate (lodging per RON field, meals at 75 % on the first and last day), a route string to paste into ForeFlight, and **Print crew card** — a one-page-per-stop printout (FBO + phone, approvals, gov't fuel merchants, hours/sunset, per diem, lodging-tax note). Trips live in the URL (`trip=KOKC*,KTUL`, `*` = RON). Field sheets also show sunrise/sunset/twilight in the field's own time and flag FBO hours (read from the FAA attendance text) that are closed that day or end before sunset.
 
+### Reviews tab
+
+The **Reviews** tab (between Planner and Events) lists recent reviews from all fields and airspace, the top-rated fields/FBOs and areas (average adjusted for the number of reviews), and who has free food, a crew car or takes the AIR Card; each row opens that field or area on the map. It reads the comments API's `/feed` and `/summary` and says so when the server is unreachable.
+
 ### Comments
 
 Anyone can rate and comment on a field/FBO or an airspace area/route from its sheet (rating, free food, fees, crew car, AIR Card accepted, planespotters, other amenities, date visited, notes). They're stored by a small API on Fly.io (`server/`, see `server/README.md` for the one-time setup); the site reaches it through `commentsApi` in `data/curated/config.json`. The owner reads and deletes comments at `<api>/admin`. “Report a problem” on a sheet sends a private correction report (never shown publicly, flagged **REPORT** in the admin log); rated fields show a gold ★ label on the map and a “Has comments” filter. If the API is down the sheets just say comments are offline.
