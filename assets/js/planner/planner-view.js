@@ -2,12 +2,40 @@
 // selected base, and toggleable airspace layers (MOA, restricted, warning,
 // alert, IR / VR / SR routes). Airspace data is large (≈2.5 MB together), so
 // each file loads the first time a layer from it is switched on.
-import { fieldStatus, STATUS_LABELS } from "./fields.js";
+import { fieldStatus, STATUS_LABELS, isTowered, isMilitary } from "./fields.js";
 import { AIRSPACE_LAYERS, airspaceTooltip } from "./airspace.js";
 import { esc } from "./html.js";
 import { distanceToGeometryNm } from "../geo.js";
 
 export const STATUS_COLORS = { go: "#3ddc97", check: "#e8c15e", nofuel: "#ff8a3d", no: "#e65a5a" };
+
+// Chart-style field marks: blue = towered, magenta = non-towered, a star in the
+// ring = military. The small corner dot keeps the crew-approval status.
+const TOWERED = "#1d63d6";
+const NON_TOWERED = "#c4188f";
+const STAR = "12,5.2 13.9,10 19,10.2 15,13.3 16.4,18.2 12,15.4 7.6,18.2 9,13.3 5,10.2 10.1,10";
+
+export function pinSvg({ towered, military, status }) {
+  const c = towered ? TOWERED : NON_TOWERED;
+  return `<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+    <circle cx="12" cy="12" r="9.4" fill="#fff" fill-opacity="0.92"/>
+    <circle cx="12" cy="12" r="8" fill="${c}" fill-opacity="0.14" stroke="${c}" stroke-width="2.6"/>
+    ${military ? `<polygon points="${STAR}" fill="${c}"/>` : `<circle cx="12" cy="12" r="2.4" fill="${c}"/>`}
+    <circle cx="19.2" cy="19.2" r="4.1" fill="${STATUS_COLORS[status]}" stroke="#fff" stroke-width="1.4"/>
+  </svg>`;
+}
+
+/** Legend HTML for the planner map. */
+export function legendHtml() {
+  const mini = (towered, military) => `<span class="legend-pin">${pinSvg({ towered, military, status: "go" }).replace('width="26" height="26"', 'width="18" height="18"')}</span>`;
+  return (
+    `<span>${mini(true, false)}Towered</span><span>${mini(false, false)}Non-towered</span><span>${mini(true, true)}Military</span>` +
+    Object.entries(STATUS_LABELS)
+      .map(([k, label]) => `<span><span class="legend-dot" style="background:${STATUS_COLORS[k]}"></span>${label}</span>`)
+      .join("") +
+    `<span class="legend-note">faded = outside range (search result)</span>`
+  );
+}
 
 export function createPlannerView({ config, origin, loadJson, onFieldClick, onAirspaceClick, onAirspaceStatus }) {
   // A phone's narrower map needs one zoom level less to show the whole ring.
@@ -136,28 +164,24 @@ export function createPlannerView({ config, origin, loadJson, onFieldClick, onAi
     pinLayer.clearLayers();
     for (const f of fields) {
       const status = fieldStatus(f);
-      const color = STATUS_COLORS[status];
       const selected = f.id === selectedFieldId;
       const ring = ringFor?.(f.code);
-      const marker = L.circleMarker([f.lat, f.lon], {
-        radius: selected ? 9 : ring ? 8 : 6,
-        color: selected ? "#fff" : ring || color,
-        fillColor: color,
-        fillOpacity: f.outOfRange ? 0.25 : 0.8,
-        weight: selected ? 2.5 : ring ? 3.5 : 1.5,
-        opacity: f.outOfRange ? 0.5 : 1,
-        dashArray: f.outOfRange ? "2,3" : null,
-        renderer: pinRenderer,
+      const classes = ["field-pin", selected && "sel", f.outOfRange && "dim", f.searchHit && "hit"].filter(Boolean).join(" ");
+      const marker = L.marker([f.lat, f.lon], {
+        icon: L.divIcon({ className: classes, html: pinSvg({ towered: isTowered(f), military: isMilitary(f), status }), iconSize: [26, 26], iconAnchor: [13, 13] }),
+        keyboard: false,
+        riseOnHover: true,
+        zIndexOffset: selected ? 1000 : f.searchHit ? 500 : 0,
       });
       marker.bindTooltip(
-        `<b>${esc(f.code)}</b> — ${esc(f.name)}<br>${esc(f.city)} · ${Math.round(f.distanceNm)} nm${f.fbo ? `<br>${esc(f.fbo)}` : ""}<br><span style="color:var(--muted)">${STATUS_LABELS[status]}</span>${f.rating?.n ? `<br><span style="color:var(--gold)">★ ${f.rating.avg ?? "–"}</span> <span style="color:var(--muted)">${f.rating.n} comment${f.rating.n === 1 ? "" : "s"}</span>` : ""}`,
-        { className: "map-tooltip", direction: "top", offset: [0, -6] }
+        `<b>${esc(f.code)}</b> — ${esc(f.name)}<br>${esc(f.city)} · ${Math.round(f.distanceNm)} nm${f.fbo ? `<br>${esc(f.fbo)}` : ""}<br>${isMilitary(f) ? "Military · " : ""}${isTowered(f) ? "Towered" : "Non-towered"}<br><span style="color:var(--muted)">${STATUS_LABELS[status]}</span>${f.rating?.n ? `<br><span style="color:var(--gold)">★ ${f.rating.avg ?? "–"}</span> <span style="color:var(--muted)">${f.rating.n} comment${f.rating.n === 1 ? "" : "s"}</span>` : ""}`,
+        { className: "map-tooltip", direction: "top", offset: [0, -12] }
       );
       marker.on("click", () => onFieldClick(f.id));
       marker.addTo(pinLayer);
       // rated fields wear their average as a small gold label once zoomed in enough to read it
       if (labelsOn && f.rating?.avg) {
-        L.marker([f.lat, f.lon], { icon: L.divIcon({ className: "rating-label", html: `★${f.rating.avg}`, iconSize: [34, 14], iconAnchor: [-9, 7] }), interactive: false, keyboard: false }).addTo(pinLayer);
+        L.marker([f.lat, f.lon], { icon: L.divIcon({ className: "rating-label", html: `★${f.rating.avg}`, iconSize: [34, 14], iconAnchor: [-12, 7] }), interactive: false, keyboard: false }).addTo(pinLayer);
       }
 
       const el = marker.getElement();
@@ -165,7 +189,11 @@ export function createPlannerView({ config, origin, loadJson, onFieldClick, onAi
         el.setAttribute("tabindex", "0");
         el.setAttribute("role", "button");
         el.setAttribute("data-field", f.id);
-        el.setAttribute("aria-label", `${f.code} ${f.name}, ${f.city}, ${STATUS_LABELS[status]}`);
+        if (ring) {
+          el.setAttribute("data-ring", ring); // forecast flight category: MVFR or worse
+          el.style.setProperty("--ring", ring);
+        }
+        el.setAttribute("aria-label", `${f.code} ${f.name}, ${f.city}, ${isMilitary(f) ? "military, " : ""}${isTowered(f) ? "towered" : "non-towered"}, ${STATUS_LABELS[status]}`);
         el.addEventListener("keydown", (e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
@@ -176,7 +204,10 @@ export function createPlannerView({ config, origin, loadJson, onFieldClick, onAi
     }
   }
 
+  const sizeMarks = () => document.getElementById("plannerMap").classList.toggle("z-low", map.getZoom() < 6);
+  sizeMarks();
   map.on("zoomend", () => {
+    sizeMarks();
     if (lastRender && labelsOn !== map.getZoom() >= LABEL_ZOOM) renderFields(...lastRender);
   });
 
@@ -207,7 +238,9 @@ export function createPlannerView({ config, origin, loadJson, onFieldClick, onAi
     setTrip: (points) => tripLine.setLatLngs(points),
     map,
     invalidateSize: () => map.invalidateSize(),
-    flyTo: (lat, lon) => map.flyTo([lat, lon], Math.max(map.getZoom(), 8), { duration: 0.6 }),
-    legendStatuses: Object.entries(STATUS_LABELS).map(([k, label]) => ({ key: k, label, color: STATUS_COLORS[k] })),
+    flyTo: (lat, lon) => map.flyTo([lat, lon], Math.max(map.getZoom(), 10), { duration: 0.6 }),
+    /** Frame several points (search matches) without zooming past regional level. */
+    fitTo: (points) => map.flyToBounds(L.latLngBounds(points).pad(0.25), { maxZoom: 9, duration: 0.6 }),
+    legendHtml,
   };
 }

@@ -247,12 +247,12 @@ test("weather bar: day picker, time slider, overlays, field forecast", async () 
     assert.equal(await page.isVisible("#wxBody"), true);
     assert.equal(await page.locator('[data-wx-layer="radar"].active').count(), 1);
     // radar-only means no flight-category rings on the pins; turning Flight category on adds them
-    const ringed = () => page.evaluate(() => [...document.querySelectorAll("#plannerMap [data-field]")].filter((el) => Number.parseFloat(el.getAttribute("stroke-width")) >= 3).length);
+    const ringed = () => page.evaluate(() => document.querySelectorAll("#plannerMap [data-field][data-ring]").length);
     assert.equal(await ringed(), 0);
     // turning overlays on draws them as map images
     for (const k of ["cat", "lice", "hice", "thun"]) await page.click(`[data-wx-layer="${k}"]`);
     await page.waitForFunction(() => document.querySelectorAll("#plannerMap .leaflet-wx-pane img").length >= 3);
-    await page.waitForFunction(() => [...document.querySelectorAll("#plannerMap [data-field]")].some((el) => Number.parseFloat(el.getAttribute("stroke-width")) >= 3));
+    await page.waitForFunction(() => document.querySelectorAll("#plannerMap [data-field][data-ring]").length > 0);
 
     // picking a later day moves the whole app's trip date and the slider range
     const days = page.locator("[data-wx-day]:not([disabled])");
@@ -471,6 +471,67 @@ test("ratings show on pins (label + 'Has comments' chip) and a problem report go
     assert.equal(posts[0].kind, "report");
     assert.equal(posts[0].subject, "field:KOKC");
     assert.equal(await page.locator("#fieldComments .cm-item").count(), 0, "a report never appears in the public list");
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("search keeps every pin and zooms to the match; fields wear chart-style marks", async () => {
+  const { page, context, errors } = await openPage();
+  try {
+    const all = await pins(page).count();
+    // marks: blue towered / magenta non-towered / a star for military, each with a status dot
+    const kinds = await page.evaluate(() => ({
+      blue: document.querySelectorAll("#plannerMap .field-pin svg [stroke='#1d63d6']").length,
+      pink: document.querySelectorAll("#plannerMap .field-pin svg [stroke='#c4188f']").length,
+      stars: document.querySelectorAll("#plannerMap .field-pin svg polygon").length,
+      dots: document.querySelectorAll("#plannerMap .field-pin svg circle[r='4.1']").length,
+    }));
+    assert.ok(kinds.blue > 0 && kinds.pink > 0 && kinds.stars > 0, JSON.stringify(kinds));
+    assert.equal(kinds.dots, all);
+
+    await page.fill("#globalSearch", "KOKC");
+    await page.press("#globalSearch", "Enter");
+    await page.waitForFunction(() => document.querySelector('#plannerMap [data-field="KOKC"]')?.classList.contains("hit"));
+    assert.equal(await pins(page).count(), all, "no pin disappears");
+    // flying in leaves the match in view and the rest of the map still populated
+    await page.waitForTimeout(900);
+    const box = await page.locator('#plannerMap [data-field="KOKC"]').boundingBox();
+    const map = await page.locator("#plannerMap").boundingBox();
+    assert.ok(box.x > map.x && box.x < map.x + map.width && box.y > map.y && box.y < map.y + map.height, "the match is on screen");
+    assert.ok(await pins(page).count() >= 1);
+    // a field outside the range ring is found too, faded
+    await page.fill("#globalSearch", "KMSY");
+    await page.waitForFunction(() => document.querySelector('#plannerMap [data-field="KMSY"]')?.classList.contains("dim"), null, { timeout: 8000 }).catch(() => {});
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("flight plan: type a field in the rail to add it, with keyboard selection", async () => {
+  const { page, context, errors } = await openPage();
+  try {
+    assert.equal(await page.isVisible("#tripSearch"), true);
+    // the flight plan box is at the top of the rail, right under the departure base
+    const order = await page.evaluate(() => [...document.querySelectorAll("#filterRail .rail-section h3")].map((h) => h.textContent.trim()).slice(0, 3));
+    assert.deepEqual(order.map((t) => t.split(" ")[0]), ["Departure", "Flight", "Range"]);
+    await page.fill("#tripSearch", "pnc");
+    await page.waitForSelector("#tripSuggest li");
+    assert.match(await page.textContent("#tripSuggest li"), /KPNC/);
+    await page.press("#tripSearch", "Enter");
+    await page.waitForSelector("#tripBody .trip-stop");
+    assert.match(await page.textContent("#tripBody"), /KPNC/);
+    assert.equal(await page.inputValue("#tripSearch"), "");
+    // already-chosen fields aren't offered again; arrow keys + Enter pick another
+    await page.fill("#tripSearch", "KPNC");
+    assert.equal(await page.locator("#tripSuggest li").count(), 0);
+    await page.fill("#tripSearch", "ok");
+    await page.waitForSelector("#tripSuggest li");
+    await page.press("#tripSearch", "ArrowDown");
+    await page.press("#tripSearch", "Enter");
+    await page.waitForFunction(() => document.querySelectorAll("#tripBody .trip-stop").length === 2);
     assert.deepEqual(errors, []);
   } finally {
     await context.close();

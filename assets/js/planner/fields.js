@@ -36,6 +36,10 @@ export const FIELD_FILTERS = [
   { key: "military", label: "Military / joint", test: (f) => /Military|MIL\/CIV|with DoD tenant/.test(f.classification || "") },
 ];
 
+/** Sectional-chart convention: towered airports are drawn blue, non-towered magenta; military fields get their own mark. */
+export const isTowered = (f) => Boolean(f.tower) && f.tower !== "NON-ATCT";
+export const isMilitary = (f) => /^(Military|MIL\/CIV)/.test(f.classification || "") || ["MA", "MN", "MR", "CG"].includes(f.ownership);
+
 export function matchesSearch(f, q) {
   if (!q) return true;
   const hay = `${f.code} ${f.faaId || ""} ${f.name} ${f.city} ${f.stateName || ""} ${f.fbo || ""}`.toLowerCase();
@@ -48,11 +52,14 @@ export function matchesSearch(f, q) {
 
 /**
  * Fields for the current planner state, with distance/time from the
- * selected base. `outOfRange` ones are kept (dimmed on the map) only when
- * the user is searching, so a search can find a field past the ring.
+ * selected base. Searching does not hide anything: every field in range
+ * stays, and matches are flagged `searchHit` so the map can zoom to them.
+ * A match beyond the range ring is kept too (`outOfRange`, drawn dimmed) so
+ * a search can still find it.
  */
 export function selectFields(fields, state, origin, config) {
   const filters = FIELD_FILTERS.filter((x) => state.fieldFilters?.has(x.key));
+  const searching = Boolean(state.search?.trim());
   const out = [];
   let inRange = 0;
   for (const f of fields) {
@@ -60,15 +67,15 @@ export function selectFields(fields, state, origin, config) {
     if (state.fieldSource === "p" && !isPCoded(f)) continue;
     if (!filters.every((x) => x.test(f))) continue;
     if (state.approachTypes?.size && !hasApproachTypes(f, state.approachTypes)) continue;
-    if (!matchesSearch(f, state.search)) continue;
+    const hit = searching && matchesSearch(f, state.search);
     const distanceNm = greatCircleNm(origin, f);
     const within = distanceNm <= state.rangeNm;
-    if (!within && !state.search) continue;
+    if (!within && !hit) continue;
     if (within) inRange++;
-    out.push({ ...f, distanceNm, flightMinutes: flightMinutes(distanceNm, config.aircraft.cruiseKts), outOfRange: !within });
+    out.push({ ...f, distanceNm, flightMinutes: flightMinutes(distanceNm, config.aircraft.cruiseKts), outOfRange: !within, searchHit: hit });
   }
   out.sort((a, b) => a.distanceNm - b.distanceNm);
-  return { fields: out, inRange };
+  return { fields: out, inRange, hits: out.filter((f) => f.searchHit) };
 }
 
 /** One word for the map pin: can we land, get gas and stay? */

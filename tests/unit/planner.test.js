@@ -51,11 +51,43 @@ test("range, source and quick filters", () => {
   assert.equal(selectFields(fields, state({ rangeNm: 2000 }), vance, config).inRange, 3);
 });
 
-test("search finds a field past the range ring and marks it", () => {
-  const { fields: hits } = selectFields(fields, state({ search: "los angeles" }), vance, config);
-  assert.deepEqual(hits.map((f) => f.code), ["KLAX"]);
-  assert.equal(hits[0].outOfRange, true);
+test("search keeps every field in range, flags matches, and still finds one past the ring", () => {
+  const none = selectFields(fields, state(), vance, config);
+  const found = selectFields(fields, state({ search: "los angeles" }), vance, config);
+  // nothing in range disappears; the out-of-range match is added, dimmed, and flagged
+  for (const f of none.fields) assert.ok(found.fields.some((x) => x.code === f.code), `${f.code} stays on the map`);
+  assert.equal(found.fields.length, none.fields.length + 1);
+  assert.deepEqual(found.hits.map((f) => f.code), ["KLAX"]);
+  assert.equal(found.hits[0].outOfRange, true);
+  assert.equal(found.fields.find((f) => f.code === "KOKC").searchHit, false);
+  // a match inside the ring is flagged without changing the count
+  const near = selectFields(fields, state({ search: "will rogers" }), vance, config);
+  assert.equal(near.fields.length, none.fields.length);
+  assert.deepEqual(near.hits.map((f) => f.code), ["KOKC"]);
+  assert.equal(near.inRange, none.inRange);
+  // whitespace-only is not a search
+  assert.equal(selectFields(fields, state({ search: "  " }), vance, config).hits.length, 0);
   assert.equal(matchesSearch(fields[0], "aar okc"), true);
+});
+
+test("field marks: towered blue, non-towered magenta, military gets a star", async () => {
+  const { isTowered, isMilitary } = await import("../../assets/js/planner/fields.js");
+  assert.equal(isTowered({ tower: "ATCT-TRACON" }), true);
+  assert.equal(isTowered({ tower: "NON-ATCT" }), false);
+  assert.equal(isTowered({}), false);
+  assert.equal(isMilitary({ classification: "Military", ownership: "MA" }), true);
+  assert.equal(isMilitary({ classification: "MIL/CIV" }), true);
+  assert.equal(isMilitary({ classification: "P (with DoD tenant)", ownership: "PU" }), false, "a civil field with a DoD tenant is still civil");
+  assert.equal(isMilitary({ classification: "Unlisted", ownership: "MN" }), true);
+  const { pinSvg } = await import("../../assets/js/planner/planner-view.js");
+  const blue = pinSvg({ towered: true, military: false, status: "go" });
+  const pink = pinSvg({ towered: false, military: false, status: "no" });
+  const mil = pinSvg({ towered: true, military: true, status: "check" });
+  assert.match(blue, /#1d63d6/);
+  assert.match(pink, /#c4188f/);
+  assert.doesNotMatch(blue, /<polygon/);
+  assert.match(mil, /<polygon/);
+  assert.match(pink, /#e65a5a/, "the corner dot still carries approval status");
 });
 
 test("P-coded, status and GFC", () => {

@@ -57,6 +57,15 @@
         <div class="chip-row" id="originChips"></div>
       </div>
 
+      <div class="rail-section trip-section" data-page="planner">
+        <h3>Flight plan</h3>
+        <div class="trip-add-box">
+          <input type="search" id="tripSearch" placeholder="Add a field: code, name or city" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="tripSuggest" aria-autocomplete="list" aria-label="Add a field to the flight plan">
+          <ul id="tripSuggest" role="listbox" hidden></ul>
+        </div>
+        <div id="tripBody"></div>
+      </div>
+
       <div class="rail-section">
         <h3>Range from <span id="rangeOriginLabel">KEND</span></h3>
         <div class="range-readout"><span id="rangeValue">600</span><small> nm</small></div>
@@ -77,11 +86,6 @@
       <div class="rail-section" data-page="planner">
         <h3>Show only</h3>
         <div class="chip-row" id="fieldFilterChips"></div>
-      </div>
-
-      <div class="rail-section" data-page="planner">
-        <h3>Trip</h3>
-        <div id="tripBody"></div>
       </div>
 
       <div class="rail-section" data-page="planner">

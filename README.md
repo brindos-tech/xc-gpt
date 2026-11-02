@@ -2,7 +2,7 @@
 
 A nav planner for T-6 cross-country missions, with the events map that started the project as page 2. See [ARCHITECTURE.md](ARCHITECTURE.md) for the original design.
 
-- **Planner (home)** — the Vance Nav Info List on a map from the selected base, with the range ring, a Nav Info List / P-coded fields switch, quick filters (fuel available, DLA fuel contract, AIR Card on-site, T-6 suitable, FBO, military), and toggleable airspace: MOAs, restricted, warning and alert areas (on by default), IR / VR / SR training routes (off). Click a field for its FBO and phone, Land / Fuel / RON status, nav-list notes, FAA facts (runway, tower, fuel, hours) and GSA per diem; click an airspace for its scheduling activity, hours and procedures.
+- **Planner (home)** — the Vance Nav Info List on a map from the selected base, drawn with chart-style marks (blue = towered, magenta = non-towered, a star = military; the small corner dot is the crew-approval status). Searching zooms to the match and never hides other fields. The **Flight plan** box at the top of the left column adds fields by code, name or city, with the range ring, a Nav Info List / P-coded fields switch, quick filters (fuel available, DLA fuel contract, AIR Card on-site, T-6 suitable, FBO, military), and toggleable airspace: MOAs, restricted, warning and alert areas (on by default), IR / VR / SR training routes (off). Click a field for its FBO and phone, Land / Fuel / RON status, nav-list notes, FAA facts (runway, tower, fuel, hours) and GSA per diem; click an airspace for its scheduling activity, hours and procedures.
 - **Events** — destinations with events in a date range (From / To calendar boxes), by category and activity, with the PR ops chip. Loads only when opened.
 
 ## The planner's data
