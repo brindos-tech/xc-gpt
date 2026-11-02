@@ -6,6 +6,9 @@ import { formatFlightTime } from "../format.js";
 import { gfcStatus, perDiemFor, fieldStatus, STATUS_LABELS } from "./fields.js";
 import { sunHours } from "./field-panel.js";
 import { APPROACH_TYPES } from "./approaches.js";
+import { legFlags } from "./trip.js";
+import { clock, zoneAbbr } from "./sun.js";
+import { CAT_NAMES, flightCategory, ceilingText } from "./wx-model.js";
 
 const money = (n) => (n == null ? "—" : `$${Math.round(n).toLocaleString("en-US")}`);
 
@@ -41,9 +44,22 @@ export function crewCardHtml(ctx) {
   const date = ctx.tripDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
   return `<div class="cc-head"><h2>Crew card · ${esc(ctx.origin.icao)} · ${esc(date)}</h2>
     <div class="cc-route">${esc(ctx.route)}</div></div>
-    <table class="cc-legs"><thead><tr><th>Leg</th><th>Distance</th><th>Flight time</th><th></th></tr></thead><tbody>
-      ${ctx.legs.legs.map((l) => `<tr><td>${esc(l.from)} → ${esc(l.to)}</td><td>${Math.round(l.nm)} nm</td><td>${formatFlightTime(l.mins)}</td><td>${l.overRange ? "⚠ beyond one leg — plan a fuel stop" : ""}</td></tr>`).join("")}
-      <tr class="cc-total"><td>Total</td><td>${Math.round(ctx.legs.totalNm)} nm</td><td>${formatFlightTime(ctx.legs.totalMins)}</td><td></td></tr>
+    <table class="cc-legs"><thead><tr><th>Leg</th><th>Takeoff</th><th>Land</th><th>Distance</th><th>Flight time</th></tr></thead><tbody>
+      ${ctx.legs.legs
+        .map((l, i) => {
+          const sc = ctx.schedule?.[i];
+          const flags = sc ? legFlags(sc).map((x) => `<br><span class="cc-flag">⚠ ${esc(x.text)}</span>`).join("") : "";
+          const wxNote = (code, instant) => {
+            const f = ctx.forecastAt?.(code, instant);
+            return f ? ` <span class="cc-muted">(${CAT_NAMES[flightCategory(f.ceil, f.vis)]}, ceiling ${esc(ceilingText(f.ceil))})</span>` : "";
+          };
+          return `<tr><td>${esc(l.from)} → ${esc(l.to)}${l.overRange ? `<br><span class="cc-flag">⚠ beyond one leg — plan a fuel stop</span>` : ""}${flags}</td>
+            <td>${sc ? `${esc(new Date(sc.dep).toLocaleDateString("en-US", { timeZone: sc.fromTz, weekday: "short", month: "short", day: "numeric" }))} ${esc(clock(sc.dep, sc.fromTz))} ${esc(zoneAbbr(sc.dep, sc.fromTz))}${wxNote(sc.from, sc.dep)}` : ""}</td>
+            <td>${sc ? `${esc(clock(sc.eta, sc.toTz))} ${esc(zoneAbbr(sc.eta, sc.toTz))}${wxNote(sc.to, sc.eta)}` : ""}</td>
+            <td>${Math.round(l.nm)} nm</td><td>${formatFlightTime(l.mins)}</td></tr>`;
+        })
+        .join("")}
+      <tr class="cc-total"><td>Total</td><td></td><td></td><td>${Math.round(ctx.legs.totalNm)} nm</td><td>${formatFlightTime(ctx.legs.totalMins)}</td></tr>
     </tbody></table>
     ${ctx.cost.nights ? `<p class="cc-cost">${ctx.cost.nights} night${ctx.cost.nights === 1 ? "" : "s"}: lodging ${money(ctx.cost.lodging)} + M&amp;IE ${money(ctx.cost.meals)} = <b>${money(ctx.cost.total)}</b> <span class="cc-muted">(GSA rates, estimate — actual per diem per JTR/DTS)</span></p>` : ""}
     ${ctx.stops.map((s, i) => stopHtml(s, i, ctx)).join("")}

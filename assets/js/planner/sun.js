@@ -96,3 +96,19 @@ export function minutesOfDay(instant, tz) {
   const parts = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", hour: "numeric", minute: "numeric" }).formatToParts(instant);
   return Number(parts.find((p) => p.type === "hour").value) * 60 + Number(parts.find((p) => p.type === "minute").value);
 }
+
+/** The instant when clocks in `tz` read `hhmm` ("HH:mm") on `dayKey` ("YYYY-MM-DD"). Handles daylight-time changes. */
+export function zonedInstant(dayKey, hhmm, tz) {
+  const [y, m, d] = dayKey.split("-").map(Number);
+  const [h, mi] = hhmm.split(":").map(Number);
+  const guess = Date.UTC(y, m - 1, d, h, mi);
+  const first = guess - tzOffsetMin(tz, new Date(guess)) * 60000;
+  return new Date(guess - tzOffsetMin(tz, new Date(first)) * 60000);
+}
+
+/** What the clocks in `tz` read at an instant: { date: "YYYY-MM-DD", time: "HH:mm" }. */
+export function wallClock(instant, tz) {
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).formatToParts(instant);
+  const g = (t) => parts.find((p) => p.type === t).value;
+  return { date: `${g("year")}-${g("month")}-${g("day")}`, time: `${g("hour")}:${g("minute")}` };
+}

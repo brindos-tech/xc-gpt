@@ -1,7 +1,9 @@
 // The "Trip" section of the planner rail: stops, legs, totals, per diem
 // estimate, copy-route and print-crew-card buttons. Rendered from state on
 // every planner render; all buttons are delegated from the one container.
-import { tripLegs, routeString, tripPerDiem } from "../planner/trip.js";
+import { tripLegs, routeString, tripPerDiem, scheduleTrip, legFlags } from "../planner/trip.js";
+import { zoneAbbr, clock } from "../planner/sun.js";
+import { CAT_NAMES, CAT_COLORS, flightCategory, ceilingText } from "../planner/wx-model.js";
 import { formatFlightTime } from "../format.js";
 import { esc } from "../planner/html.js";
 import { matchesSearch } from "../planner/fields.js";
@@ -9,7 +11,7 @@ import { greatCircleNm } from "../geo.js";
 
 const money = (n) => `$${Math.round(n).toLocaleString("en-US")}`;
 
-export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrint }) {
+export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrint, forecastAt }) {
   const body = document.getElementById("tripBody");
   const search = document.getElementById("tripSearch");
   const suggest = document.getElementById("tripSuggest");
@@ -86,7 +88,8 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
       case "remove": return update((trip) => trip.filter((_, k) => k !== i));
       case "up": return update((trip) => (i > 0 ? (trip.splice(i - 1, 0, ...trip.splice(i, 1)), trip) : trip));
       case "down": return update((trip) => (i < trip.length - 1 ? (trip.splice(i + 1, 0, ...trip.splice(i, 1)), trip) : trip));
-      case "clear": return store.setState({ trip: [] });
+      case "clear": return store.setState({ trip: [], tripReturnDep: "" });
+      case "reset-dep": return setDeparture(i, "");
       case "print": return onPrint();
       case "copy": {
         const text = t.dataset.route;
@@ -105,42 +108,83 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
   body.addEventListener("change", (e) => {
     const ron = e.target.closest("[data-trip-ron]");
     if (ron) return update((trip) => trip.map((s, k) => (k === Number(ron.dataset.i) ? { ...s, ron: ron.checked } : s)));
-    if (e.target.closest("[data-trip-return]")) store.setState({ tripReturn: e.target.checked });
+    if (e.target.closest("[data-trip-return]")) return store.setState({ tripReturn: e.target.checked });
+    const dep = e.target.closest("[data-trip-dep]");
+    if (dep) setDeparture(Number(dep.dataset.i), dep.value);
   });
+
+  /** Set (or with "" clear) the takeoff time of leg `i`. Leg 1's date is the trip date, so changing it moves the day. */
+  function setDeparture(i, value) {
+    const s = store.getState();
+    const patch = {};
+    if (i >= s.trip.length) patch.tripReturnDep = value;
+    else patch.trip = s.trip.map((x, k) => (k === i ? { ...x, dep: value || undefined } : { ...x }));
+    if (i === 0 && /^\d{4}-\d{2}-\d{2}T/.test(value)) patch.tripDate = value.slice(0, 10);
+    store.setState(patch);
+  }
 
   /** Resolve the state's stop codes to fields (unknown codes, e.g. from an old link, are dropped). */
   function resolve(state) {
     return state.trip.map((s) => ({ ...s, field: fieldsByCode.get(s.code) })).filter((s) => s.field?.hasPosition);
   }
 
-  function render(state, origin) {
+  /** Everything derived from the trip: legs, schedule, per diem, route. */
+  function compute(state, origin) {
     const stops = resolve(state);
-    if (!stops.length) {
-      body.innerHTML = `<div class="rail-hint">Type a field above to add it, or open any field on the map and tap <b>Add to trip</b>. Stops get legs, flight time, a per diem estimate, a route string for ForeFlight and a printable crew card.</div>`;
-      return { stops, legs: null };
-    }
-    const legs = tripLegs(origin, stops.map((s) => s.field), config, state.tripReturn);
+    if (!stops.length) return { stops, legs: null };
+    const fieldsList = stops.map((s) => s.field);
+    const legs = tripLegs(origin, fieldsList, config, state.tripReturn);
+    const schedule = scheduleTrip({ origin, stops, legs: legs.legs, tripDate: state.tripDate, returnDep: state.tripReturnDep });
+    // each night's lodging rate comes from the month of the night it is spent
+    const nights = stops.map((s, i) => ({ ...s, date: s.ron ? new Date(...schedule[i].etaLocal.date.split("-").map((n, k) => (k === 1 ? Number(n) - 1 : Number(n)))) : undefined }));
     const [y, m, d] = state.tripDate.split("-").map(Number);
-    const cost = tripPerDiem(stops, new Date(y, m - 1, d));
-    const route = routeString(origin, stops.map((s) => s.field), state.tripReturn);
+    return { stops, legs, schedule, cost: tripPerDiem(nights, new Date(y, m - 1, d)), route: routeString(origin, fieldsList, state.tripReturn) };
+  }
+
+  const wxChip = (code, instant) => {
+    const f = forecastAt?.(code, instant);
+    if (!f) return "";
+    const cat = flightCategory(f.ceil, f.vis);
+    const ice = f.lice || f.hice ? ` · icing ${Math.max(f.lice, f.hice) === 2 ? "likely" : "possible"}` : "";
+    return `<span class="trip-wx" style="--c:${CAT_COLORS[cat]}">${CAT_NAMES[cat]} · ceiling ${esc(ceilingText(f.ceil))}${f.thun ? " · thunderstorms" : ""}${ice}</span>`;
+  };
+
+  /** One leg's schedule block: takeoff picker, arrival, forecast and flags. */
+  function legHtml(leg, state, flightLine) {
+    const flags = legFlags(leg).map((x) => `<div class="fp-flag ${x.level}">⚠ ${esc(x.text)}</div>`).join("");
+    const takeoff = `${leg.depLocal.date}T${leg.depLocal.time}`;
+    return `<div class="trip-leg">
+      <div class="trip-leg-line muted small">Leg ${leg.i + 1}: ${esc(leg.from)} → ${esc(leg.to)} · ${flightLine}</div>
+      <label class="trip-dep">Takeoff <input type="datetime-local" step="300" data-trip-dep data-i="${leg.i}" value="${takeoff}" aria-label="Takeoff, leg ${leg.i + 1}, ${esc(leg.from)} local time"> <span class="muted small">${esc(leg.from)} time (${esc(zoneAbbr(leg.dep, leg.fromTz))})</span>${leg.explicit && leg.i > 0 ? ` <button type="button" class="cm-link small" data-trip="reset-dep" data-i="${leg.i}">auto</button>` : ""}</label>
+      <div class="trip-arr small">Lands ${esc(clock(leg.eta, leg.toTz))} ${esc(zoneAbbr(leg.eta, leg.toTz))} at ${esc(leg.to)}${leg.etaLocal.date !== leg.depLocal.date ? ` <span class="muted">(${esc(new Date(leg.eta).toLocaleDateString("en-US", { timeZone: leg.toTz, weekday: "short", month: "short", day: "numeric" }))})</span>` : ""}</div>
+      <div class="trip-wxrow small">${wxChip(leg.from, leg.dep) ? `<span class="muted">takeoff</span> ${wxChip(leg.from, leg.dep)}` : ""} ${wxChip(leg.to, leg.eta) ? `<span class="muted">landing</span> ${wxChip(leg.to, leg.eta)}` : ""}</div>
+      ${flags}
+    </div>`;
+  }
+
+  function render(state, origin) {
+    const c = compute(state, origin);
+    const { stops, legs, schedule, cost, route } = c;
+    if (!stops.length) {
+      body.innerHTML = `<div class="rail-hint">Type a field above to add it, or open any field on the map and tap <b>Add to trip</b>. Stops get legs, takeoff times you can set, flight time, a per diem estimate, a route string for ForeFlight and a printable crew card.</div>`;
+      return c;
+    }
+    const flightLine = (leg) => `${Math.round(leg.nm)} nm · ${formatFlightTime(leg.mins)}${leg.overRange ? ` · <span class="bad-text">beyond one leg (${config.aircraft.legRangeNm} nm)</span>` : ""}`;
     body.innerHTML = `
       <ol class="trip-list">
         <li class="trip-base"><span>${esc(origin.icao)}</span><span class="muted small">start</span></li>
         ${stops
-          .map((s, i) => {
-            const leg = legs.legs[i];
-            return `<li class="trip-stop">
-              <div class="trip-main"><button type="button" class="cm-link" data-trip="select" data-code="${esc(s.code)}"><b>${esc(s.code)}</b></button> <span class="muted small">${esc(s.field.name)}</span></div>
-              <div class="trip-meta muted small">${Math.round(leg.nm)} nm · ${formatFlightTime(leg.mins)}${leg.overRange ? ` · <span class="bad-text">beyond one leg (${config.aircraft.legRangeNm} nm)</span>` : ""}${s.field.fuel === "Not Approved" ? ` · <span class="bad-text">no fuel</span>` : s.field.fuel !== "Approved" ? ` · <span class="warn-text">fuel: see comments</span>` : ""}</div>
+          .map((s, i) => `<li class="trip-stop">
+              ${legHtml(schedule[i], state, flightLine(legs.legs[i]))}
+              <div class="trip-main"><button type="button" class="cm-link" data-trip="select" data-code="${esc(s.code)}"><b>${esc(s.code)}</b></button> <span class="muted small">${esc(s.field.name)}</span>${s.field.fuel === "Not Approved" ? ` <span class="bad-text small">no fuel</span>` : s.field.fuel !== "Approved" ? ` <span class="warn-text small">fuel: see comments</span>` : ""}</div>
               <div class="trip-ctl">
                 <label><input type="checkbox" data-trip-ron data-i="${i}" ${s.ron ? "checked" : ""}> RON</label>
                 <button type="button" data-trip="up" data-i="${i}" aria-label="Move ${esc(s.code)} earlier" ${i === 0 ? "disabled" : ""}>↑</button>
                 <button type="button" data-trip="down" data-i="${i}" aria-label="Move ${esc(s.code)} later" ${i === stops.length - 1 ? "disabled" : ""}>↓</button>
                 <button type="button" data-trip="remove" data-i="${i}" aria-label="Remove ${esc(s.code)}">×</button>
-              </div></li>`;
-          })
+              </div></li>`)
           .join("")}
-        ${state.tripReturn ? `<li class="trip-base"><span>${esc(origin.icao)}</span><span class="muted small">${Math.round(legs.legs.at(-1).nm)} nm · ${formatFlightTime(legs.legs.at(-1).mins)}${legs.legs.at(-1).overRange ? ` · <span class="bad-text">beyond one leg</span>` : ""}</span></li>` : ""}
+        ${state.tripReturn ? `<li class="trip-stop trip-ret">${legHtml(schedule.at(-1), state, flightLine(legs.legs.at(-1)))}<div class="trip-main"><b>${esc(origin.icao)}</b> <span class="muted small">return</span></div></li>` : ""}
       </ol>
       <label class="trip-return"><input type="checkbox" data-trip-return ${state.tripReturn ? "checked" : ""}> Return to ${esc(origin.icao)}</label>
       <div class="trip-total"><b>${Math.round(legs.totalNm)} nm</b> · <b>${formatFlightTime(legs.totalMins)}</b> flying · ${legs.legs.length} leg${legs.legs.length === 1 ? "" : "s"}</div>
@@ -151,8 +195,8 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
         <button type="button" class="chip" data-trip="clear">Clear</button>
       </div>
       <div class="rail-hint">${esc(route)}</div>`;
-    return { stops, legs, cost, route };
+    return c;
   }
 
-  return { render, resolve };
+  return { render, resolve, compute };
 }

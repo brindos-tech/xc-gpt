@@ -10,7 +10,6 @@ import { createComments, loadCommentSummary } from "./planner/comments.js";
 import { createTripPanel } from "./views/trip-panel.js";
 import { createReviewsPage } from "./views/reviews-page.js";
 import { crewCardHtml } from "./planner/crew-card.js";
-import { tripLegs, routeString, tripPerDiem } from "./planner/trip.js";
 
 const DATA_BASE = "data";
 
@@ -76,11 +75,9 @@ async function boot() {
   function printCrewCard() {
     const state = store.getState();
     const origin = originsById.get(state.originId);
-    const stops = tripPanel.resolve(state);
-    if (!stops.length) return;
+    const trip = tripPanel.compute(state, origin);
+    if (!trip.stops.length) return;
     const [y, m, d] = state.tripDate.split("-").map(Number);
-    const tripDate = new Date(y, m - 1, d);
-    const fieldsList = stops.map((s) => s.field);
     const dataNotes = [
       navinfo.asOf && `Nav list ${navinfo.asOf}`,
       factsFile?.nasrCycle && `FAA cycle ${factsFile.nasrCycle}`,
@@ -89,13 +86,15 @@ async function boot() {
     ].filter(Boolean);
     $("crewCard").innerHTML = crewCardHtml({
       origin,
-      stops,
-      legs: tripLegs(origin, fieldsList, config, state.tripReturn),
-      cost: tripPerDiem(stops, tripDate),
-      tripDate,
-      route: routeString(origin, fieldsList, state.tripReturn),
+      stops: trip.stops,
+      legs: trip.legs,
+      schedule: trip.schedule,
+      cost: trip.cost,
+      tripDate: new Date(y, m - 1, d),
+      route: trip.route,
       stateTaxes: stateTax?.states,
       dataNotes,
+      forecastAt: (code, instant) => wx.forecastAt(code, instant),
     });
     const prev = document.title;
     document.title = `Crew card ${origin.icao} ${state.tripDate}`;
@@ -103,7 +102,7 @@ async function boot() {
     document.title = prev;
   }
   const reviewsPage = createReviewsPage({ root: $("reviewsPage"), store, apiBase: config.commentsApi, fieldsByCode });
-  const tripPanel = createTripPanel({ store, config, fieldsByCode, getOrigin: () => originsById.get(store.getState().originId), onPrint: printCrewCard });
+  const tripPanel = createTripPanel({ store, config, fieldsByCode, getOrigin: () => originsById.get(store.getState().originId), onPrint: printCrewCard, forecastAt: (code, instant) => wx.forecastAt(code, instant) });
   const comments = createComments({ host: $("fieldComments"), apiBase: config.commentsApi, today });
 
   // ---- planner ----

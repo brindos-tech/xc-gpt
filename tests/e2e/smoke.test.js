@@ -415,7 +415,7 @@ test("trip builder: add stops from the sheet, legs and per diem, route string, c
     await page.click("#fieldClose");
     await page.locator('#plannerMap [data-field="KPNC"]').dispatchEvent("click");
     await page.click('[data-trip-toggle="KPNC"]');
-    await page.waitForFunction(() => document.querySelectorAll("#tripBody .trip-stop").length === 2);
+    await page.waitForFunction(() => document.querySelectorAll("#tripBody .trip-stop:not(.trip-ret)").length === 2);
     await page.click('#tripBody [data-trip="up"][data-i="1"]');
     await page.waitForFunction(() => /KEND KPNC KOKC KEND/.test(document.getElementById("tripBody").textContent));
 
@@ -531,7 +531,7 @@ test("flight plan: type a field in the rail to add it, with keyboard selection",
     await page.waitForSelector("#tripSuggest li");
     await page.press("#tripSearch", "ArrowDown");
     await page.press("#tripSearch", "Enter");
-    await page.waitForFunction(() => document.querySelectorAll("#tripBody .trip-stop").length === 2);
+    await page.waitForFunction(() => document.querySelectorAll("#tripBody .trip-stop:not(.trip-ret)").length === 2);
     assert.deepEqual(errors, []);
   } finally {
     await context.close();
@@ -634,6 +634,56 @@ test("reviews tab says so when the comments server is unreachable", async () => 
     await page.waitForFunction(() => /offline/i.test(document.getElementById("reviewsPage").textContent));
     assert.match(await page.textContent("#reviewsPage"), /Retry/);
     assert.deepEqual(errors.filter((e) => !/Failed to fetch|NetworkError/.test(e)), []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("flight plan: pick the takeoff date and time of each leg", async () => {
+  const { page, context, errors } = await openPage();
+  try {
+    await page.fill("#tripSearch", "KPNC");
+    await page.press("#tripSearch", "Enter");
+    await page.waitForSelector("#tripBody .trip-leg");
+    await page.fill("#tripSearch", "KOKC");
+    await page.press("#tripSearch", "Enter");
+    await page.waitForFunction(() => document.querySelectorAll("#tripBody [data-trip-dep]").length === 3); // two stops + the return
+
+    // every leg shows a takeoff picker, a landing time and a field-local zone
+    const inputs = page.locator("#tripBody [data-trip-dep]");
+    assert.match(await inputs.nth(0).inputValue(), /^\d{4}-\d{2}-\d{2}T09:00$/, "leg 1 defaults to 09:00 on the trip date");
+    const second = await inputs.nth(1).inputValue();
+    assert.ok(second > (await inputs.nth(0).inputValue()), "leg 2 is after leg 1");
+    assert.match(await page.textContent("#tripBody .trip-leg"), /Lands \d+:\d\d (AM|PM) \w+ at KPNC/);
+
+    // set leg 2 two days later: it becomes explicit (with an 'auto' reset) and rides in the URL
+    const target = new Date(Date.now() + 2 * 86400000);
+    const day = `${target.getFullYear()}-${String(target.getMonth() + 1).padStart(2, "0")}-${String(target.getDate()).padStart(2, "0")}`;
+    await inputs.nth(1).fill(`${day}T14:30`);
+    await page.waitForSelector('#tripBody [data-trip="reset-dep"]');
+    assert.equal(await page.locator("#tripBody [data-trip-dep]").nth(1).inputValue(), `${day}T14:30`);
+    assert.match(await page.evaluate(() => location.hash), /trip=KPNC%2CKOKC%40\d{12}|trip=KPNC,KOKC@\d{12}/);
+    // the return leg now follows leg 2's landing
+    assert.ok((await page.locator("#tripBody [data-trip-dep]").nth(2).inputValue()) > `${day}T14:30`);
+
+    // changing leg 1's date moves the trip day for the weather and per diem as well
+    const first = new Date(Date.now() + 86400000);
+    const day1 = `${first.getFullYear()}-${String(first.getMonth() + 1).padStart(2, "0")}-${String(first.getDate()).padStart(2, "0")}`;
+    await page.locator("#tripBody [data-trip-dep]").nth(0).fill(`${day1}T07:45`);
+    await page.waitForFunction((d) => location.hash.includes(`day=${d}`), day1);
+    assert.equal(await page.locator("#tripBody [data-trip-dep]").nth(0).inputValue(), `${day1}T07:45`);
+
+    // "auto" puts leg 2 back on the automatic schedule
+    await page.click('#tripBody [data-trip="reset-dep"]');
+    await page.waitForFunction(() => !document.querySelector('#tripBody [data-trip="reset-dep"]'));
+
+    // the crew card carries the schedule
+    await page.evaluate(() => (window.print = () => {}));
+    await page.click('#tripBody [data-trip="print"]');
+    const card = await page.textContent("#crewCard");
+    assert.match(card, /Takeoff/);
+    assert.match(card, /7:45 AM/);
+    assert.deepEqual(errors, []);
   } finally {
     await context.close();
   }

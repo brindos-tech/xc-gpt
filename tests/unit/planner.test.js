@@ -514,3 +514,68 @@ test("reviews: subjects resolve to fields/airspace, rankings are damped, perks l
   assert.equal(rv.filterFeed(feed, byCode, { q: "cookies" }).length, 1);
   assert.equal(rv.filterFeed(feed, byCode, { q: "vance" }).length, 1, "matches the area's name");
 });
+
+// ---- takeoff times per leg ----
+test("clock helpers: wall-clock <-> instant in a zone, across daylight time", async () => {
+  const { zonedInstant, wallClock } = await import("../../assets/js/planner/sun.js");
+  const cst = zonedInstant("2026-11-07", "09:00", "America/Chicago");
+  assert.equal(cst.toISOString(), "2026-11-07T15:00:00.000Z"); // CST, UTC-6
+  const cdt = zonedInstant("2026-07-04", "09:00", "America/Chicago");
+  assert.equal(cdt.toISOString(), "2026-07-04T14:00:00.000Z"); // CDT, UTC-5
+  assert.deepEqual(wallClock(cst, "America/Denver"), { date: "2026-11-07", time: "08:00" });
+  assert.deepEqual(wallClock(new Date("2026-11-08T03:30:00Z"), "America/Los_Angeles"), { date: "2026-11-07", time: "19:30" }, "the day rolls back west of UTC");
+});
+
+test("trip URL: takeoff times ride along with each stop", async () => {
+  const trip = await import("../../assets/js/planner/trip.js");
+  const stops = [{ code: "KOKC", ron: true, dep: "2026-11-07T09:30" }, { code: "KTUL", ron: false }];
+  assert.equal(trip.encodeTrip(stops), "KOKC*@202611070930,KTUL");
+  assert.deepEqual(trip.decodeTrip("KOKC*@202611070930,KTUL,junk,KXXX@12"), stops);
+  assert.equal(trip.decodeDep(trip.encodeDep("2026-11-08T17:05")), "2026-11-08T17:05");
+  assert.equal(trip.decodeDep("nope"), "");
+});
+
+test("trip schedule: defaults chain from each landing, RON goes to next morning, explicit times win, flags", async () => {
+  const trip = await import("../../assets/js/planner/trip.js");
+  const o = { icao: "KEND", lat: 36.3392, lon: -97.9166, tz: "America/Chicago" };
+  const mk = (code, lat, lon, extra = {}) => ({ code, lat, lon, state: "OK", ...extra });
+  const A = mk("KOKC", 35.39, -97.6, { attendance: "MON-FRI 0800-1700" });
+  const B = mk("KTUL", 36.2, -95.9);
+  const sched = (stops, extra = {}) => {
+    const legs = trip.tripLegs(o, stops.map((s) => s.field), config).legs;
+    return trip.scheduleTrip({ origin: o, stops, legs, tripDate: "2026-11-07", ...extra });
+  };
+
+  // no RON: leg 1 at 09:00 on the trip date, next leg an hour after landing (rounded up to 5 min), return likewise
+  const day = sched([{ field: A, ron: false }, { field: B, ron: false }]);
+  assert.equal(day.length, 3);
+  assert.deepEqual([day[0].depLocal.date, day[0].depLocal.time], ["2026-11-07", "09:00"]);
+  assert.ok(day[0].eta > day[0].dep && day[1].dep >= new Date(day[0].eta.getTime() + 60 * 60000));
+  assert.ok(day[1].dep.getUTCMinutes() % 5 === 0, "rounded to 5 minutes");
+  assert.ok(day.every((l) => !l.explicit));
+
+  // RON at the first stop: the next leg leaves the next morning at 09:00 local
+  const night = sched([{ field: A, ron: true }, { field: B, ron: false }]);
+  assert.deepEqual([night[1].depLocal.date, night[1].depLocal.time], ["2026-11-08", "09:00"]);
+
+  // explicit: leg 2 on the 8th at 14:30, return left to automatic; leg 1's explicit value only supplies the time
+  const set = sched([{ field: A, ron: false, dep: "2099-01-01T07:15" }, { field: B, ron: false, dep: "2026-11-08T14:30" }]);
+  assert.deepEqual([set[0].depLocal.date, set[0].depLocal.time], ["2026-11-07", "07:15"], "leg 1 stays on the trip date");
+  assert.deepEqual([set[1].depLocal.date, set[1].depLocal.time, set[1].explicit], ["2026-11-08", "14:30", true]);
+  assert.ok(set[2].dep >= new Date(set[1].eta.getTime() + 60 * 60000));
+  assert.equal(sched([{ field: A, ron: false }], { returnDep: "2026-11-09T08:00" })[1].depLocal.time, "08:00");
+
+  // flags: Saturday arrival at a MON-FRI FBO; a night landing; overlapping legs
+  assert.ok(trip.legFlags(day[0]).some((f) => /FBO closed that day/.test(f.text)));
+  const late = sched([{ field: B, ron: false, dep: "2026-11-07T17:40" }]);
+  assert.ok(trip.legFlags(late[0]).some((f) => /after sunset/.test(f.text)), "a 17:40 takeoff lands after the ~5:25 PM sunset");
+  const overlap = sched([{ field: A, ron: false }, { field: B, ron: false, dep: "2026-11-07T09:05" }]);
+  assert.ok(trip.legFlags(overlap[1]).some((f) => /before the previous leg lands/.test(f.text)));
+  assert.equal(trip.legFlags(day[2]).length, 0, "the base isn't checked");
+
+  // lodging rate follows the night's date: December vs July rates differ
+  const rate = { 2027: { area: "X", lodging: [90, 90, 90, 90, 90, 90, 90, 90, 90, 100, 110, 150], meals: 70 } };
+  const F = { code: "KA", perDiem: rate };
+  assert.equal(trip.tripPerDiem([{ field: F, ron: true, date: new Date(2026, 11, 20) }], new Date(2026, 10, 7)).lodging, 150);
+  assert.equal(trip.tripPerDiem([{ field: F, ron: true }], new Date(2026, 10, 7)).lodging, 110, "no date: the trip date's month");
+});
