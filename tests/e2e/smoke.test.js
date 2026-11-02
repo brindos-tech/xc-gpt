@@ -117,10 +117,11 @@ test("field list switch, quick filters and airspace toggles", async () => {
     assert.ok(pCount > 0 && pCount < navCount, `P-coded (${pCount}) is a subset of the list (${navCount})`);
 
     await page.click('[data-src="nav"]');
-    assert.equal(await page.locator('[data-ff="ron"], [data-ff="towered"]').count(), 0, "RON and Towered toggles are gone");
-    assert.match(await page.textContent('[data-ff="fuel"]'), /Fuel available/);
-    await page.click('[data-ff="fuel"]');
-    await page.waitForFunction((n) => document.querySelectorAll("#plannerMap [data-field]").length < n, navCount);
+    // the "Show only" chips are gone, and fields with a short runway aren't on the map
+    assert.equal(await page.locator("[data-ff], #fieldFilterChips").count(), 0);
+    assert.doesNotMatch(await page.textContent("#filterRail"), /Show only/);
+    assert.equal(await page.locator('#plannerMap [data-field="KRWV"]').count(), 0, "KRWV's longest runway is 3,252 ft");
+    assert.equal(await page.locator('#plannerMap [data-field="KOKC"]').count(), 1);
 
     // airspace outside the range ring is not drawn: shrinking the range lowers the MOA count
     await page.waitForFunction(() => /^ · \d+$/.test(document.querySelector('[data-air-status="MOA"]')?.textContent || ""), null, { timeout: 15000 });
@@ -273,7 +274,8 @@ test("weather bar: day picker, time slider, overlays, field forecast", async () 
     assert.match(await page.evaluate(() => location.hash), /wxt=\d{4}-\d{2}-\d{2}T\d{2}%3A\d{2}Z/);
 
     // clicking the map, or a field, never pops a weather bubble over it
-    await page.mouse.click(700, 450);
+    // a click on the map itself (not on a pin or a bar)
+    await page.evaluate(() => document.getElementById("plannerMap").dispatchEvent(new MouseEvent("click", { bubbles: true, clientX: 600, clientY: 500 })));
     assert.equal(await page.locator(".leaflet-popup").count(), 0);
 
     // layers toggle off/on and a field sheet shows its forecast table
@@ -454,8 +456,6 @@ test("ratings show on pins (label + 'Has comments' chip) and a problem report go
   });
   try {
     await page.waitForFunction(() => document.querySelectorAll("#plannerMap [data-field]").length > 0);
-    await page.click('[data-ff="rated"]');
-    await page.waitForFunction(() => document.querySelectorAll("#plannerMap [data-field]").length === 1);
     await page.click(".leaflet-control-zoom-in"); // labels appear from zoom 6
     await page.waitForFunction(() => /★4\.5/.test(document.querySelector("#plannerMap .rating-label")?.textContent || ""));
 
@@ -514,9 +514,13 @@ test("flight plan: type a field in the rail to add it, with keyboard selection",
   const { page, context, errors } = await openPage();
   try {
     assert.equal(await page.isVisible("#tripSearch"), true);
-    // the flight plan box is at the top of the rail, right under the departure base
-    const order = await page.evaluate(() => [...document.querySelectorAll("#filterRail .rail-section h3")].map((h) => h.textContent.trim()).slice(0, 3));
-    assert.deepEqual(order.map((t) => t.split(" ")[0]), ["Departure", "Flight", "Range"]);
+    // the flight plan is a bar on the right of the screen, beside the map; the rail no longer carries it
+    const bar = await page.locator("#tripBar").boundingBox();
+    const mapBox = await page.locator("#plannerMap").boundingBox();
+    assert.ok(bar.x >= mapBox.x + mapBox.width - 2, "the flight plan bar sits to the right of the map");
+    assert.equal(await page.locator("#filterRail #tripSearch").count(), 0);
+    const order = await page.evaluate(() => [...document.querySelectorAll("#filterRail .rail-section h3")].map((h) => h.textContent.trim().split(" ")[0]));
+    assert.deepEqual(order.slice(0, 2), ["Departure", "Range"]);
     await page.fill("#tripSearch", "pnc");
     await page.waitForSelector("#tripSuggest li");
     assert.match(await page.textContent("#tripSuggest li"), /KPNC/);
@@ -683,6 +687,50 @@ test("flight plan: pick the takeoff date and time of each leg", async () => {
     const card = await page.textContent("#crewCard");
     assert.match(card, /Takeoff/);
     assert.match(card, /7:45 AM/);
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("flight plan bar can be hidden and brought back; the map key is small and says what green and yellow mean", async () => {
+  const { page, context, errors } = await openPage();
+  try {
+    // the key: three marks and the two dot colours — nothing about red, orange or faded fields
+    const key = (await page.textContent("#plannerLegend")).replace(/\s+/g, " ");
+    for (const word of ["Towered", "Non-towered", "Military", "Approved: land, fuel, RON", "See comments (fuel/RON)"]) assert.ok(key.includes(word), word);
+    assert.doesNotMatch(key, /No fuel|not approved|faded|outside range/i);
+    assert.equal(await page.locator("#plannerLegend svg").count(), 3);
+    const box = await page.locator("#plannerLegend").boundingBox();
+    assert.ok(box.width < 210 && box.height < 140, `compact key (${Math.round(box.width)}×${Math.round(box.height)})`);
+
+    // hide / show the bar
+    assert.equal(await page.isVisible("#tripBar"), true);
+    await page.click("#tripBarClose");
+    await page.waitForFunction(() => document.querySelector(".app").dataset.trip === "closed");
+    assert.equal(await page.isVisible("#tripBar"), false);
+    await page.click("#tripOpenTab");
+    await page.waitForFunction(() => !document.querySelector(".app").dataset.trip);
+    assert.equal(await page.isVisible("#tripBar"), true);
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("mobile: the flight plan opens as a sheet from the header button", async () => {
+  const { page, context, errors } = await openPage({ width: 390, height: 780 });
+  try {
+    assert.equal(await page.isVisible("#tripToggle"), true);
+    assert.equal(await page.evaluate(() => document.getElementById("tripBar").getBoundingClientRect().top >= window.innerHeight - 1), true, "off screen until opened");
+    await page.click("#tripToggle");
+    await page.waitForSelector("#tripBar.open");
+    await page.fill("#tripSearch", "KPNC");
+    await page.press("#tripSearch", "Enter");
+    await page.waitForSelector("#tripBody .trip-stop");
+    assert.match(await page.textContent("#tripToggleCount"), /1 stop/);
+    await page.click("#tripBarClose");
+    await page.waitForFunction(() => !document.getElementById("tripBar").classList.contains("open"));
     assert.deepEqual(errors, []);
   } finally {
     await context.close();

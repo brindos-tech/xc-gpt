@@ -21,20 +21,16 @@ export function pinSvg({ towered, military, status }) {
     <circle cx="12" cy="12" r="9.4" fill="#fff" fill-opacity="0.92"/>
     <circle cx="12" cy="12" r="8" fill="${c}" fill-opacity="0.14" stroke="${c}" stroke-width="2.6"/>
     ${military ? `<polygon points="${STAR}" fill="${c}"/>` : `<circle cx="12" cy="12" r="2.4" fill="${c}"/>`}
-    <circle cx="19.2" cy="19.2" r="4.1" fill="${STATUS_COLORS[status]}" stroke="#fff" stroke-width="1.4"/>
+    ${status ? `<circle cx="19.2" cy="19.2" r="4.1" fill="${STATUS_COLORS[status]}" stroke="#fff" stroke-width="1.4"/>` : ""}
   </svg>`;
 }
 
-/** Legend HTML for the planner map. */
+/** Legend HTML for the planner map: a small vertical key — the three marks, and what the green and yellow dots mean. */
 export function legendHtml() {
-  const mini = (towered, military) => `<span class="legend-pin">${pinSvg({ towered, military, status: "go" }).replace('width="26" height="26"', 'width="18" height="18"')}</span>`;
-  return (
-    `<span>${mini(true, false)}Towered</span><span>${mini(false, false)}Non-towered</span><span>${mini(true, true)}Military</span>` +
-    Object.entries(STATUS_LABELS)
-      .map(([k, label]) => `<span><span class="legend-dot" style="background:${STATUS_COLORS[k]}"></span>${label}</span>`)
-      .join("") +
-    `<span class="legend-note">faded = outside range (search result)</span>`
-  );
+  const mini = (towered, military) => `<span class="lg-icon">${pinSvg({ towered, military, status: null }).replace('width="26" height="26"', 'width="13" height="13"')}</span>`;
+  const dot = (status, label) => `<div><span class="lg-dot" style="background:${STATUS_COLORS[status]}"></span>${label}</div>`;
+  return `<div>${mini(true, false)}Towered</div><div>${mini(false, false)}Non-towered</div><div>${mini(true, true)}Military</div>
+    <hr>${dot("go", "Approved: land, fuel, RON")}${dot("check", "See comments (fuel/RON)")}`;
 }
 
 export function createPlannerView({ config, origin, loadJson, onFieldClick, onAirspaceClick, onAirspaceStatus }) {

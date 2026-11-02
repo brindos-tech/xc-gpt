@@ -15,7 +15,6 @@ export function stateToHash(state) {
   if (state.selectedPlaceId) params.set("place", state.selectedPlaceId);
   // planner
   if (state.fieldSource !== "nav") params.set("src", state.fieldSource);
-  if (state.fieldFilters.size) params.set("ff", Array.from(state.fieldFilters).join(","));
   if (state.reviewsSort !== "recent") params.set("rs", state.reviewsSort);
   if (state.reviewsType !== "all") params.set("rt", state.reviewsType);
   if (state.trip?.length) params.set("trip", encodeTrip(state.trip));
@@ -64,7 +63,6 @@ export function hashToState(hash, defaults) {
   if (params.has("q")) patch.search = params.get("q");
   if (params.has("place")) patch.selectedPlaceId = params.get("place");
   if (params.has("src")) patch.fieldSource = params.get("src") === "p" ? "p" : "nav";
-  if (params.has("ff")) patch.fieldFilters = new Set(params.get("ff").split(",").filter(Boolean));
   if (["recent", "top", "food", "car", "card"].includes(params.get("rs"))) patch.reviewsSort = params.get("rs");
   if (["all", "field", "air"].includes(params.get("rt"))) patch.reviewsType = params.get("rt");
   if (params.has("trip")) patch.trip = decodeTrip(params.get("trip"));

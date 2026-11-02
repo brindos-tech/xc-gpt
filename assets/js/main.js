@@ -4,7 +4,7 @@ import { formatUpdatedAgo, parseDate } from "./format.js";
 import { createFilterRail } from "./views/filter-rail.js";
 import { createPlannerView } from "./planner/planner-view.js";
 import { createFieldPanel } from "./planner/field-panel.js";
-import { mergeFields, selectFields } from "./planner/fields.js";
+import { mergeFields, selectFields, meetsRunway } from "./planner/fields.js";
 import { createWxController } from "./planner/wx-controller.js";
 import { createComments, loadCommentSummary } from "./planner/comments.js";
 import { createTripPanel } from "./views/trip-panel.js";
@@ -49,7 +49,8 @@ async function boot() {
   ]);
 
   const originsById = new Map(config.origins.map((o) => [o.id, o]));
-  const fields = mergeFields(navinfo, factsFile, aircard, approaches);
+  // fields with a known runway shorter than the cutoff (4,000 ft) are not drawn or searchable
+  const fields = mergeFields(navinfo, factsFile, aircard, approaches).filter((f) => meetsRunway(f, config.defaults.minRunwayFt || 0));
 
   // The real current date at local midnight — not the build date. Event
   // dates parse to local midnight, and the window test compares against it,
@@ -101,6 +102,38 @@ async function boot() {
     window.print();
     document.title = prev;
   }
+  // ---- flight plan bar: docked on the right (desktop) or a bottom sheet (phone) ----
+  const tripBar = $("tripBar");
+  const tripBackdrop = $("tripBackdrop");
+  const remembered = (() => {
+    try {
+      return localStorage.getItem("xcgpt-tripbar");
+    } catch {
+      return null;
+    }
+  })();
+  if (remembered === "closed") app.dataset.trip = "closed";
+  function setTripBar(open) {
+    if (window.matchMedia("(max-width: 860px)").matches) {
+      tripBar.classList.toggle("open", open);
+      tripBackdrop.classList.toggle("open", open);
+      $("tripToggle").setAttribute("aria-expanded", String(open));
+    } else {
+      if (open) delete app.dataset.trip;
+      else app.dataset.trip = "closed";
+      try {
+        localStorage.setItem("xcgpt-tripbar", open ? "open" : "closed");
+      } catch {
+        // not remembered
+      }
+      requestAnimationFrame(() => planner.invalidateSize());
+    }
+  }
+  $("tripBarClose").addEventListener("click", () => setTripBar(false));
+  $("tripOpenTab").addEventListener("click", () => setTripBar(true));
+  $("tripToggle").addEventListener("click", () => setTripBar(!tripBar.classList.contains("open")));
+  tripBackdrop.addEventListener("click", () => setTripBar(false));
+
   const reviewsPage = createReviewsPage({ root: $("reviewsPage"), store, apiBase: config.commentsApi, fieldsByCode });
   const tripPanel = createTripPanel({ store, config, fieldsByCode, getOrigin: () => originsById.get(store.getState().originId), onPrint: printCrewCard, forecastAt: (code, instant) => wx.forecastAt(code, instant) });
   const comments = createComments({ host: $("fieldComments"), apiBase: config.commentsApi, today });
@@ -211,6 +244,8 @@ async function boot() {
     planner.renderFields(selection, state.selectedFieldId, wx.fieldRing);
     wx.render(state);
     const tripInfo = tripPanel.render(state, origin);
+    const stopCount = tripInfo.stops.length;
+    for (const id of ["tripCount", "tripOpenCount", "tripToggleCount"]) $(id).textContent = stopCount ? `(${stopCount} stop${stopCount === 1 ? "" : "s"})` : "";
     planner.setTrip(tripInfo.stops.length ? [[origin.lat, origin.lon], ...tripInfo.stops.map((s) => [s.field.lat, s.field.lon]), ...(state.tripReturn ? [[origin.lat, origin.lon]] : [])] : []);
     planner.setAirspace(state.airspace, state.selectedAirspaceId);
 

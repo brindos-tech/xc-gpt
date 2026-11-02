@@ -42,6 +42,7 @@
   },
   "defaults": {
     "rangeNm": 600,
+    "minRunwayFt": 4000,
     "horizonDays": 30,
     "minScale": "notable"
   },

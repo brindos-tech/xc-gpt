@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mergeFields, isPCoded, selectFields, fieldStatus, gfcStatus, perDiemFor, fiscalYear, telHref, matchesSearch, FIELD_FILTERS } from "../../assets/js/planner/fields.js";
+import { mergeFields, isPCoded, selectFields, fieldStatus, gfcStatus, perDiemFor, fiscalYear, telHref, matchesSearch, meetsRunway } from "../../assets/js/planner/fields.js";
 import { airspaceRows, airspaceTooltip } from "../../assets/js/planner/airspace.js";
 
 const config = { aircraft: { cruiseKts: 300, legRangeNm: 400 } };
@@ -31,7 +31,7 @@ const aircard = {
   },
 };
 const fields = mergeFields(nav, facts, aircard);
-const state = (patch = {}) => ({ fieldSource: "nav", fieldFilters: new Set(), search: "", rangeNm: 600, ...patch });
+const state = (patch = {}) => ({ fieldSource: "nav", search: "", rangeNm: 600, ...patch });
 
 test("merge joins facts and flags fields without a position", () => {
   assert.equal(fields.length, 4);
@@ -39,16 +39,15 @@ test("merge joins facts and flags fields without a position", () => {
   assert.equal(fields.find((f) => f.code === "KOKC").tower, "ATCT-TRACON");
 });
 
-test("range, source and quick filters", () => {
+test("range and source; fields with a known short runway are left off", () => {
   assert.deepEqual(selectFields(fields, state(), vance, config).fields.map((f) => f.code), ["KPNC", "KOKC"]);
   assert.deepEqual(selectFields(fields, state({ fieldSource: "p" }), vance, config).fields.map((f) => f.code), ["KOKC"]);
-  assert.deepEqual(selectFields(fields, state({ fieldFilters: new Set(["fuel"]) }), vance, config).fields.map((f) => f.code), ["KOKC"]);
-  assert.deepEqual(selectFields(fields, state({ fieldFilters: new Set(["dla"]) }), vance, config).fields.map((f) => f.code), ["KOKC"]);
-  assert.deepEqual(selectFields(fields, state({ fieldFilters: new Set(["aircard"]) }), vance, config).fields.map((f) => f.code), ["KPNC", "KOKC"]);
-  // RON and Towered are not toggles any more
-  assert.deepEqual(FIELD_FILTERS.map((f) => f.key), ["fuel", "dla", "aircard", "t6", "fbo", "rated", "military"]);
-  assert.equal(FIELD_FILTERS[0].label, "Fuel available");
   assert.equal(selectFields(fields, state({ rangeNm: 2000 }), vance, config).inRange, 3);
+  assert.equal(meetsRunway({ runway: { len: 3975 } }, 4000), false);
+  assert.equal(meetsRunway({ runway: { len: 4000 } }, 4000), true);
+  assert.equal(meetsRunway({ runway: { len: 9802 } }, 4000), true);
+  assert.equal(meetsRunway({}, 4000), true, "an unknown runway length is kept, not guessed at");
+  assert.equal(meetsRunway({ runway: null }, 4000), true);
 });
 
 test("search keeps every field in range, flags matches, and still finds one past the ring", () => {

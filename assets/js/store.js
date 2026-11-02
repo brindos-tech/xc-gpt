@@ -21,7 +21,6 @@ function defaultState(config, today) {
     selectedEventId: null,
     // ---- planner ----
     fieldSource: "nav", // "nav" = Vance Nav Info List, "p" = P-coded fields
-    fieldFilters: new Set(), // keys of FIELD_FILTERS (assets/js/planner/fields.js)
     trip: [], // [{ code, ron }] — the trip builder's stops, in order
     tripReturn: true, // legs end back at the base
     tripReturnDep: "", // takeoff of the return leg (field-local "YYYY-MM-DDTHH:mm"); "" = automatic

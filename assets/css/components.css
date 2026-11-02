@@ -201,11 +201,6 @@
 .air-status { color: var(--muted); font-size: 0.8em; }
 
 /* -------- planner legend + field panel -------- */
-.planner-legend .legend-note { color: var(--muted); opacity: 0.8; }
-@media (max-width: 860px) {
-  .planner-legend { gap: 6px 10px; padding: 6px 10px; font-size: 0.68em; }
-  .planner-legend .legend-note { display: none; }
-}
 .fp-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
 .fp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
 .fp-cell { background: var(--panel2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 8px 10px; }
@@ -389,7 +384,6 @@
 .rating-label { color: var(--gold); font: 700 11px/14px system-ui, sans-serif; text-shadow: 0 0 3px #000, 0 0 3px #000; pointer-events: none; white-space: nowrap; }
 
 /* ---- flight plan search (rail) ---- */
-.trip-section { background: rgba(255,138,61,0.07); border: 1px solid rgba(255,138,61,0.4); border-radius: var(--radius-md); padding: 12px; }
 .trip-add-box { position: relative; margin-bottom: 8px; }
 .trip-add-box input { width: 100%; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--accent); border-radius: var(--radius-sm); padding: 9px 11px; }
 #tripSuggest { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 30; list-style: none; margin: 0; padding: 4px; background: var(--panel2); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); display: grid; gap: 2px; max-height: 320px; overflow-y: auto; }
@@ -411,8 +405,6 @@
 .field-pin.hit::before { content: ""; position: absolute; inset: -9px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 2px var(--accent), 0 0 12px var(--accent); animation: pinpulse 1.4s ease-out 3; pointer-events: none; }
 @keyframes pinpulse { from { transform: scale(0.6); opacity: 1; } to { transform: scale(1.15); opacity: 0.2; } }
 @media (prefers-reduced-motion: reduce) { .field-pin.hit::before { animation: none; } }
-.legend-pin { display: inline-flex; }
-.legend-pin svg { display: block; }
 
 /* marks shrink when the whole region is in view so a dense area stays readable */
 #plannerMap.z-low .field-pin svg { transform: scale(0.68); }
@@ -444,3 +436,12 @@
 .trip-wx { border: 1px solid var(--c); color: var(--c); border-radius: 999px; padding: 0 7px; font-size: 0.92em; white-space: nowrap; }
 .trip-wxrow { display: flex; flex-wrap: wrap; gap: 3px 8px; align-items: center; }
 .trip-ret { margin-top: 2px; }
+
+/* ---- planner map key: small, vertical ---- */
+.map-legend.planner-legend { flex-direction: column; flex-wrap: nowrap; gap: 3px; padding: 6px 9px; font-size: 0.66em; line-height: 1.2; max-width: 190px; }
+.map-legend.planner-legend > div { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.map-legend.planner-legend hr { border: none; border-top: 1px solid var(--border); margin: 2px 0; width: 100%; }
+.lg-icon, .lg-icon svg { display: inline-flex; width: 13px; height: 13px; }
+.lg-dot { width: 8px; height: 8px; border-radius: 50%; margin: 0 2.5px; flex: none; }
+
+.trip-toggle-btn { align-items: center; gap: 6px; background: var(--accent); color: #0b1a12; border: none; border-radius: var(--radius-sm); font: inherit; font-weight: 700; font-size: 0.85em; padding: 7px 12px; cursor: pointer; }
