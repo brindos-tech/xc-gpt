@@ -8,6 +8,7 @@ import { mergeFields, selectFields } from "./planner/fields.js";
 import { createWxController } from "./planner/wx-controller.js";
 import { createComments, loadCommentSummary } from "./planner/comments.js";
 import { createTripPanel } from "./views/trip-panel.js";
+import { createReviewsPage } from "./views/reviews-page.js";
 import { crewCardHtml } from "./planner/crew-card.js";
 import { tripLegs, routeString, tripPerDiem } from "./planner/trip.js";
 
@@ -61,7 +62,7 @@ async function boot() {
 
   const $ = (id) => document.getElementById(id);
   const app = document.querySelector(".app");
-  const panes = { planner: $("pane-planner"), events: $("pane-events") };
+  const panes = { planner: $("pane-planner"), reviews: $("pane-reviews"), events: $("pane-events") };
   const tabBar = $("tabBar");
   const searchInput = $("globalSearch");
   const freshnessText = $("freshnessText");
@@ -101,7 +102,8 @@ async function boot() {
     window.print();
     document.title = prev;
   }
-  const tripPanel = createTripPanel({ store, config, fieldsByCode, onPrint: printCrewCard });
+  const reviewsPage = createReviewsPage({ root: $("reviewsPage"), store, apiBase: config.commentsApi, fieldsByCode });
+  const tripPanel = createTripPanel({ store, config, fieldsByCode, getOrigin: () => originsById.get(store.getState().originId), onPrint: printCrewCard });
   const comments = createComments({ host: $("fieldComments"), apiBase: config.commentsApi, today });
 
   // ---- planner ----
@@ -114,9 +116,7 @@ async function boot() {
     onAirspaceStatus: (key, text) => filterRail.setAirspaceStatus(key, text),
   });
   const wx = createWxController({ store, map: planner.map, loadJson, today, onChange: () => render() });
-  $("plannerLegend").innerHTML =
-    planner.legendStatuses.map((s) => `<span><span class="legend-dot" style="background:${s.color}"></span>${s.label}</span>`).join("") +
-    `<span class="legend-note">dashed = outside range (search result)</span>`;
+  $("plannerLegend").innerHTML = planner.legendHtml();
 
   // ---- events (lazy) ----
   let eventsPage = null;
@@ -144,6 +144,16 @@ async function boot() {
     searchDebounce = setTimeout(() => store.setState({ search: searchInput.value }), 150);
   });
 
+  // Enter in the search box zooms to the match again (after the map has been panned away)
+  searchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && store.getState().view === "planner") {
+      clearTimeout(searchDebounce);
+      // same text as before: just zoom again; new text: the render below zooms once
+      if (store.getState().search === searchInput.value) zoomToMatches(lastHits, searchInput.value);
+      else store.setState({ search: searchInput.value });
+    }
+  });
+
   function renderFreshness(view) {
     if (view === "events" && meta?.buildAt) {
       // `now`, not `today`: freshness is an elapsed-hours measure.
@@ -154,6 +164,9 @@ async function boot() {
       const asOf = navinfo.asOf ? parseDate(navinfo.asOf).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "2-digit" }) : "unknown date";
       freshnessText.textContent = `Nav list ${asOf}${factsFile?.nasrCycle ? ` · FAA ${factsFile.nasrCycle}` : ""}`;
       freshnessDot.className = "source-dot " + (factsFile ? "ok" : "stale");
+    } else if (view === "reviews") {
+      freshnessText.textContent = "Reviews from crews";
+      freshnessDot.className = "source-dot ok";
     } else {
       freshnessText.textContent = "Bootstrap data (no CI run yet)";
       freshnessDot.className = "source-dot stale";
@@ -173,14 +186,23 @@ async function boot() {
     app.dataset.page = view;
     Object.entries(panes).forEach(([key, el]) => el.classList.toggle("active", key === view));
     tabBar.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b.dataset.view === view));
-    searchInput.placeholder = view === "planner" ? "Search fields, FBOs…" : "Search places, events…";
+    searchInput.placeholder = view === "planner" ? "Search fields, FBOs…" : view === "reviews" ? "Search reviews…" : "Search places, events…";
     // Leaflet measures 0×0 inside a hidden pane.
-    requestAnimationFrame(() => (view === "planner" ? planner.invalidateSize() : eventsPage?.invalidateSize()));
+    if (view !== "reviews") requestAnimationFrame(() => (view === "planner" ? planner.invalidateSize() : eventsPage?.invalidateSize()));
     if (view === "events") ensureEventsPage();
   }
 
   // ---- render ----
   let lastSearch = "";
+  let lastHits = [];
+
+  function zoomToMatches(hits, query) {
+    const q = (query || "").trim().toLowerCase();
+    if (q.length < 2 || !hits.length) return;
+    const exact = hits.find((f) => [f.code, f.faaId].some((c) => c && c.toLowerCase() === q));
+    if (exact || hits.length === 1) planner.flyTo((exact || hits[0]).lat, (exact || hits[0]).lon);
+    else if (hits.length <= 40) planner.fitTo(hits.map((f) => [f.lat, f.lon]));
+  }
   let airspaceLoadRequested = null;
 
   function renderPlanner(state) {
@@ -200,10 +222,11 @@ async function boot() {
         (state.fieldSource === "nav" && unmapped ? ` · ${unmapped} without FAA position` : "")
     );
 
-    // A search that narrows to one field: show it.
+    // Searching never hides fields: it zooms to the match (or frames a handful of them).
+    lastHits = selection.hits;
     if (state.search !== lastSearch) {
       lastSearch = state.search;
-      if (state.search && selection.fields.length === 1) planner.flyTo(selection.fields[0].lat, selection.fields[0].lon);
+      zoomToMatches(selection.hits, state.search);
     }
 
     // the sheet: a field, or an airspace area/route
@@ -253,6 +276,10 @@ async function boot() {
     if (state.view === "planner") {
       eventsPage?.closeDetail();
       renderPlanner(state);
+    } else if (state.view === "reviews") {
+      comments.show(null);
+      fieldPanel.render({ field: null, airspace: null });
+      reviewsPage.render(state);
     } else {
       comments.show(null);
       fieldPanel.render({ field: null, airspace: null });

@@ -4,11 +4,77 @@
 import { tripLegs, routeString, tripPerDiem } from "../planner/trip.js";
 import { formatFlightTime } from "../format.js";
 import { esc } from "../planner/html.js";
+import { matchesSearch } from "../planner/fields.js";
+import { greatCircleNm } from "../geo.js";
 
 const money = (n) => `$${Math.round(n).toLocaleString("en-US")}`;
 
-export function createTripPanel({ store, config, fieldsByCode, onPrint }) {
+export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrint }) {
   const body = document.getElementById("tripBody");
+  const search = document.getElementById("tripSearch");
+  const suggest = document.getElementById("tripSuggest");
+  let active = -1;
+  let shown = [];
+
+  /** Fields matching the box, best first: exact code, code prefix, then nearest to the base. Already-chosen stops are left out. */
+  function suggestions(q) {
+    const query = q.trim().toLowerCase();
+    if (!query) return [];
+    const origin = getOrigin();
+    const chosen = new Set(store.getState().trip.map((x) => x.code));
+    const rank = (f) => (f.code.toLowerCase() === query || f.faaId?.toLowerCase() === query ? 0 : f.code.toLowerCase().startsWith(query) ? 1 : f.name.toLowerCase().startsWith(query) ? 2 : 3);
+    return [...fieldsByCode.values()]
+      .filter((f) => f.hasPosition && !chosen.has(f.code) && matchesSearch(f, q))
+      .map((f) => ({ f, r: rank(f), d: greatCircleNm(origin, f) }))
+      .sort((a, b) => a.r - b.r || a.d - b.d)
+      .slice(0, 7);
+  }
+
+  function showSuggestions() {
+    shown = suggestions(search.value);
+    active = shown.length ? 0 : -1;
+    suggest.hidden = !shown.length;
+    search.setAttribute("aria-expanded", String(shown.length > 0));
+    suggest.innerHTML = shown
+      .map(({ f, d }, i) => `<li role="option" id="tripSug${i}" data-code="${esc(f.code)}" aria-selected="${i === active}" class="${i === active ? "active" : ""}"><b>${esc(f.code)}</b> <span>${esc(f.name)}</span><small class="muted">${esc(f.city)} · ${Math.round(d)} nm</small></li>`)
+      .join("");
+  }
+
+  function addStop(code) {
+    store.setState((s) => (s.trip.some((x) => x.code === code) ? {} : { trip: [...s.trip, { code, ron: false }] }));
+    search.value = "";
+    showSuggestions();
+    search.focus();
+  }
+
+  search.addEventListener("input", showSuggestions);
+  search.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      if (!shown.length) return;
+      e.preventDefault();
+      active = (active + (e.key === "ArrowDown" ? 1 : -1) + shown.length) % shown.length;
+      suggest.querySelectorAll("li").forEach((li, i) => {
+        li.classList.toggle("active", i === active);
+        li.setAttribute("aria-selected", String(i === active));
+      });
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (shown[active]) addStop(shown[active].f.code);
+    } else if (e.key === "Escape") {
+      search.value = "";
+      showSuggestions();
+    }
+  });
+  // mousedown, not click: the input's blur would close the list before a click lands
+  suggest.addEventListener("mousedown", (e) => {
+    const li = e.target.closest("li[data-code]");
+    if (li) {
+      e.preventDefault();
+      addStop(li.dataset.code);
+    }
+  });
+  search.addEventListener("blur", () => setTimeout(() => ((suggest.hidden = true), search.setAttribute("aria-expanded", "false")), 120));
+  search.addEventListener("focus", () => search.value && showSuggestions());
 
   const update = (fn) => store.setState((s) => ({ trip: fn(s.trip.map((x) => ({ ...x }))) }));
 
@@ -50,7 +116,7 @@ export function createTripPanel({ store, config, fieldsByCode, onPrint }) {
   function render(state, origin) {
     const stops = resolve(state);
     if (!stops.length) {
-      body.innerHTML = `<div class="rail-hint">Open a field and tap <b>Add to trip</b>. Stops get legs, flight time, a per diem estimate, a route string for ForeFlight and a printable crew card.</div>`;
+      body.innerHTML = `<div class="rail-hint">Type a field above to add it, or open any field on the map and tap <b>Add to trip</b>. Stops get legs, flight time, a per diem estimate, a route string for ForeFlight and a printable crew card.</div>`;
       return { stops, legs: null };
     }
     const legs = tripLegs(origin, stops.map((s) => s.field), config, state.tripReturn);

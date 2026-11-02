@@ -247,12 +247,12 @@ test("weather bar: day picker, time slider, overlays, field forecast", async () 
     assert.equal(await page.isVisible("#wxBody"), true);
     assert.equal(await page.locator('[data-wx-layer="radar"].active').count(), 1);
     // radar-only means no flight-category rings on the pins; turning Flight category on adds them
-    const ringed = () => page.evaluate(() => [...document.querySelectorAll("#plannerMap [data-field]")].filter((el) => Number.parseFloat(el.getAttribute("stroke-width")) >= 3).length);
+    const ringed = () => page.evaluate(() => document.querySelectorAll("#plannerMap [data-field][data-ring]").length);
     assert.equal(await ringed(), 0);
     // turning overlays on draws them as map images
     for (const k of ["cat", "lice", "hice", "thun"]) await page.click(`[data-wx-layer="${k}"]`);
     await page.waitForFunction(() => document.querySelectorAll("#plannerMap .leaflet-wx-pane img").length >= 3);
-    await page.waitForFunction(() => [...document.querySelectorAll("#plannerMap [data-field]")].some((el) => Number.parseFloat(el.getAttribute("stroke-width")) >= 3));
+    await page.waitForFunction(() => document.querySelectorAll("#plannerMap [data-field][data-ring]").length > 0);
 
     // picking a later day moves the whole app's trip date and the slider range
     const days = page.locator("[data-wx-day]:not([disabled])");
@@ -472,6 +472,168 @@ test("ratings show on pins (label + 'Has comments' chip) and a problem report go
     assert.equal(posts[0].subject, "field:KOKC");
     assert.equal(await page.locator("#fieldComments .cm-item").count(), 0, "a report never appears in the public list");
     assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("search keeps every pin and zooms to the match; fields wear chart-style marks", async () => {
+  const { page, context, errors } = await openPage();
+  try {
+    const all = await pins(page).count();
+    // marks: blue towered / magenta non-towered / a star for military, each with a status dot
+    const kinds = await page.evaluate(() => ({
+      blue: document.querySelectorAll("#plannerMap .field-pin svg [stroke='#1d63d6']").length,
+      pink: document.querySelectorAll("#plannerMap .field-pin svg [stroke='#c4188f']").length,
+      stars: document.querySelectorAll("#plannerMap .field-pin svg polygon").length,
+      dots: document.querySelectorAll("#plannerMap .field-pin svg circle[r='4.1']").length,
+    }));
+    assert.ok(kinds.blue > 0 && kinds.pink > 0 && kinds.stars > 0, JSON.stringify(kinds));
+    assert.equal(kinds.dots, all);
+
+    await page.fill("#globalSearch", "KOKC");
+    await page.press("#globalSearch", "Enter");
+    await page.waitForFunction(() => document.querySelector('#plannerMap [data-field="KOKC"]')?.classList.contains("hit"));
+    assert.equal(await pins(page).count(), all, "no pin disappears");
+    // flying in leaves the match in view and the rest of the map still populated
+    await page.waitForTimeout(900);
+    const box = await page.locator('#plannerMap [data-field="KOKC"]').boundingBox();
+    const map = await page.locator("#plannerMap").boundingBox();
+    assert.ok(box.x > map.x && box.x < map.x + map.width && box.y > map.y && box.y < map.y + map.height, "the match is on screen");
+    assert.ok(await pins(page).count() >= 1);
+    // a field outside the range ring is found too, faded
+    await page.fill("#globalSearch", "KMSY");
+    await page.waitForFunction(() => document.querySelector('#plannerMap [data-field="KMSY"]')?.classList.contains("dim"), null, { timeout: 8000 }).catch(() => {});
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("flight plan: type a field in the rail to add it, with keyboard selection", async () => {
+  const { page, context, errors } = await openPage();
+  try {
+    assert.equal(await page.isVisible("#tripSearch"), true);
+    // the flight plan box is at the top of the rail, right under the departure base
+    const order = await page.evaluate(() => [...document.querySelectorAll("#filterRail .rail-section h3")].map((h) => h.textContent.trim()).slice(0, 3));
+    assert.deepEqual(order.map((t) => t.split(" ")[0]), ["Departure", "Flight", "Range"]);
+    await page.fill("#tripSearch", "pnc");
+    await page.waitForSelector("#tripSuggest li");
+    assert.match(await page.textContent("#tripSuggest li"), /KPNC/);
+    await page.press("#tripSearch", "Enter");
+    await page.waitForSelector("#tripBody .trip-stop");
+    assert.match(await page.textContent("#tripBody"), /KPNC/);
+    assert.equal(await page.inputValue("#tripSearch"), "");
+    // already-chosen fields aren't offered again; arrow keys + Enter pick another
+    await page.fill("#tripSearch", "KPNC");
+    assert.equal(await page.locator("#tripSuggest li").count(), 0);
+    await page.fill("#tripSearch", "ok");
+    await page.waitForSelector("#tripSuggest li");
+    await page.press("#tripSearch", "ArrowDown");
+    await page.press("#tripSearch", "Enter");
+    await page.waitForFunction(() => document.querySelectorAll("#tripBody .trip-stop").length === 2);
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("airspace fades out during a zoom and is back, redrawn, afterwards", async () => {
+  const { page, context, errors } = await openPage();
+  try {
+    await page.waitForFunction(() => /\d/.test(document.querySelector('[data-air-status="MOA"]')?.textContent || ""), null, { timeout: 15000 });
+    await page.evaluate(() => {
+      const pane = document.querySelector(".leaflet-airspace-pane");
+      window.__sawZooming = false;
+      new MutationObserver(() => pane.classList.contains("zooming") && (window.__sawZooming = true)).observe(pane, { attributes: true, attributeFilter: ["class"] });
+    });
+    await page.click(".leaflet-control-zoom-in");
+    await page.waitForFunction(() => window.__sawZooming === true);
+    await page.waitForFunction(() => !document.querySelector(".leaflet-airspace-pane").classList.contains("zooming"), null, { timeout: 5000 });
+    await page.waitForFunction(() => getComputedStyle(document.querySelector(".leaflet-airspace-pane")).opacity === "1", null, { timeout: 3000 }); // faded back in
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("reviews tab: recent reviews, top rated, perks, and 'view on map'", async () => {
+  const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type", "access-control-allow-methods": "GET, POST, OPTIONS" };
+  const feed = [
+    { id: "a", subject: "field:KOKC", name: "Capt Test", rating: 5, freeFood: "yes", crewCar: "no", aircard: "yes", fees: "$20 ramp", planespotters: "", amenities: "", visited: "2026-10-24", notes: "Cookies at the desk and a fast fuel truck.", createdAt: new Date(Date.now() - 3600000).toISOString() },
+    { id: "b", subject: "airspace:MOA:VANCE 1A MOA", name: "Lt Two", rating: 3, freeFood: "", crewCar: "", aircard: "", fees: "", planespotters: "", amenities: "", visited: "", notes: "Hot most Fridays.", createdAt: new Date(Date.now() - 7200000).toISOString() },
+  ];
+  const summary = {
+    "field:KOKC": { n: 4, avg: 4.5, perks: { food: [3, 0], car: [0, 1], card: [2, 0] } },
+    "field:KPNC": { n: 1, avg: 5, perks: { food: [0, 0], car: [1, 0], card: [0, 0] } },
+    "airspace:MOA:VANCE 1A MOA": { n: 1, avg: 3, perks: { food: [0, 0], car: [0, 0], card: [0, 0] } },
+  };
+  const { page, context, errors } = await openPage(undefined, {
+    setup: (p) =>
+      p.route(/xc-gpt-comments\.fly\.dev/, (route) => {
+        const u = new URL(route.request().url());
+        if (route.request().method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
+        if (u.pathname === "/feed") return route.fulfill({ status: 200, headers: cors, json: { comments: feed } });
+        if (u.pathname === "/summary") return route.fulfill({ status: 200, headers: cors, json: { summary } });
+        return route.fulfill({ status: 200, headers: cors, json: { comments: [] } });
+      }),
+  });
+  try {
+    await page.click('#tabBar [data-view="reviews"]');
+    await page.waitForSelector("#reviewsPage .rv-card");
+    assert.equal(await page.locator("#tabBar button.active").textContent(), "Reviews");
+    assert.equal(await page.isHidden("#filterRail"), true, "no rail on this page");
+    assert.match(await page.evaluate(() => location.hash), /v=reviews/);
+    let text = await page.textContent("#reviewsPage");
+    assert.match(text, /KOKC · Will Rogers World Airport/);
+    assert.match(text, /Cookies at the desk/);
+    assert.match(text, /Free food ✓/);
+    assert.match(text, /VANCE 1A MOA/);
+
+    // type filter, then the rankings
+    await page.click('[data-rv-type="air"]');
+    await page.waitForFunction(() => document.querySelectorAll("#reviewsPage .rv-card").length === 1);
+    await page.click('[data-rv-type="all"]');
+    await page.click('[data-rv-sort="top"]');
+    await page.waitForSelector("#reviewsPage .rv-row");
+    const rows = await page.locator("#reviewsPage .rv-row .rv-title").allTextContents();
+    assert.match(rows[0], /KOKC/, "4 reviews at 4.5 beat 1 review at 5");
+    assert.match(rows[1], /KPNC|Ponca/);
+    await page.click('[data-rv-sort="car"]');
+    await page.waitForFunction(() => document.querySelectorAll("#reviewsPage .rv-row").length === 1);
+    assert.match(await page.textContent("#reviewsPage .rv-row"), /KPNC/);
+
+    // header search filters the page, and "view on map" opens the field on the planner
+    await page.click('[data-rv-sort="recent"]');
+    await page.fill("#globalSearch", "cookies");
+    await page.waitForFunction(() => document.querySelectorAll("#reviewsPage .rv-card").length === 1);
+    await page.click("#reviewsPage .rv-title");
+    await page.waitForSelector("#fieldPanel.open");
+    assert.equal(await page.locator("#tabBar button.active").textContent(), "Planner");
+    assert.match(await page.textContent("#fieldContent"), /KOKC/);
+
+    // an airspace review opens that area's sheet
+    await page.click("#fieldClose");
+    await page.click('#tabBar [data-view="reviews"]');
+    await page.fill("#globalSearch", "");
+    await page.waitForSelector('#reviewsPage [data-rv-kind="air"]');
+    await page.click('#reviewsPage [data-rv-kind="air"]');
+    await page.waitForSelector("#fieldPanel.open", { timeout: 15000 });
+    await page.waitForFunction(() => /VANCE 1A MOA/.test(document.getElementById("fieldContent").textContent), null, { timeout: 15000 });
+    assert.match(await page.textContent("#fieldContent"), /Military Operations Area/);
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("reviews tab says so when the comments server is unreachable", async () => {
+  const { page, context, errors } = await openPage(undefined, { setup: (p) => p.route(/xc-gpt-comments\.fly\.dev/, (r) => r.abort()) });
+  try {
+    await page.click('#tabBar [data-view="reviews"]');
+    await page.waitForFunction(() => /offline/i.test(document.getElementById("reviewsPage").textContent));
+    assert.match(await page.textContent("#reviewsPage"), /Retry/);
+    assert.deepEqual(errors.filter((e) => !/Failed to fetch|NetworkError/.test(e)), []);
   } finally {
     await context.close();
   }

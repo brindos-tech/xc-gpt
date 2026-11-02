@@ -313,7 +313,7 @@
 .cm-stars i { color: var(--border); font-style: normal; }
 .cm-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
 .cm-tag { font-size: 0.85em; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--border); }
-.cm-tag.ok { color: var(--accent); border-color: rgba(61,220,151,0.4); }
+.cm-tag.ok { color: var(--accent2, #3ddc97); border-color: rgba(61,220,151,0.4); }
 .cm-tag.no { color: var(--danger, #e65a5a); border-color: rgba(230,90,90,0.4); }
 .cm-notes { white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 6px; }
 .cm-open { margin-top: 12px; background: none; border: 1px solid var(--accent); color: var(--accent); border-radius: var(--radius-sm); padding: 7px 14px; cursor: pointer; font: inherit; }
@@ -386,3 +386,50 @@
 .cm-buttons .cm-open { margin-top: 0; }
 .cm-thanks { color: var(--accent2, #3ddc97); }
 .rating-label { color: var(--gold); font: 700 11px/14px system-ui, sans-serif; text-shadow: 0 0 3px #000, 0 0 3px #000; pointer-events: none; white-space: nowrap; }
+
+/* ---- flight plan search (rail) ---- */
+.trip-section { background: rgba(255,138,61,0.07); border: 1px solid rgba(255,138,61,0.4); border-radius: var(--radius-md); padding: 12px; }
+.trip-add-box { position: relative; margin-bottom: 8px; }
+.trip-add-box input { width: 100%; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--accent); border-radius: var(--radius-sm); padding: 9px 11px; }
+#tripSuggest { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 30; list-style: none; margin: 0; padding: 4px; background: var(--panel2); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); display: grid; gap: 2px; max-height: 320px; overflow-y: auto; }
+#tripSuggest[hidden] { display: none; }
+#tripSuggest li { display: grid; grid-template-columns: auto 1fr; gap: 0 8px; padding: 7px 9px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.86em; }
+#tripSuggest li small { grid-column: 2; }
+#tripSuggest li.active, #tripSuggest li:hover { background: rgba(255,138,61,0.16); }
+
+/* ---- field marks (chart-style) ---- */
+.field-pin { background: none; border: none; }
+.field-pin svg { display: block; filter: drop-shadow(0 0 1.5px rgba(0,0,0,0.55)); transition: transform 0.12s; }
+.field-pin.dim { opacity: 0.4; }
+.field-pin.sel svg { transform: scale(1.45); filter: drop-shadow(0 0 4px #fff) drop-shadow(0 0 1px #000); }
+.field-pin:hover svg { transform: scale(1.2); }
+.field-pin:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 50%; }
+/* forecast flight category (MVFR or worse) rings the mark */
+.field-pin[data-ring]::after { content: ""; position: absolute; inset: -3px; border-radius: 50%; border: 3px solid var(--ring); pointer-events: none; }
+/* search matches pulse */
+.field-pin.hit::before { content: ""; position: absolute; inset: -9px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 2px var(--accent), 0 0 12px var(--accent); animation: pinpulse 1.4s ease-out 3; pointer-events: none; }
+@keyframes pinpulse { from { transform: scale(0.6); opacity: 1; } to { transform: scale(1.15); opacity: 0.2; } }
+@media (prefers-reduced-motion: reduce) { .field-pin.hit::before { animation: none; } }
+.legend-pin { display: inline-flex; }
+.legend-pin svg { display: block; }
+
+/* marks shrink when the whole region is in view so a dense area stays readable */
+#plannerMap.z-low .field-pin svg { transform: scale(0.68); }
+#plannerMap.z-low .field-pin.sel svg { transform: scale(1.2); }
+#plannerMap.z-low .field-pin:hover svg { transform: scale(0.95); }
+
+/* ---- reviews page ---- */
+#pane-reviews { overflow-y: auto; }
+.reviews-page { max-width: 860px; margin: 0 auto; padding: 18px 18px 60px; }
+.rv-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 10px; }
+.rv-head h2 { margin: 0; font-size: 1.3em; }
+.rv-head .chip { margin-left: auto; }
+.rv-chips { margin-bottom: 10px; }
+.rv-list, .rv-rank-list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 10px; }
+.rv-card, .rv-row { background: var(--panel2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px 14px; font-size: 0.9em; }
+.rv-top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.rv-title { font-weight: 700; font-size: 1.02em; text-align: left; }
+.rv-row { display: grid; grid-template-columns: 2.2em 1fr auto; gap: 10px; align-items: start; }
+.rv-rank { font-weight: 800; color: var(--accent); font-size: 1.15em; }
+.rv-score { text-align: right; white-space: nowrap; }
+.rv-score b { color: var(--gold); }

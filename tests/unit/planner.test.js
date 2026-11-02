@@ -51,11 +51,43 @@ test("range, source and quick filters", () => {
   assert.equal(selectFields(fields, state({ rangeNm: 2000 }), vance, config).inRange, 3);
 });
 
-test("search finds a field past the range ring and marks it", () => {
-  const { fields: hits } = selectFields(fields, state({ search: "los angeles" }), vance, config);
-  assert.deepEqual(hits.map((f) => f.code), ["KLAX"]);
-  assert.equal(hits[0].outOfRange, true);
+test("search keeps every field in range, flags matches, and still finds one past the ring", () => {
+  const none = selectFields(fields, state(), vance, config);
+  const found = selectFields(fields, state({ search: "los angeles" }), vance, config);
+  // nothing in range disappears; the out-of-range match is added, dimmed, and flagged
+  for (const f of none.fields) assert.ok(found.fields.some((x) => x.code === f.code), `${f.code} stays on the map`);
+  assert.equal(found.fields.length, none.fields.length + 1);
+  assert.deepEqual(found.hits.map((f) => f.code), ["KLAX"]);
+  assert.equal(found.hits[0].outOfRange, true);
+  assert.equal(found.fields.find((f) => f.code === "KOKC").searchHit, false);
+  // a match inside the ring is flagged without changing the count
+  const near = selectFields(fields, state({ search: "will rogers" }), vance, config);
+  assert.equal(near.fields.length, none.fields.length);
+  assert.deepEqual(near.hits.map((f) => f.code), ["KOKC"]);
+  assert.equal(near.inRange, none.inRange);
+  // whitespace-only is not a search
+  assert.equal(selectFields(fields, state({ search: "  " }), vance, config).hits.length, 0);
   assert.equal(matchesSearch(fields[0], "aar okc"), true);
+});
+
+test("field marks: towered blue, non-towered magenta, military gets a star", async () => {
+  const { isTowered, isMilitary } = await import("../../assets/js/planner/fields.js");
+  assert.equal(isTowered({ tower: "ATCT-TRACON" }), true);
+  assert.equal(isTowered({ tower: "NON-ATCT" }), false);
+  assert.equal(isTowered({}), false);
+  assert.equal(isMilitary({ classification: "Military", ownership: "MA" }), true);
+  assert.equal(isMilitary({ classification: "MIL/CIV" }), true);
+  assert.equal(isMilitary({ classification: "P (with DoD tenant)", ownership: "PU" }), false, "a civil field with a DoD tenant is still civil");
+  assert.equal(isMilitary({ classification: "Unlisted", ownership: "MN" }), true);
+  const { pinSvg } = await import("../../assets/js/planner/planner-view.js");
+  const blue = pinSvg({ towered: true, military: false, status: "go" });
+  const pink = pinSvg({ towered: false, military: false, status: "no" });
+  const mil = pinSvg({ towered: true, military: true, status: "check" });
+  assert.match(blue, /#1d63d6/);
+  assert.match(pink, /#c4188f/);
+  assert.doesNotMatch(blue, /<polygon/);
+  assert.match(mil, /<polygon/);
+  assert.match(pink, /#e65a5a/, "the corner dot still carries approval status");
 });
 
 test("P-coded, status and GFC", () => {
@@ -446,4 +478,39 @@ test("trip: the crew card carries the legs, each stop's phone and approvals, and
   assert.match(html, /AAR AIRCRAFT SERVICES/i);
   assert.match(html, /Planning reference only/);
   assert.match(html, /Nav list 2026-09-28/);
+});
+
+// ---- reviews ----
+test("reviews: subjects resolve to fields/airspace, rankings are damped, perks list yes answers", async () => {
+  const rv = await import("../../assets/js/planner/reviews.js");
+  const byCode = new Map(fields.map((f) => [f.code, f]));
+  const kokc = rv.subjectInfo("field:KOKC", byCode);
+  assert.equal(kokc.kind, "field");
+  assert.equal(kokc.title, "KOKC · Will Rogers World Airport");
+  assert.match(kokc.sub, /AAR Aircraft Services/);
+  const moa = rv.subjectInfo("airspace:MOA:VANCE 1A MOA", byCode);
+  assert.deepEqual([moa.kind, moa.id, moa.title, moa.sub], ["air", "MOA:VANCE 1A MOA", "VANCE 1A MOA", "Military Operations Area"]);
+  assert.equal(rv.subjectInfo("field:KZZZ", byCode).known, false);
+
+  const summary = {
+    "field:KOKC": { n: 10, avg: 4.8, perks: { food: [4, 0], car: [1, 3], card: [2, 0] } },
+    "field:KPNC": { n: 1, avg: 5, perks: { food: [1, 0], car: [0, 0], card: [0, 0] } },
+    "airspace:MOA:VANCE 1A MOA": { n: 3, avg: 4, perks: { food: [0, 0], car: [0, 0], card: [0, 0] } },
+    "field:KLAX": { n: 2, avg: null, perks: { food: [0, 0], car: [0, 0], card: [0, 0] } },
+  };
+  const top = rv.rankSubjects(summary, byCode, { sort: "top" }).map((r) => r.subject);
+  assert.deepEqual(top, ["field:KOKC", "field:KPNC", "airspace:MOA:VANCE 1A MOA"], "ten 4.8s beat a single 5; unrated subjects aren't ranked");
+  assert.deepEqual(rv.rankSubjects(summary, byCode, { sort: "top", type: "air" }).map((r) => r.subject), ["airspace:MOA:VANCE 1A MOA"]);
+  assert.deepEqual(rv.rankSubjects(summary, byCode, { sort: "top", q: "ponca" }).map((r) => r.subject), ["field:KPNC"]);
+  assert.deepEqual(rv.rankSubjects(summary, byCode, { sort: "food" }).map((r) => r.subject), ["field:KOKC", "field:KPNC"]);
+  assert.deepEqual(rv.rankSubjects(summary, byCode, { sort: "car" }).map((r) => r.subject), ["field:KOKC"], "only fields with a yes");
+  assert.ok(rv.rankScore(5, 1) < rv.rankScore(4.8, 10));
+
+  const feed = [
+    { subject: "field:KOKC", name: "Lt A", notes: "Cookies at the desk", fees: "", amenities: "", planespotters: "" },
+    { subject: "airspace:MOA:VANCE 1A MOA", name: "Capt B", notes: "Hot on Fridays", fees: "", amenities: "", planespotters: "" },
+  ];
+  assert.equal(rv.filterFeed(feed, byCode, { type: "field" }).length, 1);
+  assert.equal(rv.filterFeed(feed, byCode, { q: "cookies" }).length, 1);
+  assert.equal(rv.filterFeed(feed, byCode, { q: "vance" }).length, 1, "matches the area's name");
 });
