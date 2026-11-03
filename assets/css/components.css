@@ -201,11 +201,6 @@
 .air-status { color: var(--muted); font-size: 0.8em; }
 
 /* -------- planner legend + field panel -------- */
-.planner-legend .legend-note { color: var(--muted); opacity: 0.8; }
-@media (max-width: 860px) {
-  .planner-legend { gap: 6px 10px; padding: 6px 10px; font-size: 0.68em; }
-  .planner-legend .legend-note { display: none; }
-}
 .fp-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
 .fp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
 .fp-cell { background: var(--panel2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 8px 10px; }
@@ -366,18 +361,20 @@
 @media print {
   body > *:not(#crewCard) { display: none !important; }
   html, body { background: #fff !important; height: auto !important; overflow: visible !important; }
-  #crewCard { display: block; color: #111; background: #fff; font: 11pt/1.35 system-ui, sans-serif; padding: 0; }
+  #crewCard { display: block; color-scheme: light; color: #111; background: #fff; font: 11pt/1.35 system-ui, sans-serif; padding: 0; }
   #crewCard h2 { font-size: 16pt; margin: 0 0 2pt; }
   #crewCard h3 { font-size: 12.5pt; margin: 0 0 4pt; border-bottom: 1.5pt solid #111; padding-bottom: 2pt; }
   #crewCard h3 small { font-weight: 400; color: #444; font-size: 10pt; }
   #crewCard .cc-route { font: 600 12pt ui-monospace, monospace; margin-bottom: 8pt; }
   #crewCard table { width: 100%; border-collapse: collapse; margin-bottom: 8pt; }
+  #crewCard td { color: #111; }
   #crewCard th, #crewCard td { text-align: left; vertical-align: top; padding: 2pt 6pt 2pt 0; font-size: 10pt; }
   #crewCard th { width: 22%; color: #333; font-weight: 600; }
   #crewCard .cc-legs th { width: auto; border-bottom: 1pt solid #111; }
   #crewCard .cc-total td { font-weight: 700; border-top: 1pt solid #111; }
   #crewCard .cc-stop { break-inside: avoid; margin-bottom: 10pt; }
   #crewCard .cc-muted { color: #555; }
+  #crewCard .cc-flag { color: #8a4b00; font-size: 9pt; }
   #crewCard .cc-foot { font-size: 9pt; color: #333; border-top: 1pt solid #999; padding-top: 4pt; }
   @page { margin: 14mm; }
 }
@@ -388,7 +385,6 @@
 .rating-label { color: var(--gold); font: 700 11px/14px system-ui, sans-serif; text-shadow: 0 0 3px #000, 0 0 3px #000; pointer-events: none; white-space: nowrap; }
 
 /* ---- flight plan search (rail) ---- */
-.trip-section { background: rgba(255,138,61,0.07); border: 1px solid rgba(255,138,61,0.4); border-radius: var(--radius-md); padding: 12px; }
 .trip-add-box { position: relative; margin-bottom: 8px; }
 .trip-add-box input { width: 100%; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--accent); border-radius: var(--radius-sm); padding: 9px 11px; }
 #tripSuggest { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 30; list-style: none; margin: 0; padding: 4px; background: var(--panel2); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); display: grid; gap: 2px; max-height: 320px; overflow-y: auto; }
@@ -410,8 +406,6 @@
 .field-pin.hit::before { content: ""; position: absolute; inset: -9px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 2px var(--accent), 0 0 12px var(--accent); animation: pinpulse 1.4s ease-out 3; pointer-events: none; }
 @keyframes pinpulse { from { transform: scale(0.6); opacity: 1; } to { transform: scale(1.15); opacity: 0.2; } }
 @media (prefers-reduced-motion: reduce) { .field-pin.hit::before { animation: none; } }
-.legend-pin { display: inline-flex; }
-.legend-pin svg { display: block; }
 
 /* marks shrink when the whole region is in view so a dense area stays readable */
 #plannerMap.z-low .field-pin svg { transform: scale(0.68); }
@@ -433,3 +427,56 @@
 .rv-rank { font-weight: 800; color: var(--accent); font-size: 1.15em; }
 .rv-score { text-align: right; white-space: nowrap; }
 .rv-score b { color: var(--gold); }
+
+/* ---- per-leg takeoff times (flight plan) ---- */
+.trip-leg { display: grid; gap: 3px; margin-bottom: 4px; padding-bottom: 6px; border-bottom: 1px dashed var(--border); }
+.trip-dep { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 0.85em; color: var(--muted); }
+.trip-dep input { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 6px; color-scheme: dark; }
+.trip-dep input:focus-visible { outline: 2px solid var(--accent); }
+.trip-arr { color: var(--text); }
+.trip-wx { border: 1px solid var(--c); color: var(--c); border-radius: 999px; padding: 0 7px; font-size: 0.92em; white-space: nowrap; }
+.trip-wxrow { display: flex; flex-wrap: wrap; gap: 3px 8px; align-items: center; }
+.trip-ret { margin-top: 2px; }
+
+/* ---- planner map key: small, vertical ---- */
+.map-legend.planner-legend { flex-direction: column; flex-wrap: nowrap; gap: 3px; padding: 6px 9px; font-size: 0.66em; line-height: 1.2; max-width: 190px; }
+.map-legend.planner-legend > div { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.map-legend.planner-legend hr { border: none; border-top: 1px solid var(--border); margin: 2px 0; width: 100%; }
+.lg-icon, .lg-icon svg { display: inline-flex; width: 13px; height: 13px; }
+.lg-dot { width: 8px; height: 8px; border-radius: 50%; margin: 0 2.5px; flex: none; }
+
+.trip-toggle-btn { align-items: center; gap: 6px; background: var(--accent); color: #0b1a12; border: none; border-radius: var(--radius-sm); font: inherit; font-weight: 700; font-size: 0.85em; padding: 7px 12px; cursor: pointer; }
+
+/* ---- weekend recs ---- */
+#pane-weekends { overflow-y: auto; }
+.wk-list { display: grid; gap: 12px; margin-top: 12px; }
+.wk-card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; }
+.wk-head { font-weight: 700; color: var(--muted); font-size: 0.82em; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+.wk-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.wk-title { font-size: 1.05em; }
+.wk-title a { color: var(--text); text-decoration: none; }
+.wk-title a:hover { text-decoration: underline; }
+.wk-primary .wk-title { font-size: 1.15em; }
+.wk-place { margin: 3px 0 4px; font-size: 0.9em; }
+.wk-city { color: var(--accent); font-weight: 700; }
+.wk-fly { color: var(--accent2, #3ddc97); font-size: 0.9em; }
+.wk-wx { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.wk-wx-day { font-size: 0.78em; color: var(--muted); background: var(--panel2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 2px 7px; white-space: nowrap; }
+.wk-wx-day.wk-wx-warn { color: var(--danger, #e65a5a); border-color: var(--danger, #e65a5a); }
+.wk-backups { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); display: grid; gap: 10px; }
+.wk-backup-row { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; font-size: 0.9em; }
+.wk-backup .wk-title { font-size: 0.95em; font-weight: 600; }
+.badge.wk-kind { font-size: 0.72em; }
+.badge.wk-sports { color: #6fb3ff; border-color: rgba(111,179,255,0.5); }
+.badge.wk-concert { color: #e58bd9; border-color: rgba(229,139,217,0.5); }
+.badge.wk-other { color: var(--gold); border-color: rgba(232,193,94,0.5); }
+@media (max-width: 600px) {
+  .wk-backup-row { grid-template-columns: 1fr; gap: 4px; }
+}
+.fp-flag.info { color: var(--accent2, #3ddc97); }
+@media print {
+  #crewCard .cc-zones th { width: auto; border-bottom: 1pt solid #111; }
+  #crewCard .cc-zones td { padding: 1.5pt 14pt 1.5pt 0; }
+  #crewCard .cc-tz { color: #0b5d3a; font-weight: 600; }
+  #crewCard .cc-zulu { margin: 0 0 8pt; font-size: 9pt; }
+}

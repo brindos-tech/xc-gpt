@@ -117,10 +117,11 @@ test("field list switch, quick filters and airspace toggles", async () => {
     assert.ok(pCount > 0 && pCount < navCount, `P-coded (${pCount}) is a subset of the list (${navCount})`);
 
     await page.click('[data-src="nav"]');
-    assert.equal(await page.locator('[data-ff="ron"], [data-ff="towered"]').count(), 0, "RON and Towered toggles are gone");
-    assert.match(await page.textContent('[data-ff="fuel"]'), /Fuel available/);
-    await page.click('[data-ff="fuel"]');
-    await page.waitForFunction((n) => document.querySelectorAll("#plannerMap [data-field]").length < n, navCount);
+    // the "Show only" chips are gone, and fields with a short runway aren't on the map
+    assert.equal(await page.locator("[data-ff], #fieldFilterChips").count(), 0);
+    assert.doesNotMatch(await page.textContent("#filterRail"), /Show only/);
+    assert.equal(await page.locator('#plannerMap [data-field="KRWV"]').count(), 0, "KRWV's longest runway is 3,252 ft");
+    assert.equal(await page.locator('#plannerMap [data-field="KOKC"]').count(), 1);
 
     // airspace outside the range ring is not drawn: shrinking the range lowers the MOA count
     await page.waitForFunction(() => /^ · \d+$/.test(document.querySelector('[data-air-status="MOA"]')?.textContent || ""), null, { timeout: 15000 });
@@ -273,7 +274,8 @@ test("weather bar: day picker, time slider, overlays, field forecast", async () 
     assert.match(await page.evaluate(() => location.hash), /wxt=\d{4}-\d{2}-\d{2}T\d{2}%3A\d{2}Z/);
 
     // clicking the map, or a field, never pops a weather bubble over it
-    await page.mouse.click(700, 450);
+    // a click on the map itself (not on a pin or a bar)
+    await page.evaluate(() => document.getElementById("plannerMap").dispatchEvent(new MouseEvent("click", { bubbles: true, clientX: 600, clientY: 500 })));
     assert.equal(await page.locator(".leaflet-popup").count(), 0);
 
     // layers toggle off/on and a field sheet shows its forecast table
@@ -415,7 +417,7 @@ test("trip builder: add stops from the sheet, legs and per diem, route string, c
     await page.click("#fieldClose");
     await page.locator('#plannerMap [data-field="KPNC"]').dispatchEvent("click");
     await page.click('[data-trip-toggle="KPNC"]');
-    await page.waitForFunction(() => document.querySelectorAll("#tripBody .trip-stop").length === 2);
+    await page.waitForFunction(() => document.querySelectorAll("#tripBody .trip-stop:not(.trip-ret)").length === 2);
     await page.click('#tripBody [data-trip="up"][data-i="1"]');
     await page.waitForFunction(() => /KEND KPNC KOKC KEND/.test(document.getElementById("tripBody").textContent));
 
@@ -454,8 +456,6 @@ test("ratings show on pins (label + 'Has comments' chip) and a problem report go
   });
   try {
     await page.waitForFunction(() => document.querySelectorAll("#plannerMap [data-field]").length > 0);
-    await page.click('[data-ff="rated"]');
-    await page.waitForFunction(() => document.querySelectorAll("#plannerMap [data-field]").length === 1);
     await page.click(".leaflet-control-zoom-in"); // labels appear from zoom 6
     await page.waitForFunction(() => /★4\.5/.test(document.querySelector("#plannerMap .rating-label")?.textContent || ""));
 
@@ -514,9 +514,13 @@ test("flight plan: type a field in the rail to add it, with keyboard selection",
   const { page, context, errors } = await openPage();
   try {
     assert.equal(await page.isVisible("#tripSearch"), true);
-    // the flight plan box is at the top of the rail, right under the departure base
-    const order = await page.evaluate(() => [...document.querySelectorAll("#filterRail .rail-section h3")].map((h) => h.textContent.trim()).slice(0, 3));
-    assert.deepEqual(order.map((t) => t.split(" ")[0]), ["Departure", "Flight", "Range"]);
+    // the flight plan is a bar on the right of the screen, beside the map; the rail no longer carries it
+    const bar = await page.locator("#tripBar").boundingBox();
+    const mapBox = await page.locator("#plannerMap").boundingBox();
+    assert.ok(bar.x >= mapBox.x + mapBox.width - 2, "the flight plan bar sits to the right of the map");
+    assert.equal(await page.locator("#filterRail #tripSearch").count(), 0);
+    const order = await page.evaluate(() => [...document.querySelectorAll("#filterRail .rail-section h3")].map((h) => h.textContent.trim().split(" ")[0]));
+    assert.deepEqual(order.slice(0, 2), ["Departure", "Range"]);
     await page.fill("#tripSearch", "pnc");
     await page.waitForSelector("#tripSuggest li");
     assert.match(await page.textContent("#tripSuggest li"), /KPNC/);
@@ -531,7 +535,7 @@ test("flight plan: type a field in the rail to add it, with keyboard selection",
     await page.waitForSelector("#tripSuggest li");
     await page.press("#tripSearch", "ArrowDown");
     await page.press("#tripSearch", "Enter");
-    await page.waitForFunction(() => document.querySelectorAll("#tripBody .trip-stop").length === 2);
+    await page.waitForFunction(() => document.querySelectorAll("#tripBody .trip-stop:not(.trip-ret)").length === 2);
     assert.deepEqual(errors, []);
   } finally {
     await context.close();
@@ -634,6 +638,142 @@ test("reviews tab says so when the comments server is unreachable", async () => 
     await page.waitForFunction(() => /offline/i.test(document.getElementById("reviewsPage").textContent));
     assert.match(await page.textContent("#reviewsPage"), /Retry/);
     assert.deepEqual(errors.filter((e) => !/Failed to fetch|NetworkError/.test(e)), []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("flight plan: pick the takeoff date and time of each leg", async () => {
+  const { page, context, errors } = await openPage();
+  try {
+    await page.fill("#tripSearch", "KPNC");
+    await page.press("#tripSearch", "Enter");
+    await page.waitForSelector("#tripBody .trip-leg");
+    await page.fill("#tripSearch", "KOKC");
+    await page.press("#tripSearch", "Enter");
+    await page.waitForFunction(() => document.querySelectorAll("#tripBody [data-trip-dep]").length === 3); // two stops + the return
+
+    // every leg shows a takeoff picker, a landing time and a field-local zone
+    const inputs = page.locator("#tripBody [data-trip-dep]");
+    assert.match(await inputs.nth(0).inputValue(), /^\d{4}-\d{2}-\d{2}T09:00$/, "leg 1 defaults to 09:00 on the trip date");
+    const second = await inputs.nth(1).inputValue();
+    assert.ok(second > (await inputs.nth(0).inputValue()), "leg 2 is after leg 1");
+    assert.match(await page.textContent("#tripBody .trip-leg"), /Lands \d+:\d\d (AM|PM) \w+ · \d{4}Z at KPNC/);
+
+    // set leg 2 two days later: it becomes explicit (with an 'auto' reset) and rides in the URL
+    const target = new Date(Date.now() + 2 * 86400000);
+    const day = `${target.getFullYear()}-${String(target.getMonth() + 1).padStart(2, "0")}-${String(target.getDate()).padStart(2, "0")}`;
+    await inputs.nth(1).fill(`${day}T14:30`);
+    await page.waitForSelector('#tripBody [data-trip="reset-dep"]');
+    assert.equal(await page.locator("#tripBody [data-trip-dep]").nth(1).inputValue(), `${day}T14:30`);
+    assert.match(await page.evaluate(() => location.hash), /trip=KPNC%2CKOKC%40\d{12}|trip=KPNC,KOKC@\d{12}/);
+    // the return leg now follows leg 2's landing
+    assert.ok((await page.locator("#tripBody [data-trip-dep]").nth(2).inputValue()) > `${day}T14:30`);
+
+    // changing leg 1's date moves the trip day for the weather and per diem as well
+    const first = new Date(Date.now() + 86400000);
+    const day1 = `${first.getFullYear()}-${String(first.getMonth() + 1).padStart(2, "0")}-${String(first.getDate()).padStart(2, "0")}`;
+    await page.locator("#tripBody [data-trip-dep]").nth(0).fill(`${day1}T07:45`);
+    await page.waitForFunction((d) => location.hash.includes(`day=${d}`), day1);
+    assert.equal(await page.locator("#tripBody [data-trip-dep]").nth(0).inputValue(), `${day1}T07:45`);
+
+    // "auto" puts leg 2 back on the automatic schedule
+    await page.click('#tripBody [data-trip="reset-dep"]');
+    await page.waitForFunction(() => !document.querySelector('#tripBody [data-trip="reset-dep"]'));
+
+    // the crew card carries the schedule
+    await page.evaluate(() => (window.print = () => {}));
+    await page.click('#tripBody [data-trip="print"]');
+    const card = await page.textContent("#crewCard");
+    assert.match(card, /Takeoff/);
+    assert.match(card, /7:45 AM/);
+    assert.match(card, /Time zones — all one zone/);
+    assert.match(card, /Central \(C[SD]T, UTC−[56]\)/);
+    assert.match(card, /\d{4}Z/, "Zulu times on the card");
+    // the bar itself shows Zulu next to the local takeoff and landing times
+    assert.match(await page.textContent("#tripBody"), /\d{4}Z/);
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("flight plan bar can be hidden and brought back; the map key is small and says what green and yellow mean", async () => {
+  const { page, context, errors } = await openPage();
+  try {
+    // the key: three marks and the two dot colours — nothing about red, orange or faded fields
+    const key = (await page.textContent("#plannerLegend")).replace(/\s+/g, " ");
+    for (const word of ["Towered", "Non-towered", "Military", "Approved: land, fuel, RON", "See comments (fuel/RON)"]) assert.ok(key.includes(word), word);
+    assert.doesNotMatch(key, /No fuel|not approved|faded|outside range/i);
+    assert.equal(await page.locator("#plannerLegend svg").count(), 3);
+    const box = await page.locator("#plannerLegend").boundingBox();
+    assert.ok(box.width < 210 && box.height < 140, `compact key (${Math.round(box.width)}×${Math.round(box.height)})`);
+
+    // hide / show the bar
+    assert.equal(await page.isVisible("#tripBar"), true);
+    await page.click("#tripBarClose");
+    await page.waitForFunction(() => document.querySelector(".app").dataset.trip === "closed");
+    assert.equal(await page.isVisible("#tripBar"), false);
+    await page.click("#tripOpenTab");
+    await page.waitForFunction(() => !document.querySelector(".app").dataset.trip);
+    assert.equal(await page.isVisible("#tripBar"), true);
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("mobile: the flight plan opens as a sheet from the header button", async () => {
+  const { page, context, errors } = await openPage({ width: 390, height: 780 });
+  try {
+    assert.equal(await page.isVisible("#tripToggle"), true);
+    assert.equal(await page.evaluate(() => document.getElementById("tripBar").getBoundingClientRect().top >= window.innerHeight - 1), true, "off screen until opened");
+    await page.click("#tripToggle");
+    await page.waitForSelector("#tripBar.open");
+    await page.fill("#tripSearch", "KPNC");
+    await page.press("#tripSearch", "Enter");
+    await page.waitForSelector("#tripBody .trip-stop");
+    assert.match(await page.textContent("#tripToggleCount"), /1 stop/);
+    await page.click("#tripBarClose");
+    await page.waitForFunction(() => !document.getElementById("tripBar").classList.contains("open"));
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("weekend recs tab: a pick and two backups per weekend, a mix of kinds, and 'see on the events map'", async () => {
+  const { page, context, errors } = await openPage();
+  try {
+    await page.click('#tabBar [data-view="weekends"]');
+    await page.waitForSelector("#weekendsPage .wk-card .wk-primary", { timeout: 30000 });
+    assert.match(await page.evaluate(() => location.hash), /v=weekends/);
+    assert.equal(await page.locator("#tabBar button.active").textContent(), "Weekend Recs");
+    // the shared rail stays (base + range), without the planner/events-only sections
+    assert.equal(await page.isVisible("#originChips"), true);
+    assert.equal(await page.isVisible("#airspaceToggles"), false);
+    assert.equal(await page.isVisible("#tripBar"), false);
+
+    const cards = page.locator("#weekendsPage .wk-card");
+    assert.ok((await cards.count()) >= 8, "a dozen weekends");
+    assert.ok((await page.locator("#weekendsPage .wk-card .wk-primary").count()) >= 6);
+    // most weekends have two backups
+    assert.ok((await page.locator("#weekendsPage .wk-card:has(.wk-backup-row:nth-child(2))").count()) >= 4);
+    // a mix: the primaries are not all one kind
+    const kinds = await page.evaluate(() => new Set([...document.querySelectorAll("#weekendsPage .wk-primary .wk-kind")].map((b) => b.textContent.trim())).size);
+    assert.ok(kinds >= 2, `${kinds} kinds among the picks`);
+    assert.match(await page.textContent("#weekendsPage"), /mixed on purpose/);
+
+    // the header search narrows what is considered
+    await page.fill("#globalSearch", "rodeo");
+    await page.waitForFunction(() => /rodeo/i.test(document.querySelector("#weekendsPage .wk-primary .wk-title")?.textContent || ""), null, { timeout: 8000 });
+    await page.fill("#globalSearch", "");
+
+    // see it on the events map: switches page with the place selected and that weekend as the date window
+    await page.locator("#weekendsPage [data-wk-open]").first().click();
+    await page.waitForSelector("#detailPanel.open", { timeout: 15000 });
+    assert.equal(await page.locator("#tabBar button.active").textContent(), "Events");
+    assert.deepEqual(errors, []);
   } finally {
     await context.close();
   }

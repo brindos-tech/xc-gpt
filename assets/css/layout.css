@@ -326,12 +326,59 @@
   .rail-backdrop, .rail-mobile-header, .detail-backdrop { display: none !important; }
 }
 
+/* -------- flight plan bar (planner only), docked on the right -------- */
+.trip-bar {
+  display: none;
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 14px 14px 24px;
+  min-height: 0;
+}
+.trip-bar-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.trip-bar-head h3 { margin: 0; font-size: 0.82em; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.trip-bar-close { background: none; border: 1px solid var(--border); color: var(--text); border-radius: var(--radius-sm); width: 28px; height: 28px; cursor: pointer; font-size: 1.2em; line-height: 1; }
+.trip-backdrop, .trip-open-tab, .trip-toggle-btn { display: none; }
+@media (min-width: 861px) {
+  .app[data-page="planner"] .app-body { grid-template-columns: var(--rail-width) 1fr var(--tripbar-width); }
+  .app[data-page="planner"] .trip-bar { display: block; }
+  .app[data-page="planner"][data-trip="closed"] .app-body { grid-template-columns: var(--rail-width) 1fr 0; }
+  .app[data-page="planner"][data-trip="closed"] .trip-bar { display: none; }
+  /* the hidden bar leaves a tab on the right edge of the map to bring it back */
+  .app[data-page="planner"][data-trip="closed"] .trip-open-tab {
+    display: block; position: absolute; right: 0; top: 14px; z-index: 600;
+    background: var(--accent); color: #0b1a12; border: none; font: inherit; font-size: 0.8em; font-weight: 700;
+    padding: 8px 10px; border-radius: var(--radius-sm) 0 0 var(--radius-sm); cursor: pointer; box-shadow: var(--shadow-sm);
+  }
+}
+@media (max-width: 860px) {
+  .app[data-page="planner"] .trip-toggle-btn { display: inline-flex; }
+  .app[data-page="planner"] .app-body { grid-template-columns: 1fr; }
+  .trip-bar {
+    display: block;
+    position: fixed; left: 0; right: 0; bottom: env(safe-area-inset-bottom, 0px);
+    max-height: 72vh; z-index: 520;
+    border-left: none; border-top: 1px solid var(--border);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0; box-shadow: var(--shadow-lg);
+    transform: translateY(110%); transition: transform 0.2s ease;
+  }
+  .trip-bar.open { transform: translateY(0); }
+  .trip-bar-close { transform: rotate(90deg); }
+  .trip-backdrop { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 519; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+  .trip-backdrop.open { opacity: 1; pointer-events: auto; }
+}
+.app:not([data-page="planner"]) .trip-bar, .app:not([data-page="planner"]) .trip-backdrop, .app:not([data-page="planner"]) .trip-open-tab, .app:not([data-page="planner"]) .trip-toggle-btn { display: none !important; }
+
 /* -------- two pages: planner (home) + events -------- */
 /* The rail's sections and the date strip each belong to one page. */
 .app[data-page="planner"] [data-page="events"],
 .app[data-page="events"] [data-page="planner"] { display: none; }
 .app[data-page="planner"] .main-area { grid-template-rows: 1fr; }
 .app[data-page="planner"] .scrubber-wrap { display: none; }
+/* weekend recs: the shared rail (base + range only), no date strip or map sections */
+.app[data-page="weekends"] [data-page="planner"], .app[data-page="weekends"] [data-page="events"] { display: none; }
+.app[data-page="weekends"] .scrubber-wrap { display: none; }
+.app[data-page="weekends"] .main-area { grid-template-rows: 1fr; }
 /* reviews: a plain page, no rail or date strip */
 .app[data-page="reviews"] .filter-rail, .app[data-page="reviews"] .rail-backdrop, .app[data-page="reviews"] .scrubber-wrap { display: none; }
 .app[data-page="reviews"] .app-body { grid-template-columns: 1fr; }

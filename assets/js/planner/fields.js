@@ -26,15 +26,8 @@ export function mergeFields(navinfo, factsFile, aircard, approaches) {
  */
 export const isPCoded = (f) => /^P \(/.test(f.classification || "");
 
-export const FIELD_FILTERS = [
-  { key: "fuel", label: "Fuel available", test: (f) => f.fuel === "Approved" },
-  { key: "dla", label: "DLA fuel contract", test: (f) => hasContractMerchant(f) },
-  { key: "aircard", label: "AIR Card on-site", test: (f) => (f.aircard || []).some((m) => m.onSite) },
-  { key: "t6", label: "T-6 suitable", test: (f) => (f.suitability || []).includes("T-6") },
-  { key: "fbo", label: "Has FBO", test: (f) => Boolean(f.fbo) },
-  { key: "rated", label: "Has comments", test: (f) => (f.rating?.n || 0) > 0 },
-  { key: "military", label: "Military / joint", test: (f) => /Military|MIL\/CIV|with DoD tenant/.test(f.classification || "") },
-];
+/** Fields whose longest runway is known to be shorter than `minFt` are left off the map; an unknown runway length is kept. */
+export const meetsRunway = (f, minFt) => !(Number.isFinite(f.runway?.len) && f.runway.len < minFt);
 
 /** Sectional-chart convention: towered airports are drawn blue, non-towered magenta; military fields get their own mark. */
 export const isTowered = (f) => Boolean(f.tower) && f.tower !== "NON-ATCT";
@@ -58,14 +51,12 @@ export function matchesSearch(f, q) {
  * a search can still find it.
  */
 export function selectFields(fields, state, origin, config) {
-  const filters = FIELD_FILTERS.filter((x) => state.fieldFilters?.has(x.key));
   const searching = Boolean(state.search?.trim());
   const out = [];
   let inRange = 0;
   for (const f of fields) {
     if (!f.hasPosition) continue;
     if (state.fieldSource === "p" && !isPCoded(f)) continue;
-    if (!filters.every((x) => x.test(f))) continue;
     if (state.approachTypes?.size && !hasApproachTypes(f, state.approachTypes)) continue;
     const hit = searching && matchesSearch(f, state.search);
     const distanceNm = greatCircleNm(origin, f);

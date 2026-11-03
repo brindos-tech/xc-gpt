@@ -67,7 +67,7 @@ export function sunHours(f, tripDate) {
       if (hours.closeMin < set) flags.push({ level: "warn", text: `closes before sunset (${clock(sun.sunset, tz)})` });
     }
   } else hoursText = hours.why ? `${hours.why}` : "";
-  return { tz, abbr: sun ? zoneAbbr(sun.sunset, tz) : "", sun, sunText: sun ? `Sunrise ${clock(sun.sunrise, tz)} · Sunset ${clock(sun.sunset, tz)} · Civil twilight ends ${clock(sun.dusk, tz)}` : "Sun doesn't rise or set that day", hours, hoursText, flags };
+  return { tz, abbr: sun ? zoneAbbr(sun.sunset, tz) : "", sun, sunText: sun ? `MCT ${clock(sun.dawn, tz)} · Sunrise ${clock(sun.sunrise, tz)} · Sunset ${clock(sun.sunset, tz)} · ECT ${clock(sun.dusk, tz)}` : "Sun doesn't rise or set that day", hours, hoursText, flags };
 }
 
 function sunHoursHtml(f, tripDate) {

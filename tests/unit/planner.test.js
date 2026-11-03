@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mergeFields, isPCoded, selectFields, fieldStatus, gfcStatus, perDiemFor, fiscalYear, telHref, matchesSearch, FIELD_FILTERS } from "../../assets/js/planner/fields.js";
+import { mergeFields, isPCoded, selectFields, fieldStatus, gfcStatus, perDiemFor, fiscalYear, telHref, matchesSearch, meetsRunway } from "../../assets/js/planner/fields.js";
 import { airspaceRows, airspaceTooltip } from "../../assets/js/planner/airspace.js";
 
 const config = { aircraft: { cruiseKts: 300, legRangeNm: 400 } };
@@ -31,7 +31,7 @@ const aircard = {
   },
 };
 const fields = mergeFields(nav, facts, aircard);
-const state = (patch = {}) => ({ fieldSource: "nav", fieldFilters: new Set(), search: "", rangeNm: 600, ...patch });
+const state = (patch = {}) => ({ fieldSource: "nav", search: "", rangeNm: 600, ...patch });
 
 test("merge joins facts and flags fields without a position", () => {
   assert.equal(fields.length, 4);
@@ -39,16 +39,15 @@ test("merge joins facts and flags fields without a position", () => {
   assert.equal(fields.find((f) => f.code === "KOKC").tower, "ATCT-TRACON");
 });
 
-test("range, source and quick filters", () => {
+test("range and source; fields with a known short runway are left off", () => {
   assert.deepEqual(selectFields(fields, state(), vance, config).fields.map((f) => f.code), ["KPNC", "KOKC"]);
   assert.deepEqual(selectFields(fields, state({ fieldSource: "p" }), vance, config).fields.map((f) => f.code), ["KOKC"]);
-  assert.deepEqual(selectFields(fields, state({ fieldFilters: new Set(["fuel"]) }), vance, config).fields.map((f) => f.code), ["KOKC"]);
-  assert.deepEqual(selectFields(fields, state({ fieldFilters: new Set(["dla"]) }), vance, config).fields.map((f) => f.code), ["KOKC"]);
-  assert.deepEqual(selectFields(fields, state({ fieldFilters: new Set(["aircard"]) }), vance, config).fields.map((f) => f.code), ["KPNC", "KOKC"]);
-  // RON and Towered are not toggles any more
-  assert.deepEqual(FIELD_FILTERS.map((f) => f.key), ["fuel", "dla", "aircard", "t6", "fbo", "rated", "military"]);
-  assert.equal(FIELD_FILTERS[0].label, "Fuel available");
   assert.equal(selectFields(fields, state({ rangeNm: 2000 }), vance, config).inRange, 3);
+  assert.equal(meetsRunway({ runway: { len: 3975 } }, 4000), false);
+  assert.equal(meetsRunway({ runway: { len: 4000 } }, 4000), true);
+  assert.equal(meetsRunway({ runway: { len: 9802 } }, 4000), true);
+  assert.equal(meetsRunway({}, 4000), true, "an unknown runway length is kept, not guessed at");
+  assert.equal(meetsRunway({ runway: null }, 4000), true);
 });
 
 test("search keeps every field in range, flags matches, and still finds one past the ring", () => {
@@ -369,6 +368,7 @@ test("field sheet helper: closed weekend and closing before sunset are flagged",
   const mon = sunHours(f, new Date(2026, 10, 9)); // sunset ≈ 5:27 PM, FBO closes at 5:00 PM
   assert.ok(mon.flags.some((x) => /before sunset/.test(x.text)));
   assert.match(mon.sunText, /Sunset 5:\d\d PM/);
+  assert.match(mon.sunText, /MCT \d+:\d\d AM · Sunrise .*ECT \d+:\d\d PM/);
   assert.equal(sunHours({ lat: null, lon: null }, new Date()), null);
 });
 
@@ -513,4 +513,122 @@ test("reviews: subjects resolve to fields/airspace, rankings are damped, perks l
   assert.equal(rv.filterFeed(feed, byCode, { type: "field" }).length, 1);
   assert.equal(rv.filterFeed(feed, byCode, { q: "cookies" }).length, 1);
   assert.equal(rv.filterFeed(feed, byCode, { q: "vance" }).length, 1, "matches the area's name");
+});
+
+// ---- takeoff times per leg ----
+test("clock helpers: wall-clock <-> instant in a zone, across daylight time", async () => {
+  const { zonedInstant, wallClock } = await import("../../assets/js/planner/sun.js");
+  const cst = zonedInstant("2026-11-07", "09:00", "America/Chicago");
+  assert.equal(cst.toISOString(), "2026-11-07T15:00:00.000Z"); // CST, UTC-6
+  const cdt = zonedInstant("2026-07-04", "09:00", "America/Chicago");
+  assert.equal(cdt.toISOString(), "2026-07-04T14:00:00.000Z"); // CDT, UTC-5
+  assert.deepEqual(wallClock(cst, "America/Denver"), { date: "2026-11-07", time: "08:00" });
+  assert.deepEqual(wallClock(new Date("2026-11-08T03:30:00Z"), "America/Los_Angeles"), { date: "2026-11-07", time: "19:30" }, "the day rolls back west of UTC");
+});
+
+test("trip URL: takeoff times ride along with each stop", async () => {
+  const trip = await import("../../assets/js/planner/trip.js");
+  const stops = [{ code: "KOKC", ron: true, dep: "2026-11-07T09:30" }, { code: "KTUL", ron: false }];
+  assert.equal(trip.encodeTrip(stops), "KOKC*@202611070930,KTUL");
+  assert.deepEqual(trip.decodeTrip("KOKC*@202611070930,KTUL,junk,KXXX@12"), stops);
+  assert.equal(trip.decodeDep(trip.encodeDep("2026-11-08T17:05")), "2026-11-08T17:05");
+  assert.equal(trip.decodeDep("nope"), "");
+});
+
+test("trip schedule: defaults chain from each landing, RON goes to next morning, explicit times win, flags", async () => {
+  const trip = await import("../../assets/js/planner/trip.js");
+  const o = { icao: "KEND", lat: 36.3392, lon: -97.9166, tz: "America/Chicago" };
+  const mk = (code, lat, lon, extra = {}) => ({ code, lat, lon, state: "OK", ...extra });
+  const A = mk("KOKC", 35.39, -97.6, { attendance: "MON-FRI 0800-1700" });
+  const B = mk("KTUL", 36.2, -95.9);
+  const sched = (stops, extra = {}) => {
+    const legs = trip.tripLegs(o, stops.map((s) => s.field), config).legs;
+    return trip.scheduleTrip({ origin: o, stops, legs, tripDate: "2026-11-07", ...extra });
+  };
+
+  // no RON: leg 1 at 09:00 on the trip date, next leg an hour after landing (rounded up to 5 min), return likewise
+  const day = sched([{ field: A, ron: false }, { field: B, ron: false }]);
+  assert.equal(day.length, 3);
+  assert.deepEqual([day[0].depLocal.date, day[0].depLocal.time], ["2026-11-07", "09:00"]);
+  assert.ok(day[0].eta > day[0].dep && day[1].dep >= new Date(day[0].eta.getTime() + 60 * 60000));
+  assert.ok(day[1].dep.getUTCMinutes() % 5 === 0, "rounded to 5 minutes");
+  assert.ok(day.every((l) => !l.explicit));
+
+  // RON at the first stop: the next leg leaves the next morning at 09:00 local
+  const night = sched([{ field: A, ron: true }, { field: B, ron: false }]);
+  assert.deepEqual([night[1].depLocal.date, night[1].depLocal.time], ["2026-11-08", "09:00"]);
+
+  // explicit: leg 2 on the 8th at 14:30, return left to automatic; leg 1's explicit value only supplies the time
+  const set = sched([{ field: A, ron: false, dep: "2099-01-01T07:15" }, { field: B, ron: false, dep: "2026-11-08T14:30" }]);
+  assert.deepEqual([set[0].depLocal.date, set[0].depLocal.time], ["2026-11-07", "07:15"], "leg 1 stays on the trip date");
+  assert.deepEqual([set[1].depLocal.date, set[1].depLocal.time, set[1].explicit], ["2026-11-08", "14:30", true]);
+  assert.ok(set[2].dep >= new Date(set[1].eta.getTime() + 60 * 60000));
+  assert.equal(sched([{ field: A, ron: false }], { returnDep: "2026-11-09T08:00" })[1].depLocal.time, "08:00");
+
+  // flags: Saturday arrival at a MON-FRI FBO; a night landing; overlapping legs
+  assert.ok(trip.legFlags(day[0]).some((f) => /FBO closed that day/.test(f.text)));
+  // Tulsa on Nov 7: sunset ≈ 5:25 PM, ECT ≈ 5:52 PM. Landing in civil twilight is not night.
+  const twilight = sched([{ field: B, ron: false, dep: "2026-11-07T17:25" }]);
+  assert.ok(twilight[0].etaLocal.time > "17:25" && twilight[0].etaLocal.time < "17:50");
+  assert.equal(trip.legFlags(twilight[0]).some((f) => /night/.test(f.text)), false, "between sunset and ECT is still civil twilight");
+  const late = sched([{ field: B, ron: false, dep: "2026-11-07T18:10" }]);
+  assert.ok(trip.legFlags(late[0]).some((f) => /after ECT/.test(f.text) && /night/.test(f.text)), "an 18:10 takeoff lands after ECT");
+  const early = sched([{ field: B, ron: false, dep: "2026-11-07T06:00" }]);
+  assert.ok(trip.legFlags(early[0]).some((f) => /before MCT/.test(f.text)), "a 06:00 takeoff lands before MCT (~6:30)");
+  const overlap = sched([{ field: A, ron: false }, { field: B, ron: false, dep: "2026-11-07T09:05" }]);
+  assert.ok(trip.legFlags(overlap[1]).some((f) => /before the previous leg lands/.test(f.text)));
+  assert.equal(trip.legFlags(day[2]).length, 0, "the base isn't checked");
+
+  // lodging rate follows the night's date: December vs July rates differ
+  const rate = { 2027: { area: "X", lodging: [90, 90, 90, 90, 90, 90, 90, 90, 90, 100, 110, 150], meals: 70 } };
+  const F = { code: "KA", perDiem: rate };
+  assert.equal(trip.tripPerDiem([{ field: F, ron: true, date: new Date(2026, 11, 20) }], new Date(2026, 10, 7)).lodging, 150);
+  assert.equal(trip.tripPerDiem([{ field: F, ron: true }], new Date(2026, 10, 7)).lodging, 110, "no date: the trip date's month");
+});
+
+// ---- time zones and Zulu ----
+test("clock helpers: Zulu, zone labels, and gaining/losing an hour", async () => {
+  const sun = await import("../../assets/js/planner/sun.js");
+  const dep = sun.zonedInstant("2026-11-07", "09:00", "America/Chicago");
+  assert.equal(sun.zulu(dep).time, "1500Z");
+  assert.equal(sun.zulu(dep).text, "Nov 7 1500Z");
+  assert.equal(sun.zulu(new Date("2026-11-08T02:05:00Z")).date, "Nov 8", "the Zulu date can differ from the local date");
+  assert.equal(sun.tzLabel("America/Chicago", dep), "Central (CST, UTC−6)");
+  assert.equal(sun.tzLabel("America/Denver", sun.zonedInstant("2026-07-07", "09:00", "America/Denver")), "Mountain (MDT, UTC−6)");
+  assert.equal(sun.tzLabel("America/Phoenix", sun.zonedInstant("2026-07-07", "09:00", "America/Phoenix")), "Mountain (MST, UTC−7)");
+  const arr = new Date(dep.getTime() + 90 * 60000);
+  assert.deepEqual(sun.clockShift("America/Chicago", dep, "America/Chicago", arr), { minutes: 0, kind: "none", text: "" });
+  const west = sun.clockShift("America/Chicago", dep, "America/Denver", arr);
+  assert.equal(west.kind, "gain");
+  assert.equal(west.minutes, -60);
+  assert.match(west.text, /Central → Mountain: you gain 1 hour/);
+  const east = sun.clockShift("America/Denver", dep, "America/New_York", arr);
+  assert.equal(east.kind, "lose");
+  assert.match(east.text, /you lose 2 hours/);
+});
+
+test("crew card: time zones listed, shifts called out, local and Zulu on every leg", async () => {
+  const { crewCardHtml } = await import("../../assets/js/planner/crew-card.js");
+  const trip = await import("../../assets/js/planner/trip.js");
+  const o = { icao: "KEND", lat: 36.3392, lon: -97.9166, tz: "America/Chicago" };
+  const den = { code: "KDEN", name: "Denver Intl", city: "Denver, CO", state: "CO", lat: 39.86, lon: -104.67, land: "Approved", fuel: "Approved", ron: "Approved", classification: "Civil", aircard: [], approaches: [], approachTypes: [] };
+  const stops = [{ field: den, ron: false }];
+  const legs = trip.tripLegs(o, [den], config);
+  const schedule = trip.scheduleTrip({ origin: o, stops, legs: legs.legs, tripDate: "2026-11-07" });
+  const html = crewCardHtml({ origin: o, stops, legs, schedule, cost: trip.tripPerDiem(stops, new Date(2026, 10, 7)), tripDate: new Date(2026, 10, 7), route: trip.routeString(o, [den]), stateTaxes: {}, dataNotes: [] });
+  assert.match(html, /Time zones — 2 zones on this trip/);
+  assert.match(html, /KEND<\/td><td>Central \(CST, UTC−6\)/);
+  assert.match(html, /KDEN<\/td><td>Mountain \(MST, UTC−7\)/);
+  assert.match(html, /gain 1 hr/);
+  assert.match(html, /Central → Mountain: you gain 1 hour/);
+  assert.match(html, /Nov 7 1500Z/, "takeoff in Zulu");
+  assert.match(html, /<b>Nov 7 \d{4}Z<\/b>/, "landing in Zulu");
+  assert.match(html, /you lose 1 hour/, "and the way back");
+  // a single-zone trip says so
+  const tul = { ...den, code: "KTUL", state: "OK", lat: 36.2, lon: -95.9 };
+  const legs2 = trip.tripLegs(o, [tul], config);
+  const sch2 = trip.scheduleTrip({ origin: o, stops: [{ field: tul, ron: false }], legs: legs2.legs, tripDate: "2026-11-07" });
+  const html2 = crewCardHtml({ origin: o, stops: [{ field: tul, ron: false }], legs: legs2, schedule: sch2, cost: trip.tripPerDiem([], new Date()), tripDate: new Date(2026, 10, 7), route: "x", stateTaxes: {}, dataNotes: [] });
+  assert.match(html2, /all one zone/);
+  assert.doesNotMatch(html2, /you gain|you lose/);
 });

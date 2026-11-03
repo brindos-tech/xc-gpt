@@ -22,6 +22,7 @@
 
   <header class="app-header">
     <button class="rail-toggle-btn" id="railToggle" style="display:none;" aria-controls="filterRail" aria-expanded="false">☰ Filters</button>
+    <button class="trip-toggle-btn" id="tripToggle" aria-controls="tripBar" aria-expanded="false">&#9992; Flight plan <span id="tripToggleCount"></span></button>
     <h1>XC GPT <span class="accent">&#9992;</span></h1>
     <div class="header-search">
       <input type="text" id="globalSearch" placeholder="Search fields, FBOs&hellip;" autocomplete="off">
@@ -34,6 +35,7 @@
 
   <nav class="tab-bar" id="tabBar" aria-label="Pages">
     <button class="active" data-view="planner">Planner</button>
+    <button data-view="weekends">Weekend Recs</button>
     <button data-view="reviews">Reviews</button>
     <button data-view="events">Events</button>
   </nav>
@@ -58,15 +60,6 @@
         <div class="chip-row" id="originChips"></div>
       </div>
 
-      <div class="rail-section trip-section" data-page="planner">
-        <h3>Flight plan</h3>
-        <div class="trip-add-box">
-          <input type="search" id="tripSearch" placeholder="Add a field: code, name or city" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="tripSuggest" aria-autocomplete="list" aria-label="Add a field to the flight plan">
-          <ul id="tripSuggest" role="listbox" hidden></ul>
-        </div>
-        <div id="tripBody"></div>
-      </div>
-
       <div class="rail-section">
         <h3>Range from <span id="rangeOriginLabel">KEND</span></h3>
         <div class="range-readout"><span id="rangeValue">600</span><small> nm</small></div>
@@ -85,14 +78,8 @@
       </div>
 
       <div class="rail-section" data-page="planner">
-        <h3>Show only</h3>
-        <div class="chip-row" id="fieldFilterChips"></div>
-      </div>
-
-      <div class="rail-section" data-page="planner">
         <h3>Approaches</h3>
         <div class="chip-row" id="approachChips"></div>
-        <div class="rail-hint">Fields with every type you pick (FAA civil procedures). Handy for finding a LOC BC, a circling-only approach or a TACAN for a sortie.</div>
       </div>
 
       <div class="rail-section" data-page="planner">
@@ -123,6 +110,7 @@
           <div class="wx-bar" id="wxBar" hidden></div>
           <div class="map-legend planner-legend" id="plannerLegend"></div>
         </div>
+        <div class="view-pane" id="pane-weekends"><div class="reviews-page" id="weekendsPage"></div></div>
         <div class="view-pane" id="pane-reviews"><div class="reviews-page" id="reviewsPage"></div></div>
         <div class="view-pane" id="pane-events">
           <div id="mapWrap"></div>
@@ -149,6 +137,21 @@
 
       <div class="scrubber-wrap" id="scrubberWrap"></div>
     </div>
+
+    <!-- planner: flight plan, docked on the right (a bottom sheet on phones) -->
+    <div class="trip-backdrop" id="tripBackdrop"></div>
+    <aside class="trip-bar" id="tripBar" data-page="planner" aria-label="Flight plan">
+      <div class="trip-bar-head">
+        <h3>Flight plan <span class="muted small" id="tripCount"></span></h3>
+        <button type="button" class="trip-bar-close" id="tripBarClose" aria-label="Hide flight plan" title="Hide">&rsaquo;</button>
+      </div>
+      <div class="trip-add-box">
+        <input type="search" id="tripSearch" placeholder="Add a field: code, name or city" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="tripSuggest" aria-autocomplete="list" aria-label="Add a field to the flight plan">
+        <ul id="tripSuggest" role="listbox" hidden></ul>
+      </div>
+      <div id="tripBody"></div>
+    </aside>
+    <button type="button" class="trip-open-tab" id="tripOpenTab" data-page="planner" aria-label="Show flight plan">&#9992; Flight plan <span id="tripOpenCount"></span></button>
 
   </div>
 

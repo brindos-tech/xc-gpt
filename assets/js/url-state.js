@@ -1,6 +1,6 @@
 // Bidirectional state <-> location.hash, so a link fully reproduces a view.
 import { toDateKey, parseDate } from "./format.js";
-import { encodeTrip, decodeTrip } from "./planner/trip.js";
+import { encodeTrip, decodeTrip, encodeDep, decodeDep } from "./planner/trip.js";
 
 export function stateToHash(state) {
   const params = new URLSearchParams();
@@ -15,11 +15,11 @@ export function stateToHash(state) {
   if (state.selectedPlaceId) params.set("place", state.selectedPlaceId);
   // planner
   if (state.fieldSource !== "nav") params.set("src", state.fieldSource);
-  if (state.fieldFilters.size) params.set("ff", Array.from(state.fieldFilters).join(","));
   if (state.reviewsSort !== "recent") params.set("rs", state.reviewsSort);
   if (state.reviewsType !== "all") params.set("rt", state.reviewsType);
   if (state.trip?.length) params.set("trip", encodeTrip(state.trip));
   if (state.tripReturn === false) params.set("ret", "0");
+  if (state.tripReturnDep) params.set("rdep", encodeDep(state.tripReturnDep));
   if (state.approachTypes?.size) params.set("app", Array.from(state.approachTypes).join(","));
   params.set("air", Array.from(state.airspace).join(","));
   if (state.selectedFieldId) params.set("fld", state.selectedFieldId);
@@ -39,7 +39,7 @@ export function hashToState(hash, defaults) {
     // Pages that no longer exist (feed, places, artists, weekend recs) and
     // the old "map" name all land on the events page.
     const v = params.get("v");
-    patch.view = v === "planner" || v === "reviews" ? v : "events";
+    patch.view = v === "planner" || v === "reviews" || v === "weekends" ? v : "events";
   }
   if (params.has("from")) patch.dateRange = { ...defaults.dateRange, start: parseDate(params.get("from")) };
   if (params.has("to")) {
@@ -63,11 +63,11 @@ export function hashToState(hash, defaults) {
   if (params.has("q")) patch.search = params.get("q");
   if (params.has("place")) patch.selectedPlaceId = params.get("place");
   if (params.has("src")) patch.fieldSource = params.get("src") === "p" ? "p" : "nav";
-  if (params.has("ff")) patch.fieldFilters = new Set(params.get("ff").split(",").filter(Boolean));
   if (["recent", "top", "food", "car", "card"].includes(params.get("rs"))) patch.reviewsSort = params.get("rs");
   if (["all", "field", "air"].includes(params.get("rt"))) patch.reviewsType = params.get("rt");
   if (params.has("trip")) patch.trip = decodeTrip(params.get("trip"));
   if (params.get("ret") === "0") patch.tripReturn = false;
+  if (params.has("rdep")) patch.tripReturnDep = decodeDep(params.get("rdep"));
   if (params.has("app")) patch.approachTypes = new Set(params.get("app").split(",").filter(Boolean));
   if (params.has("air")) patch.airspace = new Set(params.get("air").split(",").filter(Boolean));
   if (params.has("fld")) patch.selectedFieldId = params.get("fld");

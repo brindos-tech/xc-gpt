@@ -96,3 +96,63 @@ export function minutesOfDay(instant, tz) {
   const parts = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", hour: "numeric", minute: "numeric" }).formatToParts(instant);
   return Number(parts.find((p) => p.type === "hour").value) * 60 + Number(parts.find((p) => p.type === "minute").value);
 }
+
+/** The instant when clocks in `tz` read `hhmm` ("HH:mm") on `dayKey` ("YYYY-MM-DD"). Handles daylight-time changes. */
+export function zonedInstant(dayKey, hhmm, tz) {
+  const [y, m, d] = dayKey.split("-").map(Number);
+  const [h, mi] = hhmm.split(":").map(Number);
+  const guess = Date.UTC(y, m - 1, d, h, mi);
+  const first = guess - tzOffsetMin(tz, new Date(guess)) * 60000;
+  return new Date(guess - tzOffsetMin(tz, new Date(first)) * 60000);
+}
+
+/** What the clocks in `tz` read at an instant: { date: "YYYY-MM-DD", time: "HH:mm" }. */
+export function wallClock(instant, tz) {
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).formatToParts(instant);
+  const g = (t) => parts.find((p) => p.type === t).value;
+  return { date: `${g("year")}-${g("month")}-${g("day")}`, time: `${g("hour")}:${g("minute")}` };
+}
+
+const TZ_NAMES = {
+  "America/New_York": "Eastern", "America/Detroit": "Eastern", "America/Indiana/Indianapolis": "Eastern", "America/Kentucky/Louisville": "Eastern",
+  "America/Chicago": "Central",
+  "America/Denver": "Mountain", "America/Boise": "Mountain", "America/Phoenix": "Mountain",
+  "America/Los_Angeles": "Pacific",
+};
+export const tzName = (tz) => TZ_NAMES[tz] || tz.split("/").pop().replace(/_/g, " ");
+
+const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** UTC time of an instant: { time: "1512Z", date: "Nov 7" }. */
+export function zulu(instant) {
+  const d = new Date(instant);
+  const hh = String(d.getUTCHours()).padStart(2, "0");
+  const mm = String(d.getUTCMinutes()).padStart(2, "0");
+  return { time: `${hh}${mm}Z`, date: `${MONTH_ABBR[d.getUTCMonth()]} ${d.getUTCDate()}`, text: `${MONTH_ABBR[d.getUTCMonth()]} ${d.getUTCDate()} ${hh}${mm}Z` };
+}
+
+/** "UTC−6" / "UTC+1" / "UTC" for a zone at an instant. */
+export function utcOffsetText(tz, instant) {
+  const m = tzOffsetMin(tz, instant);
+  if (m === 0) return "UTC";
+  const a = Math.abs(m);
+  return `UTC${m < 0 ? "−" : "+"}${Math.floor(a / 60)}${a % 60 ? `:${String(a % 60).padStart(2, "0")}` : ""}`;
+}
+
+/** "Central (CST, UTC−6)" for a zone at an instant. */
+export const tzLabel = (tz, instant) => `${tzName(tz)} (${zoneAbbr(instant, tz)}, ${utcOffsetText(tz, instant)})`;
+
+/**
+ * What the clocks do between a departure and an arrival: flying west the clock
+ * goes back (you gain an hour), flying east it goes forward (you lose one).
+ * @returns {{minutes:number, kind:"none"|"gain"|"lose", text:string}}
+ */
+export function clockShift(fromTz, dep, toTz, arr) {
+  const minutes = tzOffsetMin(toTz, arr) - tzOffsetMin(fromTz, dep);
+  if (!minutes) return { minutes: 0, kind: "none", text: "" };
+  const h = Math.abs(minutes) / 60;
+  const amount = Number.isInteger(h) ? `${h} hour${h === 1 ? "" : "s"}` : `${Math.abs(minutes)} minutes`;
+  return minutes < 0
+    ? { minutes, kind: "gain", text: `${tzName(fromTz)} → ${tzName(toTz)}: you gain ${amount} (clocks go back)` }
+    : { minutes, kind: "lose", text: `${tzName(fromTz)} → ${tzName(toTz)}: you lose ${amount} (clocks go forward)` };
+}

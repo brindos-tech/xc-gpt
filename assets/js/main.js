@@ -4,13 +4,13 @@ import { formatUpdatedAgo, parseDate } from "./format.js";
 import { createFilterRail } from "./views/filter-rail.js";
 import { createPlannerView } from "./planner/planner-view.js";
 import { createFieldPanel } from "./planner/field-panel.js";
-import { mergeFields, selectFields } from "./planner/fields.js";
+import { mergeFields, selectFields, meetsRunway } from "./planner/fields.js";
 import { createWxController } from "./planner/wx-controller.js";
 import { createComments, loadCommentSummary } from "./planner/comments.js";
 import { createTripPanel } from "./views/trip-panel.js";
 import { createReviewsPage } from "./views/reviews-page.js";
+import { createWeekendsPage } from "./views/weekends-page.js";
 import { crewCardHtml } from "./planner/crew-card.js";
-import { tripLegs, routeString, tripPerDiem } from "./planner/trip.js";
 
 const DATA_BASE = "data";
 
@@ -50,7 +50,8 @@ async function boot() {
   ]);
 
   const originsById = new Map(config.origins.map((o) => [o.id, o]));
-  const fields = mergeFields(navinfo, factsFile, aircard, approaches);
+  // fields with a known runway shorter than the cutoff (4,000 ft) are not drawn or searchable
+  const fields = mergeFields(navinfo, factsFile, aircard, approaches).filter((f) => meetsRunway(f, config.defaults.minRunwayFt || 0));
 
   // The real current date at local midnight — not the build date. Event
   // dates parse to local midnight, and the window test compares against it,
@@ -62,7 +63,7 @@ async function boot() {
 
   const $ = (id) => document.getElementById(id);
   const app = document.querySelector(".app");
-  const panes = { planner: $("pane-planner"), reviews: $("pane-reviews"), events: $("pane-events") };
+  const panes = { planner: $("pane-planner"), weekends: $("pane-weekends"), reviews: $("pane-reviews"), events: $("pane-events") };
   const tabBar = $("tabBar");
   const searchInput = $("globalSearch");
   const freshnessText = $("freshnessText");
@@ -76,11 +77,9 @@ async function boot() {
   function printCrewCard() {
     const state = store.getState();
     const origin = originsById.get(state.originId);
-    const stops = tripPanel.resolve(state);
-    if (!stops.length) return;
+    const trip = tripPanel.compute(state, origin);
+    if (!trip.stops.length) return;
     const [y, m, d] = state.tripDate.split("-").map(Number);
-    const tripDate = new Date(y, m - 1, d);
-    const fieldsList = stops.map((s) => s.field);
     const dataNotes = [
       navinfo.asOf && `Nav list ${navinfo.asOf}`,
       factsFile?.nasrCycle && `FAA cycle ${factsFile.nasrCycle}`,
@@ -89,21 +88,56 @@ async function boot() {
     ].filter(Boolean);
     $("crewCard").innerHTML = crewCardHtml({
       origin,
-      stops,
-      legs: tripLegs(origin, fieldsList, config, state.tripReturn),
-      cost: tripPerDiem(stops, tripDate),
-      tripDate,
-      route: routeString(origin, fieldsList, state.tripReturn),
+      stops: trip.stops,
+      legs: trip.legs,
+      schedule: trip.schedule,
+      cost: trip.cost,
+      tripDate: new Date(y, m - 1, d),
+      route: trip.route,
       stateTaxes: stateTax?.states,
       dataNotes,
+      forecastAt: (code, instant) => wx.forecastAt(code, instant),
     });
     const prev = document.title;
     document.title = `Crew card ${origin.icao} ${state.tripDate}`;
     window.print();
     document.title = prev;
   }
+  // ---- flight plan bar: docked on the right (desktop) or a bottom sheet (phone) ----
+  const tripBar = $("tripBar");
+  const tripBackdrop = $("tripBackdrop");
+  const remembered = (() => {
+    try {
+      return localStorage.getItem("xcgpt-tripbar");
+    } catch {
+      return null;
+    }
+  })();
+  if (remembered === "closed") app.dataset.trip = "closed";
+  function setTripBar(open) {
+    if (window.matchMedia("(max-width: 860px)").matches) {
+      tripBar.classList.toggle("open", open);
+      tripBackdrop.classList.toggle("open", open);
+      $("tripToggle").setAttribute("aria-expanded", String(open));
+    } else {
+      if (open) delete app.dataset.trip;
+      else app.dataset.trip = "closed";
+      try {
+        localStorage.setItem("xcgpt-tripbar", open ? "open" : "closed");
+      } catch {
+        // not remembered
+      }
+      requestAnimationFrame(() => planner.invalidateSize());
+    }
+  }
+  $("tripBarClose").addEventListener("click", () => setTripBar(false));
+  $("tripOpenTab").addEventListener("click", () => setTripBar(true));
+  $("tripToggle").addEventListener("click", () => setTripBar(!tripBar.classList.contains("open")));
+  tripBackdrop.addEventListener("click", () => setTripBar(false));
+
+  const weekendsPage = createWeekendsPage({ root: $("weekendsPage"), store, config, loadJson, today });
   const reviewsPage = createReviewsPage({ root: $("reviewsPage"), store, apiBase: config.commentsApi, fieldsByCode });
-  const tripPanel = createTripPanel({ store, config, fieldsByCode, getOrigin: () => originsById.get(store.getState().originId), onPrint: printCrewCard });
+  const tripPanel = createTripPanel({ store, config, fieldsByCode, getOrigin: () => originsById.get(store.getState().originId), onPrint: printCrewCard, forecastAt: (code, instant) => wx.forecastAt(code, instant) });
   const comments = createComments({ host: $("fieldComments"), apiBase: config.commentsApi, today });
 
   // ---- planner ----
@@ -164,6 +198,9 @@ async function boot() {
       const asOf = navinfo.asOf ? parseDate(navinfo.asOf).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "2-digit" }) : "unknown date";
       freshnessText.textContent = `Nav list ${asOf}${factsFile?.nasrCycle ? ` · FAA ${factsFile.nasrCycle}` : ""}`;
       freshnessDot.className = "source-dot " + (factsFile ? "ok" : "stale");
+    } else if (view === "weekends" && meta?.buildAt) {
+      freshnessText.textContent = `Events updated ${formatUpdatedAgo(meta.buildAt, now)}`;
+      freshnessDot.className = "source-dot ok";
     } else if (view === "reviews") {
       freshnessText.textContent = "Reviews from crews";
       freshnessDot.className = "source-dot ok";
@@ -186,9 +223,9 @@ async function boot() {
     app.dataset.page = view;
     Object.entries(panes).forEach(([key, el]) => el.classList.toggle("active", key === view));
     tabBar.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b.dataset.view === view));
-    searchInput.placeholder = view === "planner" ? "Search fields, FBOs…" : view === "reviews" ? "Search reviews…" : "Search places, events…";
+    searchInput.placeholder = view === "planner" ? "Search fields, FBOs…" : view === "reviews" ? "Search reviews…" : view === "weekends" ? "Narrow the picks: rodeo, concert, a team…" : "Search places, events…";
     // Leaflet measures 0×0 inside a hidden pane.
-    if (view !== "reviews") requestAnimationFrame(() => (view === "planner" ? planner.invalidateSize() : eventsPage?.invalidateSize()));
+    if (view === "planner" || view === "events") requestAnimationFrame(() => (view === "planner" ? planner.invalidateSize() : eventsPage?.invalidateSize()));
     if (view === "events") ensureEventsPage();
   }
 
@@ -212,6 +249,8 @@ async function boot() {
     planner.renderFields(selection, state.selectedFieldId, wx.fieldRing);
     wx.render(state);
     const tripInfo = tripPanel.render(state, origin);
+    const stopCount = tripInfo.stops.length;
+    for (const id of ["tripCount", "tripOpenCount", "tripToggleCount"]) $(id).textContent = stopCount ? `(${stopCount} stop${stopCount === 1 ? "" : "s"})` : "";
     planner.setTrip(tripInfo.stops.length ? [[origin.lat, origin.lon], ...tripInfo.stops.map((s) => [s.field.lat, s.field.lon]), ...(state.tripReturn ? [[origin.lat, origin.lon]] : [])] : []);
     planner.setAirspace(state.airspace, state.selectedAirspaceId);
 
@@ -276,6 +315,11 @@ async function boot() {
     if (state.view === "planner") {
       eventsPage?.closeDetail();
       renderPlanner(state);
+    } else if (state.view === "weekends") {
+      comments.show(null);
+      fieldPanel.render({ field: null, airspace: null });
+      filterRail.setCounts("Weekend picks within this range");
+      weekendsPage.render(state);
     } else if (state.view === "reviews") {
       comments.show(null);
       fieldPanel.render({ field: null, airspace: null });

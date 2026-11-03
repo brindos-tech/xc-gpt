@@ -220,6 +220,18 @@ export function createWxController({ store, map, loadJson, today, onChange }) {
     return cat > 0 ? CAT_COLORS[cat] : null;
   }
 
+  /** Forecast at a field for an arbitrary instant: the nearest 3-hourly step, if within 90 minutes. */
+  function forecastAt(code, instant) {
+    if (!ready || !wxData.hasFields || !wxData.index) return null;
+    const t = instant.getTime();
+    let best = null;
+    for (const step of wxData.index.steps) {
+      const d = Math.abs(new Date(step).getTime() - t);
+      if (best == null || d < best.d) best = { step, d };
+    }
+    return best && best.d <= 90 * 60000 ? wxData.fieldAt(code, best.step) : null;
+  }
+
   /** Rows for the field sheet: the whole local day, 3-hourly. */
   function fieldRows(code, dateKey) {
     if (!ready || !wxData.hasFields) return null;
@@ -264,5 +276,5 @@ export function createWxController({ store, map, loadJson, today, onChange }) {
     }
   }
 
-  return { render, fieldRing, fieldRows, get ready() { return ready; } };
+  return { render, fieldRing, fieldRows, forecastAt, get ready() { return ready; } };
 }

@@ -12,7 +12,7 @@ test("state round-trips through the hash", () => {
   const state = {
     view: "events", originId: "sheppard", rangeNm: 450,
     categories: new Set(["food", "art"]), activities: new Set(["weird"]), search: "rodeo", selectedPlaceId: "taos-nm",
-    fieldSource: "p", fieldFilters: new Set(["fuel", "t6"]), airspace: new Set(["MOA", "SR"]),
+    fieldSource: "p", airspace: new Set(["MOA", "SR"]),
     selectedFieldId: "KOKC", selectedAirspaceId: "MOA:VANCE 1A MOA", tripDate: "2026-11-07",
     wxLayers: new Set(["cat", "lice"]), wxTime: "2026-11-07T15:00Z",
     dateRange: { start: new Date(2026, 9, 10), end: new Date(2026, 9, 20) },
@@ -26,7 +26,6 @@ test("state round-trips through the hash", () => {
   assert.equal(patch.search, "rodeo");
   assert.equal(patch.selectedPlaceId, "taos-nm");
   assert.equal(patch.fieldSource, "p");
-  assert.deepEqual([...patch.fieldFilters].sort(), ["fuel", "t6"]);
   assert.deepEqual([...patch.airspace].sort(), ["MOA", "SR"]);
   assert.equal(patch.selectedFieldId, "KOKC");
   assert.equal(patch.selectedAirspaceId, "MOA:VANCE 1A MOA");
@@ -51,6 +50,6 @@ test("a window still running is restored", () => {
 });
 
 test("pages that no longer exist land on the events page", () => {
-  for (const v of ["map", "feed", "places", "artists", "weekends"]) assert.equal(hashToState(`#/v=${v}`, defaults).view, "events");
-  assert.equal(hashToState("#/v=planner", defaults).view, "planner");
+  for (const v of ["map", "feed", "places", "artists"]) assert.equal(hashToState(`#/v=${v}`, defaults).view, "events");
+  for (const v of ["planner", "reviews", "weekends"]) assert.equal(hashToState(`#/v=${v}`, defaults).view, v);
 });
