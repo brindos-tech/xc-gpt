@@ -652,12 +652,30 @@ test("NOTAMs: only show-stoppers are kept, and the crew card line says what it k
   const got = n.extractNotam(item);
   assert.deepEqual([got.location, got.text, got.start, got.type], ["KOKC", "RWY 17R/35L CLSD", "2026-11-01T12:00:00.000Z", "N"]);
   assert.equal(n.keepShowStoppers([got, { ...got, type: "C" }, { ...got, text: "OBST CRANE" }]).length, 1, "cancels and non-closures are dropped");
-  // what the card prints
-  const file = { builtAt: "2026-11-03T12:00:00Z", checked: ["KOKC", "KPNC"], fields: { KOKC: [{ kind: "Runway closed", text: "RWY 17R/35L CLSD", number: "11/123", start: "2026-11-01T12:00:00.000Z", end: "2026-11-15T23:59:00.000Z" }] } };
-  const at = new Date("2026-11-07T15:00:00Z");
-  assert.match(n.notamLines("KOKC", file, at), /<b>Runway closed<\/b>: RWY 17R\/35L CLSD/);
-  assert.match(n.notamLines("KPNC", file, at), /None found \(as of 2026-11-03 12:00Z\)/);
-  assert.match(n.notamLines("KXYZ", file, at), /not checked/);
-  assert.match(n.notamLines("KOKC", null, at), /not loaded/);
+  // what the card prints: closures overlapping the stay (arrival -> next takeoff), including ones that begin later in it
+  const mk = (kind, text, start, end) => ({ kind, text, number: "11/1", start, end });
+  const file = {
+    builtAt: "2026-11-03T12:00:00Z",
+    checked: ["KOKC", "KPNC", "KTUL"],
+    fields: {
+      KOKC: [mk("Runway closed", "RWY 17R/35L CLSD", "2026-11-01T12:00:00.000Z", "2026-11-15T23:59:00.000Z")],
+      KTUL: [
+        mk("Airport closed", "AD AP CLSD", "2026-11-08T14:00:00.000Z", "2026-11-08T20:00:00.000Z"), // begins on day 2 of the stay
+        mk("Runway closed", "RWY 18 CLSD", "2026-11-05T00:00:00.000Z", "2026-11-06T00:00:00.000Z"), // over before they arrive
+        mk("Runway closed", "RWY 36 CLSD", "2026-11-12T00:00:00.000Z", null), // starts after they leave
+      ],
+    },
+  };
+  const arrive = new Date("2026-11-07T15:00:00Z");
+  const leave = new Date("2026-11-09T15:00:00Z"); // a RON: two days
+  assert.match(n.notamLines("KOKC", file, arrive, leave), /<b>Runway closed<\/b>: RWY 17R\/35L CLSD.*in force at arrival, until 11-15 23:59Z/);
+  const tul = n.notamLines("KTUL", file, arrive, leave);
+  assert.match(tul, /Airport closed<\/b>: AD AP CLSD/);
+  assert.match(tul, /begins 11-08 14:00Z — during your stay/, "a closure that starts later in the stay is called out");
+  assert.doesNotMatch(tul, /RWY 18|RWY 36/, "closures over before arrival or after departure are left out");
+  assert.match(n.notamLines("KPNC", file, arrive, leave), /None found for your stay, 11-07 15:00Z – 11-09 15:00Z \(as of 2026-11-03 12:00Z\)/);
+  assert.match(n.notamLines("KXYZ", file, arrive, leave), /not checked/);
+  assert.match(n.notamLines("KOKC", null, arrive, leave), /not loaded/);
   assert.match(n.notamLines("KOKC", file, new Date("2026-12-01T00:00:00Z")), /None found/, "expired closures are not printed");
+  assert.equal(n.overlapsWindow({ start: null, end: null }, arrive, leave), true, "no dates: in force until further notice");
 });

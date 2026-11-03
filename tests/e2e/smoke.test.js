@@ -403,9 +403,9 @@ test("trip builder: add stops from the sheet, legs and per diem, route string, c
     assert.match(card, /Crew card · KEND/);
     assert.match(card, /1\. KPNC/);
     assert.match(card, /2\. KOKC/);
-    assert.match(card, /NOTAM closures/);
+    assert.match(card, /Closures \(NOTAM\)/);
     assert.match(card, /Runway closed: RWY 17R\/35L CLSD/, "KOKC closed runway is printed");
-    assert.match(card, /None found \(as of/, "KPNC was checked and is clear");
+    assert.match(card, /None found for your stay/, "KPNC was checked and is clear");
     assert.match(card, /Planning reference only/);
 
     await page.click('#tripBody [data-trip="clear"]');

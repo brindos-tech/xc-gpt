@@ -42,28 +42,40 @@ export function extractNotam(item) {
 /** Show-stoppers only, cancellations dropped. */
 export const keepShowStoppers = (notams) => notams.filter((n) => n && n.type !== "C").map((n) => ({ ...n, kind: showStopper(n.text) })).filter((n) => n.kind);
 
-/** In force at `at`, or starting within `aheadHours` of it. */
-export function activeAt(n, at, aheadHours = 24) {
+/** Does the NOTAM's period overlap [from, to]? No start means already in force; no end means until further notice. */
+export function overlapsWindow(n, from, to) {
   const start = n.start ? new Date(n.start) : null;
   const end = n.end ? new Date(n.end) : null;
-  return (!start || start <= new Date(at.getTime() + aheadHours * 3600000)) && (!end || end >= at);
+  return (!start || start <= to) && (!end || end >= from);
 }
 
 const fmt = (iso) => (iso ? new Date(iso).toISOString().slice(5, 16).replace("T", " ") + "Z" : "");
+const fmtDate = (d) => d.toISOString().slice(5, 16).replace("T", " ") + "Z";
 
 /**
- * The crew card's NOTAM line for a field: the show-stoppers in force around `at`,
- * "none found" when the field was checked, or a "not checked" note.
+ * The crew card's NOTAM line for a field: every show-stopper that overlaps the
+ * crew's stay (arrival to their next takeoff, so closures that begin later in
+ * the stay count), "none found" when the field was checked and is clear, or a
+ * "not checked" note.
  * @param {{builtAt:string, checked:string[], fields:Object<string,object[]>}|null} file
+ * @param {Date} from arrival
+ * @param {Date} to   the next takeoff (equal to `from` when there is none)
  */
-export function notamLines(code, file, at, esc = (x) => x) {
+export function notamLines(code, file, from, to = from, esc = (x) => x) {
   if (!file) return `<span class="cc-muted">NOTAM data not loaded — check NOTAMs before you go</span>`;
   const stamp = new Date(file.builtAt).toISOString().slice(0, 16).replace("T", " ") + "Z";
   if (!file.checked?.includes(code)) return `<span class="cc-muted">not checked — check NOTAMs before you go</span>`;
-  const list = (file.fields?.[code] || []).filter((n) => activeAt(n, at));
-  if (!list.length) return `None found (as of ${stamp}) <span class="cc-muted">— closures only; check NOTAMs before you go</span>`;
+  const stay = to > from ? `${fmtDate(from)} – ${fmtDate(to)}` : fmtDate(from);
+  const list = (file.fields?.[code] || []).filter((n) => overlapsWindow(n, from, to)).sort((a, b) => String(a.start).localeCompare(String(b.start)));
+  if (!list.length) return `None found for your stay, ${stay} (as of ${stamp}) <span class="cc-muted">— closures only; check NOTAMs before you go</span>`;
+  const when = (n) => {
+    const start = n.start ? new Date(n.start) : null;
+    const end = n.end ? `until ${fmt(n.end)}` : "until further notice";
+    if (start && start > from) return `<b>begins ${fmt(n.start)} — during your stay</b>, ${end}`;
+    return `in force at arrival, ${end}`;
+  };
   return (
-    list.map((n) => `<b>${esc(n.kind)}</b>: ${esc(n.text.length > 220 ? `${n.text.slice(0, 220)}…` : n.text)} <span class="cc-muted">${esc([n.number, n.start && fmt(n.start), n.end ? `– ${fmt(n.end)}` : "– until further notice"].filter(Boolean).join(" "))}</span>`).join("<br>") +
-    `<br><span class="cc-muted">as of ${stamp}</span>`
+    list.map((n) => `<b>${esc(n.kind)}</b>: ${esc(n.text.length > 220 ? `${n.text.slice(0, 220)}…` : n.text)}<br><span class="cc-muted">${esc(n.number || "")}</span> ${when(n)}`).join("<br>") +
+    `<br><span class="cc-muted">stay ${stay} · as of ${stamp}</span>`
   );
 }
