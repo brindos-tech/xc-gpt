@@ -368,6 +368,7 @@ test("field sheet helper: closed weekend and closing before sunset are flagged",
   const mon = sunHours(f, new Date(2026, 10, 9)); // sunset ≈ 5:27 PM, FBO closes at 5:00 PM
   assert.ok(mon.flags.some((x) => /before sunset/.test(x.text)));
   assert.match(mon.sunText, /Sunset 5:\d\d PM/);
+  assert.match(mon.sunText, /MCT \d+:\d\d AM · Sunrise .*ECT \d+:\d\d PM/);
   assert.equal(sunHours({ lat: null, lon: null }, new Date()), null);
 });
 
@@ -566,8 +567,14 @@ test("trip schedule: defaults chain from each landing, RON goes to next morning,
 
   // flags: Saturday arrival at a MON-FRI FBO; a night landing; overlapping legs
   assert.ok(trip.legFlags(day[0]).some((f) => /FBO closed that day/.test(f.text)));
-  const late = sched([{ field: B, ron: false, dep: "2026-11-07T17:40" }]);
-  assert.ok(trip.legFlags(late[0]).some((f) => /after sunset/.test(f.text)), "a 17:40 takeoff lands after the ~5:25 PM sunset");
+  // Tulsa on Nov 7: sunset ≈ 5:25 PM, ECT ≈ 5:52 PM. Landing in civil twilight is not night.
+  const twilight = sched([{ field: B, ron: false, dep: "2026-11-07T17:25" }]);
+  assert.ok(twilight[0].etaLocal.time > "17:25" && twilight[0].etaLocal.time < "17:50");
+  assert.equal(trip.legFlags(twilight[0]).some((f) => /night/.test(f.text)), false, "between sunset and ECT is still civil twilight");
+  const late = sched([{ field: B, ron: false, dep: "2026-11-07T18:10" }]);
+  assert.ok(trip.legFlags(late[0]).some((f) => /after ECT/.test(f.text) && /night/.test(f.text)), "an 18:10 takeoff lands after ECT");
+  const early = sched([{ field: B, ron: false, dep: "2026-11-07T06:00" }]);
+  assert.ok(trip.legFlags(early[0]).some((f) => /before MCT/.test(f.text)), "a 06:00 takeoff lands before MCT (~6:30)");
   const overlap = sched([{ field: A, ron: false }, { field: B, ron: false, dep: "2026-11-07T09:05" }]);
   assert.ok(trip.legFlags(overlap[1]).some((f) => /before the previous leg lands/.test(f.text)));
   assert.equal(trip.legFlags(day[2]).length, 0, "the base isn't checked");

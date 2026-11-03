@@ -118,7 +118,12 @@ export function scheduleTrip({ origin, stops, legs, tripDate, returnDep }) {
   return out;
 }
 
-/** Things to know about landing at the leg's destination at its ETA: night, closed FBO. Skips the base. */
+/**
+ * Things to know about landing at the leg's destination at its ETA: night and a
+ * closed FBO. Night is the FAA's: after the end of evening civil twilight (ECT)
+ * or before the morning civil twilight (MCT) begins — not sunset/sunrise.
+ * Skips the base.
+ */
 export function legFlags(leg) {
   const f = leg.toField;
   const flags = [];
@@ -128,8 +133,8 @@ export function legFlags(leg) {
   const day = leg.etaLocal.date;
   const sun = sunTimes(day, f.lat, f.lon);
   if (sun) {
-    if (leg.eta > sun.sunset) flags.push({ level: "warn", text: `lands after sunset (${clock(sun.sunset, tz)}) — night` });
-    else if (leg.eta < sun.sunrise) flags.push({ level: "warn", text: `lands before sunrise (${clock(sun.sunrise, tz)}) — night` });
+    if (leg.eta > sun.dusk) flags.push({ level: "warn", text: `lands after ECT (${clock(sun.dusk, tz)}) — night` });
+    else if (leg.eta < sun.dawn) flags.push({ level: "warn", text: `lands before MCT (${clock(sun.dawn, tz)}) — night` });
   }
   const h = hoursForDay(f.attendance, day, tz);
   const at = minutesOfDay(leg.eta, tz);
