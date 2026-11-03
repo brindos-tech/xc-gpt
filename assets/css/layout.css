@@ -381,8 +381,3 @@
 .app[data-page="weekends"] [data-page="planner"], .app[data-page="weekends"] [data-page="events"] { display: none; }
 .app[data-page="weekends"] .scrubber-wrap { display: none; }
 .app[data-page="weekends"] .main-area { grid-template-rows: 1fr; }
-/* reviews: a plain page, no rail or date strip */
-.app[data-page="reviews"] .filter-rail, .app[data-page="reviews"] .rail-backdrop, .app[data-page="reviews"] .scrubber-wrap { display: none; }
-.app[data-page="reviews"] .app-body { grid-template-columns: 1fr; }
-.app[data-page="reviews"] .main-area { grid-template-rows: 1fr; }
-.app[data-page="reviews"] .rail-toggle-btn { display: none !important; }

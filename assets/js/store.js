@@ -24,8 +24,6 @@ function defaultState(config, today) {
     trip: [], // [{ code, ron }] — the trip builder's stops, in order
     tripReturn: true, // legs end back at the base
     tripReturnDep: "", // takeoff of the return leg (field-local "YYYY-MM-DDTHH:mm"); "" = automatic
-    reviewsSort: "recent", // reviews tab: recent | top | food | car | card
-    reviewsType: "all", // all | field | air
     approachTypes: new Set(), // training filter: fields that have ALL of these approach types
     airspace: new Set(DEFAULT_AIRSPACE),
     selectedFieldId: null,

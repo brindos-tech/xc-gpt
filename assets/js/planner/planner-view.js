@@ -177,16 +177,11 @@ export function createPlannerView({ config, origin, loadJson, onFieldClick, onAi
         zIndexOffset: selected ? 1000 : f.searchHit ? 500 : 0,
       });
       marker.bindTooltip(
-        `<b>${esc(f.code)}</b> — ${esc(f.name)}<br>${esc(f.city)} · ${Math.round(f.distanceNm)} nm${f.fbo ? `<br>${esc(f.fbo)}` : ""}<br>${isMilitary(f) ? "Military · " : ""}${isTowered(f) ? "Towered" : "Non-towered"}<br><span style="color:var(--muted)">${STATUS_LABELS[status]}</span>${f.rating?.n ? `<br><span style="color:var(--gold)">★ ${f.rating.avg ?? "–"}</span> <span style="color:var(--muted)">${f.rating.n} comment${f.rating.n === 1 ? "" : "s"}</span>` : ""}`,
+        `<b>${esc(f.code)}</b> — ${esc(f.name)}<br>${esc(f.city)} · ${Math.round(f.distanceNm)} nm${f.fbo ? `<br>${esc(f.fbo)}` : ""}<br>${isMilitary(f) ? "Military · " : ""}${isTowered(f) ? "Towered" : "Non-towered"}<br><span style="color:var(--muted)">${STATUS_LABELS[status]}</span>`,
         { className: "map-tooltip", direction: "top", offset: [0, -12] }
       );
       marker.on("click", () => onFieldClick(f.id));
       marker.addTo(pinLayer);
-      // rated fields wear their average as a small gold label once zoomed in enough to read it
-      if (labelsOn && f.rating?.avg) {
-        L.marker([f.lat, f.lon], { icon: L.divIcon({ className: "rating-label", html: `★${f.rating.avg}`, iconSize: [34, 14], iconAnchor: [-12, 7] }), interactive: false, keyboard: false }).addTo(pinLayer);
-      }
-
       const el = marker.getElement();
       if (el) {
         el.setAttribute("tabindex", "0");

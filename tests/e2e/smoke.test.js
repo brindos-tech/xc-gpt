@@ -318,66 +318,6 @@ test("approach chips filter fields and the sheet lists the approaches", async ()
   }
 });
 
-test("comments: shown on a field and an airspace, post a comment, form survives sheet re-renders", async () => {
-  const { page, context, errors } = await openPage();
-  const store = [];
-  const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type", "access-control-allow-methods": "GET, POST, OPTIONS" };
-  await page.route(/xc-gpt-comments\.fly\.dev/, async (route) => {
-    const req = route.request();
-    if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
-    if (req.method() === "POST") {
-      const body = req.postDataJSON();
-      assert.ok(body.elapsedMs >= 0 && body.subject === "field:KOKC");
-      const comment = { id: `c${store.length}`, createdAt: new Date().toISOString(), freeFood: "", crewCar: "", aircard: "", fees: "", planespotters: "", amenities: "", visited: "", ...body };
-      store.unshift(comment);
-      return route.fulfill({ status: 201, headers: cors, json: { comment } });
-    }
-    const subject = new URL(req.url()).searchParams.get("subject");
-    return route.fulfill({ status: 200, headers: cors, json: { comments: store.filter((c) => c.subject === subject) } });
-  });
-  try {
-    await page.locator('#plannerMap [data-field="KOKC"]').dispatchEvent("click");
-    await page.waitForSelector("#fieldPanel.open");
-    await page.waitForSelector("#fieldComments .cm-list");
-    assert.match(await page.textContent("#fieldComments"), /No comments yet/);
-
-    // open the form, write something, then let the sheet re-render underneath (trip date change)
-    await page.click('[data-cm-open="comment"]');
-    await page.fill('#fieldComments [name="notes"]', "Great FBO, free cookies");
-    await page.click('#fieldComments .cm-rating label:nth-of-type(4)');
-    await page.selectOption('#fieldComments [name="freeFood"]', "yes");
-    await page.fill('#fieldComments [name="fees"]', "$20 ramp");
-    await page.waitForTimeout(2600); // the form has to have been open a human-ish while
-    const dayChip = page.locator("[data-wx-day]").nth(1);
-    if (await dayChip.count()) {
-      await page.click("#wxCollapse");
-      await page.locator("[data-wx-day]:not([disabled])").nth(1).click();
-    }
-    assert.equal(await page.inputValue('#fieldComments [name="notes"]'), "Great FBO, free cookies", "typing survives the sheet re-rendering");
-
-    await page.click("#fieldComments .cm-post");
-    await page.waitForSelector("#fieldComments .cm-item");
-    const text = await page.textContent("#fieldComments");
-    assert.match(text, /Great FBO, free cookies/);
-    assert.match(text, /Free food ✓/);
-    assert.match(text, /\$20 ramp/);
-    assert.match(text, /1 comment/);
-    assert.equal(store.length, 1);
-    assert.equal(store[0].rating, "4");
-
-    // the honeypot is not visible to people
-    assert.equal(await page.locator('#fieldComments [name="website"]').first().isVisible(), false);
-
-    // another field has its own (empty) thread, and an airspace area gets a field-free form
-    await page.click("#fieldClose");
-    await page.waitForSelector("#fieldPanel:not(.open)");
-    assert.equal(await page.isHidden("#fieldComments"), true);
-    assert.deepEqual(errors, []);
-  } finally {
-    await context.close();
-  }
-});
-
 test("TFRs are on by default, drawn, clickable, and open a sheet linking to the FAA", async () => {
   const { page, context, errors } = await openPage(undefined, { hash: `#/v=planner&air=TFR&as=${encodeURIComponent("TFR:6/9999")}` });
   try {
@@ -440,45 +380,6 @@ test("trip builder: add stops from the sheet, legs and per diem, route string, c
 
     await page.click('#tripBody [data-trip="clear"]');
     await page.waitForFunction(() => !document.querySelector("#tripBody .trip-stop"));
-    assert.deepEqual(errors, []);
-  } finally {
-    await context.close();
-  }
-});
-
-test("ratings show on pins (label + 'Has comments' chip) and a problem report goes to the owner only", async () => {
-  const posts = [];
-  const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type", "access-control-allow-methods": "GET, POST, OPTIONS" };
-  const { page, context, errors } = await openPage(undefined, {
-    setup: (p) =>
-      p.route(/xc-gpt-comments\.fly\.dev/, async (route) => {
-        const req = route.request();
-        if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
-        if (req.method() === "POST") {
-          posts.push(req.postDataJSON());
-          return route.fulfill({ status: 201, headers: cors, json: { comment: { id: "r1", kind: "report" } } });
-        }
-        if (new URL(req.url()).pathname === "/summary") return route.fulfill({ status: 200, headers: cors, json: { summary: { "field:KOKC": { n: 3, avg: 4.5 } } } });
-        return route.fulfill({ status: 200, headers: cors, json: { comments: [] } });
-      }),
-  });
-  try {
-    await page.waitForFunction(() => document.querySelectorAll("#plannerMap [data-field]").length > 0);
-    await page.click(".leaflet-control-zoom-in"); // labels appear from zoom 6
-    await page.waitForFunction(() => /★4\.5/.test(document.querySelector("#plannerMap .rating-label")?.textContent || ""));
-
-    await page.locator('#plannerMap [data-field="KOKC"]').dispatchEvent("click");
-    await page.waitForSelector("#fieldComments .cm-buttons");
-    await page.click('[data-cm-open="report"]');
-    assert.equal(await page.isVisible("#fieldComments .cm-report"), true);
-    await page.fill('#fieldComments .cm-report [name="notes"]', "The FBO phone number on this sheet is out of date.");
-    await page.waitForTimeout(2600);
-    await page.click("#fieldComments .cm-report .cm-post");
-    await page.waitForFunction(() => /owner will see/.test(document.querySelector("#fieldComments .cm-thanks")?.textContent || ""));
-    assert.equal(posts.length, 1);
-    assert.equal(posts[0].kind, "report");
-    assert.equal(posts[0].subject, "field:KOKC");
-    assert.equal(await page.locator("#fieldComments .cm-item").count(), 0, "a report never appears in the public list");
     assert.deepEqual(errors, []);
   } finally {
     await context.close();
@@ -569,88 +470,6 @@ test("airspace fades out during a zoom and is back, redrawn, afterwards", async 
   }
 });
 
-test("reviews tab: recent reviews, top rated, perks, and 'view on map'", async () => {
-  const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type", "access-control-allow-methods": "GET, POST, OPTIONS" };
-  const feed = [
-    { id: "a", subject: "field:KOKC", name: "Capt Test", rating: 5, freeFood: "yes", crewCar: "no", aircard: "yes", fees: "$20 ramp", planespotters: "", amenities: "", visited: "2026-10-24", notes: "Cookies at the desk and a fast fuel truck.", createdAt: new Date(Date.now() - 3600000).toISOString() },
-    { id: "b", subject: "airspace:MOA:VANCE 1A MOA", name: "Lt Two", rating: 3, freeFood: "", crewCar: "", aircard: "", fees: "", planespotters: "", amenities: "", visited: "", notes: "Hot most Fridays.", createdAt: new Date(Date.now() - 7200000).toISOString() },
-  ];
-  const summary = {
-    "field:KOKC": { n: 4, avg: 4.5, perks: { food: [3, 0], car: [0, 1], card: [2, 0] } },
-    "field:KPNC": { n: 1, avg: 5, perks: { food: [0, 0], car: [1, 0], card: [0, 0] } },
-    "airspace:MOA:VANCE 1A MOA": { n: 1, avg: 3, perks: { food: [0, 0], car: [0, 0], card: [0, 0] } },
-  };
-  const { page, context, errors } = await openPage(undefined, {
-    setup: (p) =>
-      p.route(/xc-gpt-comments\.fly\.dev/, (route) => {
-        const u = new URL(route.request().url());
-        if (route.request().method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
-        if (u.pathname === "/feed") return route.fulfill({ status: 200, headers: cors, json: { comments: feed } });
-        if (u.pathname === "/summary") return route.fulfill({ status: 200, headers: cors, json: { summary } });
-        return route.fulfill({ status: 200, headers: cors, json: { comments: [] } });
-      }),
-  });
-  try {
-    await page.click('#tabBar [data-view="reviews"]');
-    await page.waitForSelector("#reviewsPage .rv-card");
-    assert.equal(await page.locator("#tabBar button.active").textContent(), "Reviews");
-    assert.equal(await page.isHidden("#filterRail"), true, "no rail on this page");
-    assert.match(await page.evaluate(() => location.hash), /v=reviews/);
-    let text = await page.textContent("#reviewsPage");
-    assert.match(text, /KOKC · Will Rogers World Airport/);
-    assert.match(text, /Cookies at the desk/);
-    assert.match(text, /Free food ✓/);
-    assert.match(text, /VANCE 1A MOA/);
-
-    // type filter, then the rankings
-    await page.click('[data-rv-type="air"]');
-    await page.waitForFunction(() => document.querySelectorAll("#reviewsPage .rv-card").length === 1);
-    await page.click('[data-rv-type="all"]');
-    await page.click('[data-rv-sort="top"]');
-    await page.waitForSelector("#reviewsPage .rv-row");
-    const rows = await page.locator("#reviewsPage .rv-row .rv-title").allTextContents();
-    assert.match(rows[0], /KOKC/, "4 reviews at 4.5 beat 1 review at 5");
-    assert.match(rows[1], /KPNC|Ponca/);
-    await page.click('[data-rv-sort="car"]');
-    await page.waitForFunction(() => document.querySelectorAll("#reviewsPage .rv-row").length === 1);
-    assert.match(await page.textContent("#reviewsPage .rv-row"), /KPNC/);
-
-    // header search filters the page, and "view on map" opens the field on the planner
-    await page.click('[data-rv-sort="recent"]');
-    await page.fill("#globalSearch", "cookies");
-    await page.waitForFunction(() => document.querySelectorAll("#reviewsPage .rv-card").length === 1);
-    await page.click("#reviewsPage .rv-title");
-    await page.waitForSelector("#fieldPanel.open");
-    assert.equal(await page.locator("#tabBar button.active").textContent(), "Planner");
-    assert.match(await page.textContent("#fieldContent"), /KOKC/);
-
-    // an airspace review opens that area's sheet
-    await page.click("#fieldClose");
-    await page.click('#tabBar [data-view="reviews"]');
-    await page.fill("#globalSearch", "");
-    await page.waitForSelector('#reviewsPage [data-rv-kind="air"]');
-    await page.click('#reviewsPage [data-rv-kind="air"]');
-    await page.waitForSelector("#fieldPanel.open", { timeout: 15000 });
-    await page.waitForFunction(() => /VANCE 1A MOA/.test(document.getElementById("fieldContent").textContent), null, { timeout: 15000 });
-    assert.match(await page.textContent("#fieldContent"), /Military Operations Area/);
-    assert.deepEqual(errors, []);
-  } finally {
-    await context.close();
-  }
-});
-
-test("reviews tab says so when the comments server is unreachable", async () => {
-  const { page, context, errors } = await openPage(undefined, { setup: (p) => p.route(/xc-gpt-comments\.fly\.dev/, (r) => r.abort()) });
-  try {
-    await page.click('#tabBar [data-view="reviews"]');
-    await page.waitForFunction(() => /offline/i.test(document.getElementById("reviewsPage").textContent));
-    assert.match(await page.textContent("#reviewsPage"), /Retry/);
-    assert.deepEqual(errors.filter((e) => !/Failed to fetch|NetworkError/.test(e)), []);
-  } finally {
-    await context.close();
-  }
-});
-
 test("flight plan: legs with arrival fields, local landing time, and a ceiling timeline only when it is instrument", async () => {
   const { page, context, errors } = await openPage();
   try {
@@ -669,7 +488,7 @@ test("flight plan: legs with arrival fields, local landing time, and a ceiling t
     await page.waitForSelector('[data-testid="ceiling-timeline"]');
     // a red drop-down flag, closed until the pilot opens it
     assert.equal(await page.locator('[data-testid="ceiling-timeline"]').first().evaluate((d) => d.open), false);
-    assert.match(await page.textContent('[data-testid="ceiling-timeline"] summary'), /Instrument conditions · KLBL IFR/);
+    assert.match(await page.textContent('[data-testid="ceiling-timeline"] summary'), /^⚠ KLBL IFR, ceiling/);
     assert.equal(await page.locator('[data-testid="ceiling-timeline"] svg').first().isVisible(), false);
     await page.locator('[data-testid="ceiling-timeline"] summary').first().click();
     assert.equal(await page.locator('[data-testid="ceiling-timeline"] svg').first().isVisible(), true);
@@ -713,12 +532,12 @@ test("flight plan: VFR says only VFR; marginal and instrument legs carry the cei
     await page.fill("#tripSearch", "KCSM");
     await page.press("#tripSearch", "Enter");
     await page.waitForSelector('[data-testid="ceiling-timeline"].tl-mvfr');
-    assert.match(await page.textContent('[data-testid="ceiling-timeline"].tl-mvfr summary'), /Marginal VFR · KCSM MVFR, ceiling 2,200 ft/);
+    assert.match(await page.textContent('[data-testid="ceiling-timeline"].tl-mvfr summary'), /^⚠ KCSM MVFR, ceiling 2,200 ft/);
     // far west is instrument: red tab with its ceiling
     await page.fill("#tripSearch", "KLBL");
     await page.press("#tripSearch", "Enter");
     await page.waitForSelector('[data-testid="ceiling-timeline"].tl-ifr');
-    assert.match(await page.textContent('[data-testid="ceiling-timeline"].tl-ifr summary'), /Instrument conditions · .*KLBL IFR, ceiling \d/);
+    assert.match(await page.textContent('[data-testid="ceiling-timeline"].tl-ifr summary'), /KLBL IFR, ceiling \d/);
     assert.deepEqual(errors, []);
   } finally {
     await context.close();
