@@ -65,6 +65,8 @@ async function openPage(viewport = { width: 1280, height: 900 }, opts = {}) {
   await opts.setup?.(page);
   await page.goto(site.url + (opts.hash || ""));
   await page.waitForFunction(() => document.getElementById("freshnessText")?.textContent.includes("loading") === false);
+  // the flight plan starts closed on desktop; most tests want it open (plan: false keeps it closed)
+  if (opts.plan !== false && (await page.isVisible("#tripOpenTab"))) await page.click("#tripOpenTab");
   return { page, context, errors };
 }
 
@@ -411,7 +413,6 @@ test("trip builder: add stops from the sheet, legs and per diem, route string, c
     assert.match(await page.textContent("#tripBody"), /No RON stops/);
 
     // RON adds a night of per diem; a second stop is reorderable
-    await page.click("#tripBody .trip-more summary"); // RON lives under Details
     await page.check("#tripBody [data-trip-ron]");
     await page.waitForFunction(() => /1 night/.test(document.getElementById("tripBody").textContent));
     assert.match(await page.evaluate(() => location.hash), /trip=KOKC(%2A|\*)/);
@@ -661,6 +662,12 @@ test("flight plan: legs with arrival fields, local landing time, and a ceiling t
     await page.fill("#tripSearch", "KLBL");
     await page.press("#tripSearch", "Enter");
     await page.waitForSelector('[data-testid="ceiling-timeline"]');
+    // a red drop-down flag, closed until the pilot opens it
+    assert.equal(await page.locator('[data-testid="ceiling-timeline"]').first().evaluate((d) => d.open), false);
+    assert.match(await page.textContent('[data-testid="ceiling-timeline"] summary'), /Instrument conditions · KLBL IFR/);
+    assert.equal(await page.locator('[data-testid="ceiling-timeline"] svg').first().isVisible(), false);
+    await page.locator('[data-testid="ceiling-timeline"] summary').first().click();
+    assert.equal(await page.locator('[data-testid="ceiling-timeline"] svg').first().isVisible(), true);
     assert.ok((await page.locator('[data-testid="ceiling-timeline"] svg rect[fill]').count()) > 20);
     assert.match(await page.textContent('[data-testid="ceiling-timeline"]'), /IFR at landing/);
     assert.match(await page.getAttribute('[data-testid="ceiling-timeline"] svg', "aria-label"), /KLBL/);
@@ -738,41 +745,37 @@ test("flight plan: pick the takeoff date and time of each leg", async () => {
   }
 });
 
-test("flight plan: wider on demand, by the button, the arrow keys or dragging the edge; rows stay one line when wide", async () => {
-  const { page, context, errors } = await openPage({ width: 1600, height: 900 });
+test("flight plan: closed by default, opens from the tab, when a leg is added, or from a shared link; rows are one line", async () => {
+  const closed = await openPage(undefined, { plan: false });
   try {
-    await page.fill("#tripSearch", "KPNC");
-    await page.press("#tripSearch", "Enter");
-    await page.waitForSelector("#tripBody .trip-row");
-    const width = async () => Math.round((await page.locator("#tripBar").boundingBox()).width);
-    const w0 = await width();
-    assert.ok(w0 >= 500, `default is roomy (${w0})`);
-    // wide: the five columns share one line
+    const { page } = closed;
+    assert.equal(await page.isVisible("#tripBar"), false, "closed on first load");
+    assert.equal(await page.isVisible("#tripOpenTab"), true);
+    // adding a field to the trip from its sheet opens the plan
+    await page.locator('#plannerMap [data-field="KOKC"]').dispatchEvent("click");
+    await page.waitForSelector("#fieldPanel.open");
+    await page.click('[data-trip-toggle="KOKC"]');
+    await page.waitForFunction(() => !document.querySelector(".app").dataset.trip);
+    assert.equal(await page.isVisible("#tripBar"), true);
+    assert.equal(await page.isVisible("#tripBody .trip-row"), true);
+    // no widening controls
+    assert.equal(await page.locator("#tripWide, #tripResize").count(), 0);
+    // one line per leg at the standard width
     assert.ok((await page.locator("#tripBody .trip-row").first().boundingBox()).height < 60, "the leg is a single line");
-    const lefts = await page.locator("#tripBody .trip-row").first().locator(".trip-c-dep, .trip-c-arr, .trip-c-take, .trip-c-fly, .trip-c-land").evaluateAll((els) => els.map((e) => e.getBoundingClientRect()));
-    for (let k = 1; k < lefts.length; k++) assert.ok(lefts[k].left >= lefts[k - 1].right - 1, "columns do not overlap");
-    await page.click("#tripWide");
-    await page.waitForFunction((w) => document.getElementById("tripBar").getBoundingClientRect().width > w + 100, w0);
-    await page.click("#tripWide");
-    await page.waitForFunction((w) => Math.abs(document.getElementById("tripBar").getBoundingClientRect().width - w) < 4, w0);
-    // arrow keys on the handle
-    await page.focus("#tripResize");
-    await page.keyboard.press("ArrowLeft");
-    await page.waitForFunction((w) => document.getElementById("tripBar").getBoundingClientRect().width > w + 30, w0);
-    // dragging the edge
-    const box = await page.locator("#tripResize").boundingBox();
-    await page.mouse.move(box.x + 4, box.y + 200);
-    await page.mouse.down();
-    await page.mouse.move(box.x - 150, box.y + 200, { steps: 5 });
-    await page.mouse.up();
-    assert.ok((await width()) > w0 + 150);
-    // narrow: the row wraps to two lines (labels appear)
-    await page.setViewportSize({ width: 1100, height: 900 });
-    await page.evaluate(() => document.documentElement.style.setProperty("--tripbar-width", "420px"));
-    await page.waitForFunction(() => getComputedStyle(document.querySelector(".trip-cl")).display === "block");
-    assert.deepEqual(errors, []);
+    const cols = await page.locator("#tripBody .trip-row").first().locator(".trip-c-dep, .trip-c-arr, .trip-c-take, .trip-c-fly, .trip-c-land").evaluateAll((els) => els.map((e) => e.getBoundingClientRect()));
+    for (let k = 1; k < cols.length; k++) assert.ok(cols[k].left >= cols[k - 1].right - 1, "columns do not overlap");
+    assert.deepEqual(closed.errors, []);
   } finally {
-    await context.close();
+    await closed.context.close();
+  }
+  // a shared link that has legs opens it
+  const shared = await openPage(undefined, { plan: false, hash: "#/v=planner&trip=KPNC" });
+  try {
+    assert.equal(await shared.page.isVisible("#tripBar"), true);
+    assert.equal(await shared.page.isVisible("#tripBody .trip-row"), true);
+    assert.deepEqual(shared.errors, []);
+  } finally {
+    await shared.context.close();
   }
 });
 

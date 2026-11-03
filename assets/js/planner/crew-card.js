@@ -15,10 +15,10 @@ function zonesHtml(schedule) {
   if (!schedule?.length) return "";
   const points = [{ code: schedule[0].from, tz: schedule[0].fromTz, at: schedule[0].dep, shift: null }];
   schedule.forEach((l) => points.push({ code: l.to, tz: l.toTz, at: l.eta, shift: clockShift(l.fromTz, l.dep, l.toTz, l.eta) }));
-  const rows = points.map((p) => `<tr><td>${esc(p.code)}</td><td>${esc(tzLabel(p.tz, p.at))}</td><td>${p.shift?.text ? `<span class="cc-tz">${p.shift.kind === "gain" ? "gain" : "lose"} ${Math.abs(p.shift.minutes) / 60} hr</span>` : ""}</td></tr>`).join("");
+  const rows = points.map((p) => `<tr><td>${esc(p.code)}</td><td>${esc(tzLabel(p.tz, p.at))}</td><td>${p.shift?.text ? `<span class="cc-tz">${p.shift.kind === "gain" ? "Gain" : "Lose"} ${Number.isInteger(Math.abs(p.shift.minutes) / 60) ? `${Math.abs(p.shift.minutes) / 60} hr` : `${Math.abs(p.shift.minutes)} min`}</span>` : ""}</td></tr>`).join("");
   const zones = new Set(points.map((p) => p.tz));
   return `<table class="cc-zones"><thead><tr><th colspan="3">Time zones${zones.size > 1 ? ` — ${zones.size} zones on this trip` : " — all one zone"}</th></tr></thead><tbody>${rows}</tbody></table>
-    <p class="cc-zulu cc-muted">Zulu (UTC) times are in bold below.${zones.size > 1 ? " Flying west you gain an hour; flying east you lose one." : ""}</p>`;
+    <p class="cc-zulu cc-muted">Zulu (UTC) times are in bold below.</p>`;
 }
 
 const money = (n) => (n == null ? "—" : `$${Math.round(n).toLocaleString("en-US")}`);
@@ -67,7 +67,7 @@ export function crewCardHtml(ctx) {
             return f ? `<br><span class="cc-muted">${CAT_NAMES[flightCategory(f.ceil, f.vis)]}, ceiling ${esc(ceilingText(f.ceil))}</span>` : "";
           };
           const when = (instant, tz, withDay) => `${withDay ? `${esc(new Date(instant).toLocaleDateString("en-US", { timeZone: tz, weekday: "short", month: "short", day: "numeric" }))} ` : ""}${esc(clock(instant, tz))} ${esc(zoneAbbr(instant, tz))}<br><b>${esc(zulu(instant).text)}</b>`;
-          return `<tr><td>${esc(l.from)} → ${esc(l.to)}${l.overRange ? `<br><span class="cc-flag">⚠ beyond one leg — plan a fuel stop</span>` : ""}${shift?.text ? `<br><span class="cc-tz">🕐 ${esc(shift.text)}</span>` : ""}${flags}</td>
+          return `<tr><td>${esc(l.from)} → ${esc(l.to)}${l.overRange ? `<br><span class="cc-flag">⚠ Tight on gas</span>` : ""}${shift?.text ? `<br><span class="cc-tz">${esc(shift.text)}</span>` : ""}${flags}</td>
             <td>${sc ? when(sc.dep, sc.fromTz, true) + wxNote(sc.from, sc.dep) : ""}</td>
             <td>${sc ? when(sc.eta, sc.toTz, sc.etaLocal.date !== sc.depLocal.date) + wxNote(sc.to, sc.eta) : ""}</td>
             <td>${Math.round(l.nm)} nm</td><td>${formatFlightTime(l.mins)}</td></tr>`;
