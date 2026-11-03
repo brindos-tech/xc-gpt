@@ -81,8 +81,10 @@ test("welcome screen: shown to first-time visitors, explains the pieces, remembe
   try {
     assert.equal(await page.locator("#welcome").evaluate((d) => d.open), true, "open on the first visit");
     const text = await page.textContent("#welcome");
-    for (const word of ["Pick your base", "Flight plan", "RON", "crew card", "Weekend Recs", "ceiling timeline", "tight on gas"]) assert.ok(text.toLowerCase().includes(word.toLowerCase()), word);
-    assert.equal(await page.locator("#welcome .welcome-grid section").count(), 8);
+    for (const word of ["Departure base, range", "central and eastern US", "7 days", "green", "yellow", "night landings", "FBO names", "NOTAMs for your whole stay", "Weekend Recs", "category buttons"]) assert.ok(text.toLowerCase().includes(word.toLowerCase()), word);
+    assert.equal(await page.locator("#welcome .welcome-sec").count(), 3, "three sections");
+    assert.ok((await page.locator("#welcome .wv-pin svg").count()) >= 4, "the example map uses the real pin marks");
+    assert.ok((await page.locator("#welcome .wv-key svg").count()) >= 3, "the key shows towered, non-towered and military");
     await page.click("#welcomeGo");
     assert.equal(await page.locator("#welcome").evaluate((d) => d.open), false);
     assert.equal(await page.evaluate(() => localStorage.getItem("xcgpt-welcome-seen")), "1", "remembered");
