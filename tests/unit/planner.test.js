@@ -585,3 +585,50 @@ test("trip schedule: defaults chain from each landing, RON goes to next morning,
   assert.equal(trip.tripPerDiem([{ field: F, ron: true, date: new Date(2026, 11, 20) }], new Date(2026, 10, 7)).lodging, 150);
   assert.equal(trip.tripPerDiem([{ field: F, ron: true }], new Date(2026, 10, 7)).lodging, 110, "no date: the trip date's month");
 });
+
+// ---- time zones and Zulu ----
+test("clock helpers: Zulu, zone labels, and gaining/losing an hour", async () => {
+  const sun = await import("../../assets/js/planner/sun.js");
+  const dep = sun.zonedInstant("2026-11-07", "09:00", "America/Chicago");
+  assert.equal(sun.zulu(dep).time, "1500Z");
+  assert.equal(sun.zulu(dep).text, "Nov 7 1500Z");
+  assert.equal(sun.zulu(new Date("2026-11-08T02:05:00Z")).date, "Nov 8", "the Zulu date can differ from the local date");
+  assert.equal(sun.tzLabel("America/Chicago", dep), "Central (CST, UTC−6)");
+  assert.equal(sun.tzLabel("America/Denver", sun.zonedInstant("2026-07-07", "09:00", "America/Denver")), "Mountain (MDT, UTC−6)");
+  assert.equal(sun.tzLabel("America/Phoenix", sun.zonedInstant("2026-07-07", "09:00", "America/Phoenix")), "Mountain (MST, UTC−7)");
+  const arr = new Date(dep.getTime() + 90 * 60000);
+  assert.deepEqual(sun.clockShift("America/Chicago", dep, "America/Chicago", arr), { minutes: 0, kind: "none", text: "" });
+  const west = sun.clockShift("America/Chicago", dep, "America/Denver", arr);
+  assert.equal(west.kind, "gain");
+  assert.equal(west.minutes, -60);
+  assert.match(west.text, /Central → Mountain: you gain 1 hour/);
+  const east = sun.clockShift("America/Denver", dep, "America/New_York", arr);
+  assert.equal(east.kind, "lose");
+  assert.match(east.text, /you lose 2 hours/);
+});
+
+test("crew card: time zones listed, shifts called out, local and Zulu on every leg", async () => {
+  const { crewCardHtml } = await import("../../assets/js/planner/crew-card.js");
+  const trip = await import("../../assets/js/planner/trip.js");
+  const o = { icao: "KEND", lat: 36.3392, lon: -97.9166, tz: "America/Chicago" };
+  const den = { code: "KDEN", name: "Denver Intl", city: "Denver, CO", state: "CO", lat: 39.86, lon: -104.67, land: "Approved", fuel: "Approved", ron: "Approved", classification: "Civil", aircard: [], approaches: [], approachTypes: [] };
+  const stops = [{ field: den, ron: false }];
+  const legs = trip.tripLegs(o, [den], config);
+  const schedule = trip.scheduleTrip({ origin: o, stops, legs: legs.legs, tripDate: "2026-11-07" });
+  const html = crewCardHtml({ origin: o, stops, legs, schedule, cost: trip.tripPerDiem(stops, new Date(2026, 10, 7)), tripDate: new Date(2026, 10, 7), route: trip.routeString(o, [den]), stateTaxes: {}, dataNotes: [] });
+  assert.match(html, /Time zones — 2 zones on this trip/);
+  assert.match(html, /KEND<\/td><td>Central \(CST, UTC−6\)/);
+  assert.match(html, /KDEN<\/td><td>Mountain \(MST, UTC−7\)/);
+  assert.match(html, /gain 1 hr/);
+  assert.match(html, /Central → Mountain: you gain 1 hour/);
+  assert.match(html, /Nov 7 1500Z/, "takeoff in Zulu");
+  assert.match(html, /<b>Nov 7 \d{4}Z<\/b>/, "landing in Zulu");
+  assert.match(html, /you lose 1 hour/, "and the way back");
+  // a single-zone trip says so
+  const tul = { ...den, code: "KTUL", state: "OK", lat: 36.2, lon: -95.9 };
+  const legs2 = trip.tripLegs(o, [tul], config);
+  const sch2 = trip.scheduleTrip({ origin: o, stops: [{ field: tul, ron: false }], legs: legs2.legs, tripDate: "2026-11-07" });
+  const html2 = crewCardHtml({ origin: o, stops: [{ field: tul, ron: false }], legs: legs2, schedule: sch2, cost: trip.tripPerDiem([], new Date()), tripDate: new Date(2026, 10, 7), route: "x", stateTaxes: {}, dataNotes: [] });
+  assert.match(html2, /all one zone/);
+  assert.doesNotMatch(html2, /you gain|you lose/);
+});

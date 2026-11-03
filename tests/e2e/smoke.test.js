@@ -658,7 +658,7 @@ test("flight plan: pick the takeoff date and time of each leg", async () => {
     assert.match(await inputs.nth(0).inputValue(), /^\d{4}-\d{2}-\d{2}T09:00$/, "leg 1 defaults to 09:00 on the trip date");
     const second = await inputs.nth(1).inputValue();
     assert.ok(second > (await inputs.nth(0).inputValue()), "leg 2 is after leg 1");
-    assert.match(await page.textContent("#tripBody .trip-leg"), /Lands \d+:\d\d (AM|PM) \w+ at KPNC/);
+    assert.match(await page.textContent("#tripBody .trip-leg"), /Lands \d+:\d\d (AM|PM) \w+ · \d{4}Z at KPNC/);
 
     // set leg 2 two days later: it becomes explicit (with an 'auto' reset) and rides in the URL
     const target = new Date(Date.now() + 2 * 86400000);
@@ -687,6 +687,11 @@ test("flight plan: pick the takeoff date and time of each leg", async () => {
     const card = await page.textContent("#crewCard");
     assert.match(card, /Takeoff/);
     assert.match(card, /7:45 AM/);
+    assert.match(card, /Time zones — all one zone/);
+    assert.match(card, /Central \(C[SD]T, UTC−[56]\)/);
+    assert.match(card, /\d{4}Z/, "Zulu times on the card");
+    // the bar itself shows Zulu next to the local takeoff and landing times
+    assert.match(await page.textContent("#tripBody"), /\d{4}Z/);
     assert.deepEqual(errors, []);
   } finally {
     await context.close();

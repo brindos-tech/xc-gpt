@@ -2,7 +2,7 @@
 // estimate, copy-route and print-crew-card buttons. Rendered from state on
 // every planner render; all buttons are delegated from the one container.
 import { tripLegs, routeString, tripPerDiem, scheduleTrip, legFlags } from "../planner/trip.js";
-import { zoneAbbr, clock } from "../planner/sun.js";
+import { zoneAbbr, clock, zulu, tzLabel, clockShift } from "../planner/sun.js";
 import { CAT_NAMES, CAT_COLORS, flightCategory, ceilingText } from "../planner/wx-model.js";
 import { formatFlightTime } from "../format.js";
 import { esc } from "../planner/html.js";
@@ -153,10 +153,12 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
   function legHtml(leg, state, flightLine) {
     const flags = legFlags(leg).map((x) => `<div class="fp-flag ${x.level}">⚠ ${esc(x.text)}</div>`).join("");
     const takeoff = `${leg.depLocal.date}T${leg.depLocal.time}`;
+    const shift = clockShift(leg.fromTz, leg.dep, leg.toTz, leg.eta);
     return `<div class="trip-leg">
       <div class="trip-leg-line muted small">Leg ${leg.i + 1}: ${esc(leg.from)} → ${esc(leg.to)} · ${flightLine}</div>
-      <label class="trip-dep">Takeoff <input type="datetime-local" step="300" data-trip-dep data-i="${leg.i}" value="${takeoff}" aria-label="Takeoff, leg ${leg.i + 1}, ${esc(leg.from)} local time"> <span class="muted small">${esc(leg.from)} time (${esc(zoneAbbr(leg.dep, leg.fromTz))})</span>${leg.explicit && leg.i > 0 ? ` <button type="button" class="cm-link small" data-trip="reset-dep" data-i="${leg.i}">auto</button>` : ""}</label>
-      <div class="trip-arr small">Lands ${esc(clock(leg.eta, leg.toTz))} ${esc(zoneAbbr(leg.eta, leg.toTz))} at ${esc(leg.to)}${leg.etaLocal.date !== leg.depLocal.date ? ` <span class="muted">(${esc(new Date(leg.eta).toLocaleDateString("en-US", { timeZone: leg.toTz, weekday: "short", month: "short", day: "numeric" }))})</span>` : ""}</div>
+      <label class="trip-dep">Takeoff <input type="datetime-local" step="300" data-trip-dep data-i="${leg.i}" value="${takeoff}" aria-label="Takeoff, leg ${leg.i + 1}, ${esc(leg.from)} local time"> <span class="muted small">${esc(leg.from)} time (${esc(zoneAbbr(leg.dep, leg.fromTz))}) · ${esc(zulu(leg.dep).time)}</span>${leg.explicit && leg.i > 0 ? ` <button type="button" class="cm-link small" data-trip="reset-dep" data-i="${leg.i}">auto</button>` : ""}</label>
+      <div class="trip-arr small">Lands ${esc(clock(leg.eta, leg.toTz))} ${esc(zoneAbbr(leg.eta, leg.toTz))} · ${esc(zulu(leg.eta).time)} at ${esc(leg.to)}${leg.etaLocal.date !== leg.depLocal.date ? ` <span class="muted">(${esc(new Date(leg.eta).toLocaleDateString("en-US", { timeZone: leg.toTz, weekday: "short", month: "short", day: "numeric" }))})</span>` : ""}</div>
+      ${shift.text ? `<div class="fp-flag info">🕐 ${esc(shift.text)}</div>` : ""}
       <div class="trip-wxrow small">${wxChip(leg.from, leg.dep) ? `<span class="muted">takeoff</span> ${wxChip(leg.from, leg.dep)}` : ""} ${wxChip(leg.to, leg.eta) ? `<span class="muted">landing</span> ${wxChip(leg.to, leg.eta)}` : ""}</div>
       ${flags}
     </div>`;

@@ -112,3 +112,47 @@ export function wallClock(instant, tz) {
   const g = (t) => parts.find((p) => p.type === t).value;
   return { date: `${g("year")}-${g("month")}-${g("day")}`, time: `${g("hour")}:${g("minute")}` };
 }
+
+const TZ_NAMES = {
+  "America/New_York": "Eastern", "America/Detroit": "Eastern", "America/Indiana/Indianapolis": "Eastern", "America/Kentucky/Louisville": "Eastern",
+  "America/Chicago": "Central",
+  "America/Denver": "Mountain", "America/Boise": "Mountain", "America/Phoenix": "Mountain",
+  "America/Los_Angeles": "Pacific",
+};
+export const tzName = (tz) => TZ_NAMES[tz] || tz.split("/").pop().replace(/_/g, " ");
+
+const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** UTC time of an instant: { time: "1512Z", date: "Nov 7" }. */
+export function zulu(instant) {
+  const d = new Date(instant);
+  const hh = String(d.getUTCHours()).padStart(2, "0");
+  const mm = String(d.getUTCMinutes()).padStart(2, "0");
+  return { time: `${hh}${mm}Z`, date: `${MONTH_ABBR[d.getUTCMonth()]} ${d.getUTCDate()}`, text: `${MONTH_ABBR[d.getUTCMonth()]} ${d.getUTCDate()} ${hh}${mm}Z` };
+}
+
+/** "UTC−6" / "UTC+1" / "UTC" for a zone at an instant. */
+export function utcOffsetText(tz, instant) {
+  const m = tzOffsetMin(tz, instant);
+  if (m === 0) return "UTC";
+  const a = Math.abs(m);
+  return `UTC${m < 0 ? "−" : "+"}${Math.floor(a / 60)}${a % 60 ? `:${String(a % 60).padStart(2, "0")}` : ""}`;
+}
+
+/** "Central (CST, UTC−6)" for a zone at an instant. */
+export const tzLabel = (tz, instant) => `${tzName(tz)} (${zoneAbbr(instant, tz)}, ${utcOffsetText(tz, instant)})`;
+
+/**
+ * What the clocks do between a departure and an arrival: flying west the clock
+ * goes back (you gain an hour), flying east it goes forward (you lose one).
+ * @returns {{minutes:number, kind:"none"|"gain"|"lose", text:string}}
+ */
+export function clockShift(fromTz, dep, toTz, arr) {
+  const minutes = tzOffsetMin(toTz, arr) - tzOffsetMin(fromTz, dep);
+  if (!minutes) return { minutes: 0, kind: "none", text: "" };
+  const h = Math.abs(minutes) / 60;
+  const amount = Number.isInteger(h) ? `${h} hour${h === 1 ? "" : "s"}` : `${Math.abs(minutes)} minutes`;
+  return minutes < 0
+    ? { minutes, kind: "gain", text: `${tzName(fromTz)} → ${tzName(toTz)}: you gain ${amount} (clocks go back)` }
+    : { minutes, kind: "lose", text: `${tzName(fromTz)} → ${tzName(toTz)}: you lose ${amount} (clocks go forward)` };
+}

@@ -361,12 +361,13 @@
 @media print {
   body > *:not(#crewCard) { display: none !important; }
   html, body { background: #fff !important; height: auto !important; overflow: visible !important; }
-  #crewCard { display: block; color: #111; background: #fff; font: 11pt/1.35 system-ui, sans-serif; padding: 0; }
+  #crewCard { display: block; color-scheme: light; color: #111; background: #fff; font: 11pt/1.35 system-ui, sans-serif; padding: 0; }
   #crewCard h2 { font-size: 16pt; margin: 0 0 2pt; }
   #crewCard h3 { font-size: 12.5pt; margin: 0 0 4pt; border-bottom: 1.5pt solid #111; padding-bottom: 2pt; }
   #crewCard h3 small { font-weight: 400; color: #444; font-size: 10pt; }
   #crewCard .cc-route { font: 600 12pt ui-monospace, monospace; margin-bottom: 8pt; }
   #crewCard table { width: 100%; border-collapse: collapse; margin-bottom: 8pt; }
+  #crewCard td { color: #111; }
   #crewCard th, #crewCard td { text-align: left; vertical-align: top; padding: 2pt 6pt 2pt 0; font-size: 10pt; }
   #crewCard th { width: 22%; color: #333; font-weight: 600; }
   #crewCard .cc-legs th { width: auto; border-bottom: 1pt solid #111; }
@@ -471,4 +472,11 @@
 .badge.wk-other { color: var(--gold); border-color: rgba(232,193,94,0.5); }
 @media (max-width: 600px) {
   .wk-backup-row { grid-template-columns: 1fr; gap: 4px; }
+}
+.fp-flag.info { color: var(--accent2, #3ddc97); }
+@media print {
+  #crewCard .cc-zones th { width: auto; border-bottom: 1pt solid #111; }
+  #crewCard .cc-zones td { padding: 1.5pt 14pt 1.5pt 0; }
+  #crewCard .cc-tz { color: #0b5d3a; font-weight: 600; }
+  #crewCard .cc-zulu { margin: 0 0 8pt; font-size: 9pt; }
 }
