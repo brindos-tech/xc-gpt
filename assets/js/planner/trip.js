@@ -50,23 +50,22 @@ export const routeString = (origin, stops, roundTrip = true) => [origin.icao, ..
 export function tripPerDiem(stops, tripDate) {
   const nights = stops.filter((s) => s.ron);
   if (!nights.length) return { nights: 0, days: 1, lodging: 0, meals: 0, total: 0, missing: [] };
-  const rates = nights.map((s) => ({ code: s.field.code, pd: perDiemFor(s.field, s.date || tripDate) }));
-  const missing = rates.filter((r) => !r.pd).map((r) => r.code);
+  // one entry per night (a stop with `nights: 2` is two nights at that field's rate)
+  const rates = nights.flatMap((s) => Array.from({ length: Math.max(1, s.nights || 1) }, () => ({ code: s.field.code, pd: perDiemFor(s.field, s.date || tripDate) })));
+  const missing = [...new Set(rates.filter((r) => !r.pd).map((r) => r.code))];
   const lodging = rates.reduce((sum, r) => sum + (r.pd?.lodging || 0), 0);
-  const days = nights.length + 1;
+  const days = rates.length + 1;
   let meals = 0;
   for (let d = 0; d < days; d++) {
     const rate = rates[Math.min(d, rates.length - 1)].pd?.meals || 0;
     meals += d === 0 || d === days - 1 ? rate * 0.75 : rate;
   }
-  return { nights: nights.length, days, lodging, meals: Math.round(meals * 100) / 100, total: Math.round((lodging + meals) * 100) / 100, missing };
+  return { nights: rates.length, days, lodging, meals: Math.round(meals * 100) / 100, total: Math.round((lodging + meals) * 100) / 100, missing };
 }
 
 const TURNAROUND_MIN = 60;
-const addDay = (dayKey) => {
-  const [y, m, d] = dayKey.split("-").map(Number);
-  return new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10);
-};
+/** Whole calendar days from one "YYYY-MM-DD" to another. */
+const daysBetween = (a, b) => Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86400000);
 const ceil5 = (instant) => new Date(Math.ceil(instant.getTime() / 300000) * 300000);
 
 export const originTimeZone = (origin) => origin.tz || fieldTimeZone(undefined, origin.lat, origin.lon);
@@ -74,8 +73,9 @@ export const stopTimeZone = (f) => fieldTimeZone(f.state, f.lat, f.lon);
 
 /**
  * Times for every leg. Leg 1 takes off on the trip date (time defaults to
- * 09:00); each later leg defaults to an hour after the previous one lands, or
- * the next morning at 09:00 after a RON; any leg can be set explicitly
+ * 09:00); each later leg defaults to an hour after the previous one lands; any
+ * leg can be set explicitly. A leg that takes off on a later day than the
+ * previous one landed makes that stop a RON (`ron`, `nights` on the earlier leg)
  * (`dep`, field-local "YYYY-MM-DDTHH:mm"; for leg 1 only the time is used —
  * the date is the trip date).
  * @param {{origin, stops:{field, ron:boolean, dep?:string}[], legs:object[], tripDate:string, returnDep?:string}} i
@@ -84,7 +84,6 @@ export const stopTimeZone = (f) => fieldTimeZone(f.state, f.lat, f.lon);
 export function scheduleTrip({ origin, stops, legs, tripDate, returnDep }) {
   const out = [];
   let prevEta = null;
-  let prevRon = false;
   legs.forEach((leg, i) => {
     const isReturn = i >= stops.length;
     const fromTz = i === 0 ? originTimeZone(origin) : stopTimeZone(stops[i - 1].field);
@@ -93,7 +92,6 @@ export function scheduleTrip({ origin, stops, legs, tripDate, returnDep }) {
     let dep;
     if (i === 0) dep = zonedInstant(tripDate, explicit ? explicit.slice(11, 16) : "09:00", fromTz);
     else if (explicit) dep = zonedInstant(explicit.slice(0, 10), explicit.slice(11, 16), fromTz);
-    else if (prevRon) dep = zonedInstant(addDay(wallClock(prevEta, fromTz).date), "09:00", fromTz);
     else dep = ceil5(new Date(prevEta.getTime() + TURNAROUND_MIN * 60000));
     const eta = new Date(dep.getTime() + leg.mins * 60000);
     out.push({
@@ -110,10 +108,17 @@ export function scheduleTrip({ origin, stops, legs, tripDate, returnDep }) {
       explicit: Boolean(explicit),
       overlapsPrevious: prevEta ? dep < prevEta : false,
       toField: isReturn ? null : stops[i].field,
-      ron: !isReturn && stops[i].ron,
+      ron: false,
+      nights: 0,
     });
     prevEta = eta;
-    prevRon = !isReturn && stops[i].ron;
+  });
+  // A takeoff on a later day than the landing means the night is spent at that
+  // field (RON), one night per day in between.
+  out.forEach((leg, i) => {
+    const next = out[i + 1];
+    leg.nights = next && !leg.isReturn ? Math.max(0, daysBetween(leg.etaLocal.date, next.depLocal.date)) : 0;
+    leg.ron = leg.nights > 0;
   });
   return out;
 }

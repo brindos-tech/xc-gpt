@@ -453,6 +453,11 @@ test("trip: per diem — nights at each RON field, meals at 75% on the first and
   const two = tripPerDiem([{ field: field("KA", 100, 60), ron: true }, { field: field("KB", 150, 80), ron: true }], date);
   assert.equal(two.lodging, 250);
   assert.equal(two.meals, 0.75 * 60 + 80 + 0.75 * 80);
+  // two nights at one field: one stop, nights: 2
+  const stay = tripPerDiem([{ field: field("KA", 100, 60), ron: true, nights: 2 }], date);
+  assert.equal(stay.nights, 2);
+  assert.equal(stay.lodging, 200);
+  assert.equal(stay.meals, 0.75 * 60 + 60 + 0.75 * 60);
   const missing = tripPerDiem([{ field: { code: "KZ" }, ron: true }], date);
   assert.deepEqual(missing.missing, ["KZ"]);
 });
@@ -535,7 +540,7 @@ test("trip URL: takeoff times ride along with each stop", async () => {
   assert.equal(trip.decodeDep("nope"), "");
 });
 
-test("trip schedule: defaults chain from each landing, RON goes to next morning, explicit times win, flags", async () => {
+test("trip schedule: defaults chain from each landing, a later-day takeoff makes a RON, explicit times win, flags", async () => {
   const trip = await import("../../assets/js/planner/trip.js");
   const o = { icao: "KEND", lat: 36.3392, lon: -97.9166, tz: "America/Chicago" };
   const mk = (code, lat, lon, extra = {}) => ({ code, lat, lon, state: "OK", ...extra });
@@ -554,9 +559,18 @@ test("trip schedule: defaults chain from each landing, RON goes to next morning,
   assert.ok(day[1].dep.getUTCMinutes() % 5 === 0, "rounded to 5 minutes");
   assert.ok(day.every((l) => !l.explicit));
 
-  // RON at the first stop: the next leg leaves the next morning at 09:00 local
-  const night = sched([{ field: A, ron: true }, { field: B, ron: false }]);
-  assert.deepEqual([night[1].depLocal.date, night[1].depLocal.time], ["2026-11-08", "09:00"]);
+  assert.ok(day.every((l) => !l.ron && l.nights === 0), "same-day legs are not RON");
+
+  // a takeoff the next day makes the previous stop a RON (one night); two days later is two nights
+  const night = sched([{ field: A, ron: false }, { field: B, ron: false, dep: "2026-11-08T09:00" }]);
+  assert.deepEqual([night[0].ron, night[0].nights], [true, 1]);
+  assert.deepEqual([night[1].ron, night[1].nights], [false, 0], "the next leg went back the same day");
+  const nights2 = sched([{ field: A, ron: false }, { field: B, ron: false, dep: "2026-11-09T09:00" }]);
+  assert.deepEqual([nights2[0].ron, nights2[0].nights], [true, 2]);
+  // the return leg flown later makes the last stop a RON
+  assert.equal(sched([{ field: A, ron: false }], { returnDep: "2026-11-08T08:00" })[0].ron, true);
+  // no later leg, no RON
+  assert.equal(night.at(-1).ron, false);
 
   // explicit: leg 2 on the 8th at 14:30, return left to automatic; leg 1's explicit value only supplies the time
   const set = sched([{ field: A, ron: false, dep: "2099-01-01T07:15" }, { field: B, ron: false, dep: "2026-11-08T14:30" }]);
