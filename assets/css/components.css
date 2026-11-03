@@ -559,6 +559,14 @@ input.trip-to:focus-visible, select.trip-from:focus-visible, .trip-take input:fo
 .wv-tip.leaflet-tooltip { background: rgba(0,0,0,0.78); color: #fff; border: none; font-size: 10.5px; padding: 1px 6px; box-shadow: none; }
 .wv-tip.leaflet-tooltip::before { display: none; }
 .wv-cap { font-size: 0.72em; color: var(--muted); }
+.wv-wxbox { background: rgba(26,32,39,0.96); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; display: grid; gap: 7px; font-size: 0.82em; }
+.wv-wxhead { display: flex; align-items: center; gap: 10px; }
+.wv-wxhead .wv-muted { flex: 1; }
+.wv-collapse { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 8px; color: var(--muted); }
+.wv-wxbox .chip { padding: 2px 8px; font-size: 0.9em; cursor: default; }
+.wv-wxbox .wx-days, .wv-wxbox .wx-layers { gap: 5px; }
+.wv-wxbox .wx-time input[type="range"] { flex: 1; min-width: 0; accent-color: var(--accent); }
+.wv-wxcap { font-size: 0.85em; color: var(--muted); }
 .wv-slider { z-index: 800; position: absolute; left: 8px; right: 8px; bottom: 8px; display: flex; align-items: center; gap: 8px; background: rgba(26,32,39,0.92); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 5px 8px; font-size: 11px; }
 .wv-slider i { flex: 1; height: 4px; border-radius: 2px; background: linear-gradient(90deg, var(--accent) 0 55%, var(--border) 55%); }
 .wv-key { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.8em; color: var(--muted); }

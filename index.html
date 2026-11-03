@@ -166,15 +166,21 @@
         <h3><span class="welcome-n">1</span> Departure base, range &amp; weather</h3>
         <p>Pick your <b>departure base</b> and drag the <b>range</b> slider on the left: the map shows every approved field and the airspace within that distance.</p>
         <p><b>Reading a pin:</b> its shape says towered, non-towered or military. The small corner dot is the crew approval: <b>green</b> means land, fuel and RON are all approved; <b>yellow</b> means see the comments on the list. Click a pin for its sheet.</p>
-        <p class="welcome-big"><b>See the forecast anywhere in the central and eastern US, up to 7 days out.</b> Open the Weather box, choose a day, and slide through the hours in local time. Flight categories show as <span class="wc wc-mvfr">MVFR</span> <span class="wc wc-ifr">IFR</span> <span class="wc wc-lifr">LIFR</span>, with icing, ceilings and storms one click away. Live radar covers the whole country.</p>
+        <p class="welcome-big"><b>Live radar covers the whole country.</b> For any other day or hour, open the <b>Weather</b> box (shown below), pick a day up to 7 days out, and slide through the hours in local time. Switch on <b>Flight category</b> (<span class="wc wc-mvfr">MVFR</span> <span class="wc wc-ifr">IFR</span> <span class="wc wc-lifr">LIFR</span>), <b>ceiling</b>, <b>icing</b>, <b>thunderstorms</b> or <b>forecast precipitation</b>. The forecast overlays cover the central and eastern US.</p>
       </div>
       <figure class="welcome-vis" aria-label="Example map: a base, its range ring, field pins and a weather overlay">
         <div class="wv-map"><div id="welcomeMap" class="wv-leaflet"></div>
-          <div class="wv-slider" aria-hidden="true"><span>Weather · Sat 5 PM</span><i></i><span class="wc wc-mvfr">MVFR</span><span class="wc wc-ifr">IFR</span><span class="wc wc-lifr">LIFR</span></div>
         </div>
         <div class="wv-key">
           <span><i data-wpin="towered"></i> Towered</span><span><i data-wpin="nontowered"></i> Non-towered</span><span><i data-wpin="military"></i> Military</span>
           <span><b class="wv-dot" style="background:#3ddc97"></b> Approved</span><span><b class="wv-dot" style="background:#e8c15e"></b> See comments</span>
+        </div>
+        <div class="wv-wxbox" aria-label="The Weather box on the map: day buttons, a time slider and overlay switches">
+          <div class="wv-wxhead"><b>Weather</b> <span class="wv-muted">Sat, Nov 7 &middot; 5 PM</span> <span class="wv-collapse">&#9662;</span></div>
+          <div class="wx-days" id="wvDays"></div>
+          <div class="wx-time"><span class="chip">Now</span><input type="range" min="0" max="8" value="5" tabindex="-1" aria-hidden="true" disabled><output>5 PM</output></div>
+          <div class="wx-layers" id="wvLayers"></div>
+          <div class="wv-wxcap">Tap a day, drag the time, and switch overlays on and off.</div>
         </div>
       </figure>
     </section>

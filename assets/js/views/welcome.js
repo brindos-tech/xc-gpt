@@ -2,6 +2,7 @@
 // inside while it is open) shown once, remembered in localStorage, and
 // reopened from the "How to use" button in the header.
 import { pinSvg } from "../planner/planner-view.js";
+import { WX_LAYERS } from "../planner/wx-controller.js";
 
 const KEY = "xcgpt-welcome-seen";
 
@@ -37,8 +38,8 @@ function buildMiniMap() {
   const el = document.getElementById("welcomeMap");
   if (!L || !el || miniMap) return;
   miniMap = L.map(el, { zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false, touchZoom: false, zoomSnap: 0.25 });
-  // frame every example field, leaving room under them for the weather slider
-  miniMap.fitBounds([[35.25, -98.4], [36.9, -95.6]], { paddingTopLeft: [14, 26], paddingBottomRight: [14, 58] });
+  // frame every example field, with a little room around them
+  miniMap.fitBounds([[35.25, -98.4], [36.9, -95.6]], { paddingTopLeft: [14, 26], paddingBottomRight: [14, 22] });
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 12 }).addTo(miniMap);
   L.circle([36.3398, -97.9172], { radius: 70 * NM, color: "#ff8a3d", weight: 2, dashArray: "6,6", fill: false, interactive: false }).addTo(miniMap);
   // weather: made-up patches, just to show the colours
@@ -56,6 +57,14 @@ export function initWelcome() {
   const dialog = document.getElementById("welcome");
   const openBtn = document.getElementById("helpBtn");
   if (!dialog || typeof dialog.showModal !== "function") return;
+  // the example Weather box uses the real overlay names (Radar on, as it starts)
+  const layers = dialog.querySelector("#wvLayers");
+  if (layers) layers.innerHTML = WX_LAYERS.map((l) => `<span class="chip${l.key === "radar" ? " active" : ""}">${l.label}</span>`).join("");
+  const days = dialog.querySelector("#wvDays");
+  if (days) {
+    const now = new Date();
+    days.innerHTML = [0, 1, 2, 3, 4, 5, 6, 7].map((i) => `<span class="chip${i === 0 ? " active" : ""}">${i === 0 ? "Today" : new Date(now.getFullYear(), now.getMonth(), now.getDate() + i).toLocaleDateString("en-US", { weekday: "short", day: "numeric" })}</span>`).join("");
+  }
   // the example pins are the real map marks
   dialog.querySelectorAll("[data-wpin]").forEach((el) => {
     const kind = el.dataset.wpin;
