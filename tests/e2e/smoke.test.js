@@ -413,7 +413,6 @@ test("trip builder: add stops from the sheet, legs and per diem, route string, c
     assert.match(await page.textContent("#tripBody"), /No RON stops/);
 
     // RON adds a night of per diem; a second stop is reorderable
-    await page.click("#tripBody .trip-more summary"); // RON lives under Details
     await page.check("#tripBody [data-trip-ron]");
     await page.waitForFunction(() => /1 night/.test(document.getElementById("tripBody").textContent));
     assert.match(await page.evaluate(() => location.hash), /trip=KOKC(%2A|\*)/);

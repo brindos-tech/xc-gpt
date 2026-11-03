@@ -458,8 +458,7 @@ input.trip-to { text-transform: uppercase; }
 .trip-ctl { display: inline-flex; gap: 3px; }
 .trip-ctl button:disabled { opacity: 0.3; cursor: default; }
 input.trip-to:focus-visible, select.trip-from:focus-visible, .trip-take input:focus-visible { outline: 2px solid var(--accent); }
-.trip-ronmark { color: var(--gold); font-size: 0.7em; font-weight: 700; }
-.trip-ron { display: inline-flex; gap: 4px; align-items: center; color: var(--muted); }
+.trip-ron { display: inline-flex; gap: 4px; align-items: center; color: var(--muted); font-size: 0.78em; cursor: pointer; }
 .trip-more { margin-top: 3px; }
 .trip-more summary { cursor: pointer; font-size: 0.74em; color: var(--muted); }
 .trip-more-body { display: grid; gap: 3px; padding-top: 4px; }
