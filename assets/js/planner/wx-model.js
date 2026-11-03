@@ -12,7 +12,7 @@ export const NO_CEILING = 255;
 export const LOW_ICE_TOP_FT = 10000;
 export const HIGH_ICE_TOP_FT = 25000;
 export const CAT_NAMES = ["VFR", "MVFR", "IFR", "LIFR"];
-export const CAT_COLORS = ["#3ddc97", "#5b8def", "#e65a5a", "#d65be0"];
+export const CAT_COLORS = ["#3ddc97", "#5b8def", "#e65a5a", "#ff7ac6"];
 const FREEZING_PRECIP_CODES = new Set([56, 57, 66, 67]);
 
 /** Hourly variable names to request. */

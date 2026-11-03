@@ -2,13 +2,12 @@ import { createStore } from "./store.js";
 import { initUrlState } from "./url-state.js";
 import { formatUpdatedAgo, parseDate } from "./format.js";
 import { createFilterRail } from "./views/filter-rail.js";
+import { initWelcome } from "./views/welcome.js";
 import { createPlannerView } from "./planner/planner-view.js";
 import { createFieldPanel } from "./planner/field-panel.js";
 import { mergeFields, selectFields, meetsRunway } from "./planner/fields.js";
 import { createWxController } from "./planner/wx-controller.js";
-import { createComments, loadCommentSummary } from "./planner/comments.js";
 import { createTripPanel } from "./views/trip-panel.js";
-import { createReviewsPage } from "./views/reviews-page.js";
 import { createWeekendsPage } from "./views/weekends-page.js";
 import { crewCardHtml } from "./planner/crew-card.js";
 
@@ -37,6 +36,7 @@ if ("serviceWorker" in navigator) {
 }
 
 async function boot() {
+  initWelcome(); // static markup: shown at once, before the data loads
   // The planner is the home page, so only its data loads up front. The
   // events page (≈2 MB of event data) loads the first time it's opened.
   const [config, navinfo, factsFile, meta, aircard, approaches, stateTax] = await Promise.all([
@@ -63,7 +63,7 @@ async function boot() {
 
   const $ = (id) => document.getElementById(id);
   const app = document.querySelector(".app");
-  const panes = { planner: $("pane-planner"), weekends: $("pane-weekends"), reviews: $("pane-reviews"), events: $("pane-events") };
+  const panes = { planner: $("pane-planner"), weekends: $("pane-weekends"), events: $("pane-events") };
   const tabBar = $("tabBar");
   const searchInput = $("globalSearch");
   const freshnessText = $("freshnessText");
@@ -72,6 +72,13 @@ async function boot() {
   const fieldsByCode = new Map(fields.map((f) => [f.code, f]));
   const filterRail = createFilterRail({ store, config });
   const fieldPanel = createFieldPanel({ store });
+
+  // show-stopper NOTAMs (airport/runway closed...), refreshed by CI; the card says so when they are not available
+  let notamsFile = null;
+  (config.notamsUrl ? fetch(config.notamsUrl, { cache: "no-cache" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))) : Promise.reject(new Error("no url")))
+    .catch(() => loadJson("generated/wx/notams.json"))
+    .then((d) => (notamsFile = d))
+    .catch(() => null);
 
   /** Fill the print-only crew card for the current trip and open the print dialog. */
   function printCrewCard() {
@@ -98,6 +105,8 @@ async function boot() {
       stateTaxes: stateTax?.states,
       dataNotes,
       forecastAt: (code, instant) => wx.forecastAt(code, instant),
+      notams: notamsFile,
+      notamsWanted: true,
     });
     const prev = document.title;
     document.title = `Crew card ${origin.icao} ${state.tripDate}`;
@@ -127,9 +136,7 @@ async function boot() {
   tripBackdrop.addEventListener("click", () => setTripBar(false));
 
   const weekendsPage = createWeekendsPage({ root: $("weekendsPage"), store, config, loadJson, today });
-  const reviewsPage = createReviewsPage({ root: $("reviewsPage"), store, apiBase: config.commentsApi, fieldsByCode });
   const tripPanel = createTripPanel({ store, config, fieldsByCode, getOrigin: () => originsById.get(store.getState().originId), onPrint: printCrewCard, forecastAt: (code, instant) => wx.forecastAt(code, instant) });
-  const comments = createComments({ host: $("fieldComments"), apiBase: config.commentsApi, today });
 
   // ---- planner ----
   const planner = createPlannerView({
@@ -192,9 +199,6 @@ async function boot() {
     } else if (view === "weekends" && meta?.buildAt) {
       freshnessText.textContent = `Events updated ${formatUpdatedAgo(meta.buildAt, now)}`;
       freshnessDot.className = "source-dot ok";
-    } else if (view === "reviews") {
-      freshnessText.textContent = "Reviews from crews";
-      freshnessDot.className = "source-dot ok";
     } else {
       freshnessText.textContent = "Bootstrap data (no CI run yet)";
       freshnessDot.className = "source-dot stale";
@@ -214,7 +218,7 @@ async function boot() {
     app.dataset.page = view;
     Object.entries(panes).forEach(([key, el]) => el.classList.toggle("active", key === view));
     tabBar.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b.dataset.view === view));
-    searchInput.placeholder = view === "planner" ? "Search fields, FBOs…" : view === "reviews" ? "Search reviews…" : view === "weekends" ? "Narrow the picks: rodeo, concert, a team…" : "Search places, events…";
+    searchInput.placeholder = view === "planner" ? "Search fields, FBOs…" : view === "weekends" ? "Narrow the picks: rodeo, concert, a team…" : "Search places, events…";
     // Leaflet measures 0×0 inside a hidden pane.
     if (view === "planner" || view === "events") requestAnimationFrame(() => (view === "planner" ? planner.invalidateSize() : eventsPage?.invalidateSize()));
     if (view === "events") ensureEventsPage();
@@ -273,7 +277,6 @@ async function boot() {
         planner.ensureAirspaceData(state.selectedAirspaceId).then(render).catch(() => {});
       }
     }
-    comments.show(field ? { subject: `field:${field.code}`, label: field.code } : airspace && airspace.type !== "TFR" ? { subject: `airspace:${airspace.id}`, label: airspace.name } : null);
     const [y, m, d] = state.tripDate.split("-").map(Number);
     fieldPanel.render({ field, airspace, ctx: { origin, config, tripDate: new Date(y, m - 1, d), wxRows: field ? wx.fieldRows(field.code, state.tripDate) : null, stateTax: field ? stateTax?.states?.[field.state] : null, stateTaxAsOf: stateTax?.asOf, inTrip: field ? state.trip.some((x) => x.code === field.code) : false } });
   }
@@ -310,16 +313,10 @@ async function boot() {
       eventsPage?.closeDetail();
       renderPlanner(state);
     } else if (state.view === "weekends") {
-      comments.show(null);
       fieldPanel.render({ field: null, airspace: null });
       filterRail.setCounts("Weekend picks within this range");
       weekendsPage.render(state);
-    } else if (state.view === "reviews") {
-      comments.show(null);
-      fieldPanel.render({ field: null, airspace: null });
-      reviewsPage.render(state);
     } else {
-      comments.show(null);
       fieldPanel.render({ field: null, airspace: null });
       renderEvents(state);
     }
@@ -328,19 +325,6 @@ async function boot() {
   store.subscribe(render);
   initUrlState(store);
   render();
-
-  // average ratings for the pins; the page works without them if the API is down
-  loadCommentSummary(config.commentsApi).then((summary) => {
-    let any = false;
-    for (const f of fields) {
-      const r = summary[`field:${f.code}`];
-      if (r) {
-        f.rating = r;
-        any = true;
-      }
-    }
-    if (any) render();
-  });
 
   // The map container can report zero size if Leaflet initializes before the
   // CSS grid layout has settled — force a re-measure once layout is real.

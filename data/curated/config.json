@@ -79,5 +79,6 @@
     }
   },
   "commentsApi": "https://xc-gpt-comments.fly.dev",
-  "tfrUrl": "https://raw.githubusercontent.com/brindos-tech/xc-gpt/wx-data/wx/tfr.json"
+  "tfrUrl": "https://raw.githubusercontent.com/brindos-tech/xc-gpt/wx-data/wx/tfr.json",
+  "notamsUrl": "https://raw.githubusercontent.com/brindos-tech/xc-gpt/wx-data/wx/notams.json"
 }

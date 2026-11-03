@@ -26,7 +26,7 @@ const LEGENDS = {
   cat: { text: "MVFR / IFR / LIFR", swatch: CAT_COLORS.slice(1) },
   lice: { text: "Low icing (<10k ft)", swatch: ["#3cc8ff"] },
   hice: { text: "High icing (10–25k ft)", swatch: ["#b078ff"] },
-  ceil: { text: "Ceiling <500 / <1k / <2k / ≤3k ft", swatch: ["#d65be0", "#e65a5a", "#ff8a3d", "#e8c15e"] },
+  ceil: { text: "Ceiling <500 / <1k / <2k / ≤3k ft", swatch: ["#ff7ac6", "#e65a5a", "#ff8a3d", "#e8c15e"] },
   thun: { text: "Thunderstorms", swatch: ["#ff3c3c"] },
 };
 

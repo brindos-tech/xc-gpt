@@ -1,0 +1,70 @@
+name: Refresh NOTAMs
+
+# Every 6 hours: show-stopper NOTAMs (airport/runway closed, fuel unavailable)
+# from the FAA NOTAM API (scripts/fetch-notams.js), for the crew card.
+# Needs the repository secrets FAA_NOTAM_CLIENT_ID and FAA_NOTAM_CLIENT_SECRET
+# (the FAA API portal's client id and secret); without them it does nothing.
+# Published into the `wx-data` branch next to the forecast and TFRs.
+on:
+  schedule:
+    - cron: "41 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      probe:
+        description: "Print the API response shape for KOKC instead of publishing"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-wx
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Probe the API
+        if: ${{ inputs.probe }}
+        env:
+          FAA_NOTAM_CLIENT_ID: ${{ secrets.FAA_NOTAM_CLIENT_ID }}
+          FAA_NOTAM_CLIENT_SECRET: ${{ secrets.FAA_NOTAM_CLIENT_SECRET }}
+        run: node scripts/fetch-notams.js --probe
+
+      - name: Fetch NOTAMs
+        if: ${{ !inputs.probe }}
+        env:
+          FAA_NOTAM_CLIENT_ID: ${{ secrets.FAA_NOTAM_CLIENT_ID }}
+          FAA_NOTAM_CLIENT_SECRET: ${{ secrets.FAA_NOTAM_CLIENT_SECRET }}
+        run: node scripts/fetch-notams.js
+
+      - name: Publish to wx-data
+        if: ${{ !inputs.probe }}
+        run: |
+          set -e
+          if [ ! -f data/generated/wx/notams.json ]; then echo "no NOTAM file (no credentials?), nothing to publish"; exit 0; fi
+          tmp="$(mktemp -d)"
+          cp data/generated/wx/notams.json "$tmp/notams.json"
+          git config user.name "xc-gpt-bot"
+          git config user.email "actions@users.noreply.github.com"
+          # keep the forecast and TFR files that are already on wx-data, if any
+          if git fetch --depth=1 origin wx-data; then
+            git checkout --orphan wx-data-tmp FETCH_HEAD
+          else
+            git checkout --orphan wx-data-tmp
+            git rm -rf -q .
+            mkdir wx
+          fi
+          mkdir -p wx
+          cp "$tmp/notams.json" wx/notams.json
+          git add wx
+          git commit -q -m "notam data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push --force origin HEAD:wx-data

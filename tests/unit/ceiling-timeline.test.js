@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ceilingSeries, legIsInstrument, summarize, timelineSvg, sampleAt } from "../../assets/js/planner/ceiling-timeline.js";
+import { ceilingSeries, legIsInstrument, worstSample, summarize, timelineSvg, sampleAt } from "../../assets/js/planner/ceiling-timeline.js";
 
 const dep = new Date("2026-11-07T14:00:00Z");
 const eta = new Date("2026-11-07T14:40:00Z");
@@ -47,4 +47,23 @@ test("svg has a bar per sample for each field and marks the landing", () => {
   assert.equal((svg.match(/opacity=/g) || []).length, 48);
   assert.match(svg, /class="tl-land"/);
   assert.match(svg, /role="img"/);
+});
+
+test("marginal VFR counts when asked, and the worst sample carries the ceiling", () => {
+  const mvfr = (code, t) => ({ ceil: 22, vis: 100, lice: 0, hice: 0, thun: 0 }); // 2,200 ft = MVFR
+  const s = ceilingSeries(mvfr, "KMV", dep);
+  assert.equal(legIsInstrument(s, s, dep, eta), false, "IFR threshold by default");
+  assert.equal(legIsInstrument(s, s, dep, eta, 1), true, "marginal counts with minCat 1");
+  assert.deepEqual([worstSample(s, dep, eta).cat, worstSample(s, dep, eta).ceilFt], [1, 2200]);
+  assert.equal(worstSample(ceilingSeries(forecastAt, "KVFR", dep), dep, eta), null, "all VFR: nothing to flag");
+  const ifr = worstSample(ceilingSeries(forecastAt, "KIFR", dep), dep, eta);
+  assert.deepEqual([ifr.cat, ifr.ceilFt], [2, 700]);
+});
+
+test("category colours: MVFR blue, IFR red, LIFR pink", async () => {
+  const { CAT_COLORS, CAT_NAMES } = await import("../../assets/js/planner/wx-model.js");
+  assert.deepEqual(CAT_NAMES, ["VFR", "MVFR", "IFR", "LIFR"]);
+  assert.equal(CAT_COLORS[1], "#5b8def");
+  assert.equal(CAT_COLORS[2], "#e65a5a");
+  assert.equal(CAT_COLORS[3], "#ff7ac6");
 });

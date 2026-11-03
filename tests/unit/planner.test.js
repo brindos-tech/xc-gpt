@@ -485,42 +485,6 @@ test("trip: the crew card carries the legs, each stop's phone and approvals, and
   assert.match(html, /Nav list 2026-09-28/);
 });
 
-// ---- reviews ----
-test("reviews: subjects resolve to fields/airspace, rankings are damped, perks list yes answers", async () => {
-  const rv = await import("../../assets/js/planner/reviews.js");
-  const byCode = new Map(fields.map((f) => [f.code, f]));
-  const kokc = rv.subjectInfo("field:KOKC", byCode);
-  assert.equal(kokc.kind, "field");
-  assert.equal(kokc.title, "KOKC · Will Rogers World Airport");
-  assert.match(kokc.sub, /AAR Aircraft Services/);
-  const moa = rv.subjectInfo("airspace:MOA:VANCE 1A MOA", byCode);
-  assert.deepEqual([moa.kind, moa.id, moa.title, moa.sub], ["air", "MOA:VANCE 1A MOA", "VANCE 1A MOA", "Military Operations Area"]);
-  assert.equal(rv.subjectInfo("field:KZZZ", byCode).known, false);
-
-  const summary = {
-    "field:KOKC": { n: 10, avg: 4.8, perks: { food: [4, 0], car: [1, 3], card: [2, 0] } },
-    "field:KPNC": { n: 1, avg: 5, perks: { food: [1, 0], car: [0, 0], card: [0, 0] } },
-    "airspace:MOA:VANCE 1A MOA": { n: 3, avg: 4, perks: { food: [0, 0], car: [0, 0], card: [0, 0] } },
-    "field:KLAX": { n: 2, avg: null, perks: { food: [0, 0], car: [0, 0], card: [0, 0] } },
-  };
-  const top = rv.rankSubjects(summary, byCode, { sort: "top" }).map((r) => r.subject);
-  assert.deepEqual(top, ["field:KOKC", "field:KPNC", "airspace:MOA:VANCE 1A MOA"], "ten 4.8s beat a single 5; unrated subjects aren't ranked");
-  assert.deepEqual(rv.rankSubjects(summary, byCode, { sort: "top", type: "air" }).map((r) => r.subject), ["airspace:MOA:VANCE 1A MOA"]);
-  assert.deepEqual(rv.rankSubjects(summary, byCode, { sort: "top", q: "ponca" }).map((r) => r.subject), ["field:KPNC"]);
-  assert.deepEqual(rv.rankSubjects(summary, byCode, { sort: "food" }).map((r) => r.subject), ["field:KOKC", "field:KPNC"]);
-  assert.deepEqual(rv.rankSubjects(summary, byCode, { sort: "car" }).map((r) => r.subject), ["field:KOKC"], "only fields with a yes");
-  assert.ok(rv.rankScore(5, 1) < rv.rankScore(4.8, 10));
-
-  const feed = [
-    { subject: "field:KOKC", name: "Lt A", notes: "Cookies at the desk", fees: "", amenities: "", planespotters: "" },
-    { subject: "airspace:MOA:VANCE 1A MOA", name: "Capt B", notes: "Hot on Fridays", fees: "", amenities: "", planespotters: "" },
-  ];
-  assert.equal(rv.filterFeed(feed, byCode, { type: "field" }).length, 1);
-  assert.equal(rv.filterFeed(feed, byCode, { q: "cookies" }).length, 1);
-  assert.equal(rv.filterFeed(feed, byCode, { q: "vance" }).length, 1, "matches the area's name");
-});
-
-// ---- takeoff times per leg ----
 test("clock helpers: wall-clock <-> instant in a zone, across daylight time", async () => {
   const { zonedInstant, wallClock } = await import("../../assets/js/planner/sun.js");
   const cst = zonedInstant("2026-11-07", "09:00", "America/Chicago");
@@ -653,4 +617,47 @@ test("crew card: time zones listed, shifts called out, local and Zulu on every l
   const html2 = crewCardHtml({ origin: o, stops: [{ field: tul, ron: false }], legs: legs2, schedule: sch2, cost: trip.tripPerDiem([], new Date()), tripDate: new Date(2026, 10, 7), route: "x", stateTaxes: {}, dataNotes: [] });
   assert.match(html2, /all one zone/);
   assert.doesNotMatch(html2, /you gain|you lose/);
+});
+
+test("runways: every one at least 4,000 x 75 ft is kept for the crew card", async () => {
+  const { usableRunways } = await import("../../scripts/build-fields.js");
+  const rows = [
+    { RWY_ID: "17/35", RWY_LEN: "9217", RWY_WIDTH: "150", SURFACE_TYPE_CODE: "CONC" },
+    { RWY_ID: "12/30", RWY_LEN: "6000", RWY_WIDTH: "100", SURFACE_TYPE_CODE: "ASPH" },
+    { RWY_ID: "04/22", RWY_LEN: "3800", RWY_WIDTH: "75", SURFACE_TYPE_CODE: "ASPH" },
+    { RWY_ID: "08/26", RWY_LEN: "5000", RWY_WIDTH: "60", SURFACE_TYPE_CODE: "ASPH" },
+    { RWY_ID: "H1", RWY_LEN: "100", RWY_WIDTH: "100", SURFACE_TYPE_CODE: "CONC" },
+  ];
+  assert.deepEqual(usableRunways(rows).map((r) => r.id), ["17/35", "12/30"], "too short, too narrow and helipads are out");
+  const { runwaysHtml } = await import("../../assets/js/planner/crew-card.js");
+  assert.match(runwaysHtml({ runways: usableRunways(rows) }), /17\/35 · 9,217′ × 150′ CONC<br>12\/30 · 6,000′ × 100′ ASPH/);
+  assert.match(runwaysHtml({ runway: { id: "17C/35C", len: 9217, width: 150, surface: "CONC" } }), /17C\/35C · 9,217′/, "older data: the longest runway");
+  assert.equal(runwaysHtml({}), "");
+});
+
+test("NOTAMs: only show-stoppers are kept, and the crew card line says what it knows", async () => {
+  const n = await import("../../assets/js/planner/notams.js");
+  assert.equal(n.showStopper("!OKC 11/123 OKC RWY 17R/35L CLSD 2611011200-2611152359"), "Runway closed");
+  assert.equal(n.showStopper("!PNC 11/001 PNC AD AP CLSD"), "Airport closed");
+  assert.equal(n.showStopper("!PNC 11/002 PNC RWY 17 CLSD EXC EMERG"), "Runway closed");
+  assert.equal(n.showStopper("!PNC 11/003 PNC AIRPORT CLOSED TO TRANSIENT"), "Airport closed");
+  assert.equal(n.showStopper("!PNC 11/004 PNC AVGAS NOT AVBL"), "Fuel unavailable");
+  assert.equal(n.showStopper("!PNC 11/005 PNC TWY B CLSD"), null, "taxiway closures are not show-stoppers");
+  assert.equal(n.showStopper("!PNC 11/006 PNC RWY 17 EDGE LGT U/S"), null);
+  assert.equal(n.showStopper("!PNC 11/007 PNC OBST CRANE 150FT AGL"), null);
+  // dates and items
+  assert.equal(n.parseNotamDate("2611011200").toISOString(), "2026-11-01T12:00:00.000Z");
+  assert.equal(n.parseNotamDate("PERM"), null);
+  const item = { properties: { coreNOTAMData: { notam: { id: "NOTAM_1", number: "11/123", icaoLocation: "KOKC", text: "RWY 17R/35L CLSD", effectiveStart: "2026-11-01T12:00:00Z", effectiveEnd: "2026-11-15T23:59:00Z", type: "N" } } } };
+  const got = n.extractNotam(item);
+  assert.deepEqual([got.location, got.text, got.start, got.type], ["KOKC", "RWY 17R/35L CLSD", "2026-11-01T12:00:00.000Z", "N"]);
+  assert.equal(n.keepShowStoppers([got, { ...got, type: "C" }, { ...got, text: "OBST CRANE" }]).length, 1, "cancels and non-closures are dropped");
+  // what the card prints
+  const file = { builtAt: "2026-11-03T12:00:00Z", checked: ["KOKC", "KPNC"], fields: { KOKC: [{ kind: "Runway closed", text: "RWY 17R/35L CLSD", number: "11/123", start: "2026-11-01T12:00:00.000Z", end: "2026-11-15T23:59:00.000Z" }] } };
+  const at = new Date("2026-11-07T15:00:00Z");
+  assert.match(n.notamLines("KOKC", file, at), /<b>Runway closed<\/b>: RWY 17R\/35L CLSD/);
+  assert.match(n.notamLines("KPNC", file, at), /None found \(as of 2026-11-03 12:00Z\)/);
+  assert.match(n.notamLines("KXYZ", file, at), /not checked/);
+  assert.match(n.notamLines("KOKC", null, at), /not loaded/);
+  assert.match(n.notamLines("KOKC", file, new Date("2026-12-01T00:00:00Z")), /None found/, "expired closures are not printed");
 });

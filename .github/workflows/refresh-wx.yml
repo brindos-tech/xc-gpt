@@ -43,6 +43,8 @@ jobs:
       - name: Publish to wx-data
         run: |
           set -e
+          # the NOTAM file has its own workflow: carry it over so this replace does not drop it
+          if git fetch --depth=1 origin wx-data && git show FETCH_HEAD:wx/notams.json > /tmp/notams.json 2>/dev/null; then cp /tmp/notams.json data/generated/wx/notams.json; fi
           tmp="$(mktemp -d)"
           cp -r data/generated/wx "$tmp/wx"
           git config user.name "xc-gpt-bot"
