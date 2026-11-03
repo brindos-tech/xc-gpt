@@ -166,52 +166,48 @@
         <h3><span class="welcome-n">1</span> Departure base, range &amp; weather</h3>
         <p>Pick your <b>departure base</b> and drag the <b>range</b> slider on the left: the map shows every approved field and the airspace within that distance.</p>
         <p><b>Reading a pin:</b> its shape says towered, non-towered or military. The small corner dot is the crew approval: <b>green</b> means land, fuel and RON are all approved; <b>yellow</b> means see the comments on the list. Click a pin for its sheet.</p>
-        <p class="welcome-big"><b>See the forecast anywhere in the central and eastern US, up to 7 days out.</b> Open the Weather box, choose a day, and slide through the hours in local time. Flight categories show as <span class="wc wc-mvfr">MVFR</span> <span class="wc wc-ifr">IFR</span> <span class="wc wc-lifr">LIFR</span>, with icing, ceilings and storms one click away. Live radar covers the whole country.</p>
+        <p class="welcome-big"><b>Live radar covers the whole country.</b> For any other day or hour, open the <b>Weather</b> box (shown below), pick a day up to 7 days out, and slide through the hours in local time. Switch on <b>Flight category</b> (<span class="wc wc-mvfr">MVFR</span> <span class="wc wc-ifr">IFR</span> <span class="wc wc-lifr">LIFR</span>), <b>ceiling</b>, <b>icing</b>, <b>thunderstorms</b> or <b>forecast precipitation</b>. The forecast overlays cover the central and eastern US.</p>
       </div>
       <figure class="welcome-vis" aria-label="Example map: a base, its range ring, field pins and a weather overlay">
-        <div class="wv-map">
-          <div class="wv-ring" aria-hidden="true"></div>
-          <div class="wv-wx wv-wx-a" aria-hidden="true"></div><div class="wv-wx wv-wx-b" aria-hidden="true"></div><div class="wv-wx wv-wx-c" aria-hidden="true"></div>
-          <span class="wv-base" aria-hidden="true"></span><span class="wv-base-l">KEND · base</span>
-          <span class="wv-pin" style="left:62%;top:30%" data-wpin="towered" data-status="go"></span>
-          <span class="wv-pin" style="left:28%;top:62%" data-wpin="nontowered" data-status="check"></span>
-          <span class="wv-pin" style="left:72%;top:66%" data-wpin="military" data-status="go"></span>
-          <span class="wv-pin" style="left:40%;top:22%" data-wpin="nontowered" data-status="go"></span>
-          <span class="wv-note" style="left:66%;top:20%">green: approved</span>
-          <span class="wv-note" style="left:3%;top:73%">yellow: see comments</span>
-          <div class="wv-slider" aria-hidden="true"><span>Weather · Tue 12 PM</span><i></i><span class="wc wc-mvfr">MVFR</span><span class="wc wc-ifr">IFR</span><span class="wc wc-lifr">LIFR</span></div>
+        <div class="wv-map"><div id="welcomeMap" class="wv-leaflet"></div>
         </div>
         <div class="wv-key">
           <span><i data-wpin="towered"></i> Towered</span><span><i data-wpin="nontowered"></i> Non-towered</span><span><i data-wpin="military"></i> Military</span>
           <span><b class="wv-dot" style="background:#3ddc97"></b> Approved</span><span><b class="wv-dot" style="background:#e8c15e"></b> See comments</span>
+        </div>
+        <div class="wv-wxbox" aria-label="The Weather box on the map: day buttons, a time slider and overlay switches">
+          <div class="wv-wxhead"><b>Weather</b> <span class="wv-muted">Sat, Nov 7 &middot; 5 PM</span> <span class="wv-collapse">&#9662;</span></div>
+          <div class="wx-days" id="wvDays"></div>
+          <div class="wx-time"><span class="chip">Now</span><input type="range" min="0" max="8" value="5" tabindex="-1" aria-hidden="true" disabled><output>5 PM</output></div>
+          <div class="wx-layers" id="wvLayers"></div>
+          <div class="wv-wxcap">Tap a day, drag the time, and switch overlays on and off.</div>
         </div>
       </figure>
     </section>
 
     <section class="welcome-sec">
       <div class="welcome-text">
-        <h3><span class="welcome-n">2</span> Build a flight plan &amp; print the crew card</h3>
-        <p>Open <b>Flight plan</b> (the tab on the right edge of the map) and type an arrival field to add a leg. Each row gives the <b>takeoff time</b> (change it any time) and the <b>landing time</b> in the arrival field's local time. Taking off on a later day than you landed means you are <b>RON</b>.</p>
-        <p>The plan <b>flags night landings</b> and <b>tight-on-gas</b> legs, and a <b>weather tab</b> opens when either end is MVFR, IFR or LIFR, with the ceiling from takeoff.</p>
-        <p><b>Print crew card</b> gives one page: <b>FBO names</b> and phone numbers, runways of 4,000 &times; 75 ft or more, time zones (gain or lose an hour), per diem, and the <b>NOTAMs for your whole stay</b>: closed runways or airports, even ones that start later. Check NOTAMs again before you go.</p>
+        <h3><span class="welcome-n">2</span> Build your flight plan and print the crew card</h3>
+        <p>Add your <b>stops</b>, then pick the <b>day and time</b> you want to take off on each leg. We work out <b>when you'll land</b>, so you don't have to. We'll also look at the <b>weather</b> around your departure and arrival times and let you know if it's <b>poor</b>. You'll get a heads-up for <b>night landings</b>, <b>tight-on-gas</b> legs and <b>closed runways</b> too. And if you take off <b>a day later</b>, we'll automatically count you as <b>RON</b>. When you're all set, the <b>crew card</b> pulls it together: <b>runways</b>, <b>FBO</b>, <b>per diem</b> and <b>time zones</b>.</p>
       </div>
       <figure class="welcome-vis" aria-label="Example flight plan rows and crew card">
         <div class="wv-legs">
-          <div class="wv-leg"><span class="wv-no">1</span><b>KEND</b><span>&rarr;</span><b>KPNC</b><span class="wv-t">9:00 AM</span><span class="wv-m">9m</span><span class="wv-t">Lands 9:09 AM</span></div>
-          <div class="wv-leg"><span class="wv-no">2</span><b>KPNC</b><span>&rarr;</span><b>KTUL</b><span class="wv-t">4:40 PM</span><span class="wv-m">0:28</span><span class="wv-t">Lands 5:08 PM</span></div>
-          <div class="wv-flag wv-night">Lands after evening civil twilight &mdash; night</div>
-          <div class="wv-leg"><span class="wv-no">3</span><b>KTUL</b><span>&rarr;</span><b>KEND</b><span class="wv-t">Nov 8, 9:30 AM</span><span class="wv-m">0:30</span><span class="wv-t">Lands 10:00 AM</span></div>
-          <div class="wv-flag wv-ron">KTUL: RON &middot; 1 night (takeoff is the next day)</div>
+          <div class="wv-leg"><span class="wv-no">1</span><b>KEND</b><span>&rarr;</span><b>KPNC</b><span class="wv-t">Nov 7, 9:00 AM</span><span class="wv-m">9m</span><span class="wv-t">Lands 9:09 AM</span></div>
+          <div class="wv-leg"><span class="wv-no">2</span><b>KPNC</b><span>&rarr;</span><b>KTUL</b><span class="wv-t">5:40 PM</span><span class="wv-m">13m</span><span class="wv-t">Lands 5:53 PM</span></div>
+          <div class="wv-flag wv-night">&#9888; Lands after ECT (5:48 PM) &mdash; night</div>
+          <div class="wv-leg"><span class="wv-no">3</span><b>KTUL</b><span>&rarr;</span><b>KEND</b><span class="wv-t">Nov 8, 9:30 AM</span><span class="wv-m">20m</span><span class="wv-t">Lands 9:50 AM</span></div>
+          <div class="wv-flag wv-ron">KTUL &middot; RON &middot; 1 night (the next takeoff is the next day)</div>
           <div class="wv-flag wv-ifr">&#9888; KTUL IFR, ceiling 800 ft</div>
         </div>
         <div class="wv-card" aria-label="Example crew card">
-          <div class="wv-card-h">Crew card &middot; KEND &middot; Sat, Nov 7</div>
-          <div class="wv-row"><span>Time zones</span><span>Central &rarr; Central</span></div>
-          <div class="wv-row"><span>2. KTUL</span><span>Tulsa Intl</span></div>
-          <div class="wv-row"><span>FBO</span><span>Example Aviation &middot; (918) 555-0100</span></div>
-          <div class="wv-row"><span>Runways</span><span>8/26 &middot; 9,999&prime; &times; 150&prime; &nbsp; 18/36 &middot; 6,101&prime; &times; 150&prime;</span></div>
-          <div class="wv-row wv-bad"><span>Closures (NOTAM)</span><span><b>Runway closed</b>: RWY 18/36 CLSD &mdash; <b>begins Nov 8 14:00Z, during your stay</b></span></div>
+          <div class="wv-card-h">Crew card &middot; KEND &middot; Saturday, November 7</div>
+          <div class="wv-row"><span>Time zones</span><span>Central (CST, UTC&minus;6) &mdash; all one zone</span></div>
+          <div class="wv-row"><span>2. KTUL</span><span>Tulsa International Airport</span></div>
+          <div class="wv-row"><span>FBO</span><span>Atlantic Aviation &middot; (918) 836-6592</span></div>
+          <div class="wv-row"><span>Runways</span><span>18L/36R &middot; 10,000&prime; &times; 150&prime;<br>08/26 &middot; 7,376&prime; &times; 150&prime;<br>18R/36L &middot; 6,101&prime; &times; 100&prime;</span></div>
+          <div class="wv-row wv-bad"><span>Closures (NOTAM)</span><span><b>Runway closed</b>: RWY 18R/36L CLSD<br><b>begins 11-08 14:00Z &mdash; during your stay</b></span></div>
         </div>
+        <figcaption class="wv-cap">Example plan. The closure and weather shown are illustrative; the airport, FBO and runway details are real.</figcaption>
       </figure>
     </section>
 
@@ -225,8 +221,8 @@
         <div class="wv-chips"><span class="chip active">Concert</span><span class="chip">Festival</span><span class="chip active">Rodeo</span><span class="chip">Sports</span><span class="chip">Food</span></div>
         <div class="wv-rec">
           <div class="wv-rec-h">Fri Nov 14 &ndash; Sun Nov 16</div>
-          <div><span class="badge best-match">Best match</span> <span class="badge wk-kind wk-concert">Concert</span> <b>Example Band live</b></div>
-          <div class="wv-rec-p"><span class="wv-city">Austin, TX</span> <span class="wv-fly">1:25 &middot; 380 nm</span> <span class="wv-muted">Sat 8 PM</span></div>
+          <div><span class="badge best-match">Best match</span> <span class="badge wk-kind wk-concert">Concert</span> <b>Turnpike Troubadours live</b></div>
+          <div class="wv-rec-p"><span class="wv-city">Tulsa, OK</span> <span class="wv-fly">20m &middot; 99 nm</span> <span class="wv-muted">Sat 8 PM</span></div>
           <div class="wv-wxrow"><span>Fri 71&deg; &middot; 10% precip</span><span>Sat 68&deg; &middot; 20% precip</span><span>Sun 64&deg; &middot; 40% precip</span></div>
           <div class="wv-rec-b"><span class="badge backup">Backup 1</span> Rodeo finals &middot; <span class="wv-city">Stephenville, TX</span></div>
           <div class="wv-rec-b"><span class="badge backup">Backup 2</span> Fall festival &middot; <span class="wv-city">Fredericksburg, TX</span></div>

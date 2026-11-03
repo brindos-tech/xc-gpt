@@ -81,9 +81,13 @@ test("welcome screen: shown to first-time visitors, explains the pieces, remembe
   try {
     assert.equal(await page.locator("#welcome").evaluate((d) => d.open), true, "open on the first visit");
     const text = await page.textContent("#welcome");
-    for (const word of ["Departure base, range", "central and eastern US", "7 days", "green", "yellow", "night landings", "FBO names", "NOTAMs for your whole stay", "Weekend Recs", "category buttons"]) assert.ok(text.toLowerCase().includes(word.toLowerCase()), word);
+    for (const word of ["Departure base, range", "Live radar covers the whole country", "7 days", "Flight category", "green", "yellow", "when you'll land", "night landings", "tight-on-gas", "closed runways", "a day later", "per diem", "time zones", "Weekend Recs", "category buttons"]) assert.ok(text.toLowerCase().includes(word.toLowerCase()), word);
     assert.equal(await page.locator("#welcome .welcome-sec").count(), 3, "three sections");
-    assert.ok((await page.locator("#welcome .wv-pin svg").count()) >= 4, "the example map uses the real pin marks");
+    assert.ok((await page.locator("#welcome #wvLayers .chip").count()) >= 5, "the example Weather box lists the overlay switches");
+    assert.equal(await page.locator("#welcome #wvLayers .chip.active").textContent(), "Radar");
+    assert.ok((await page.locator("#welcome #welcomeMap .wv-marker svg").count()) >= 5, "the example map is a real map with the real pin marks");
+    assert.match(await page.textContent("#welcome"), /Turnpike Troubadours/, "a real band, not a placeholder");
+    assert.doesNotMatch(await page.textContent("#welcome"), /Example Band|Example Aviation/);
     assert.ok((await page.locator("#welcome .wv-key svg").count()) >= 3, "the key shows towered, non-towered and military");
     await page.click("#welcomeGo");
     assert.equal(await page.locator("#welcome").evaluate((d) => d.open), false);
