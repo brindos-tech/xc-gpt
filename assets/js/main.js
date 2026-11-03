@@ -90,6 +90,7 @@ async function boot() {
       origin,
       stops: trip.stops,
       legs: trip.legs,
+      legRangeNm: config.aircraft.legRangeNm,
       schedule: trip.schedule,
       cost: trip.cost,
       tripDate: new Date(y, m - 1, d),

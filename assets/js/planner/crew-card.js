@@ -67,7 +67,7 @@ export function crewCardHtml(ctx) {
             return f ? `<br><span class="cc-muted">${CAT_NAMES[flightCategory(f.ceil, f.vis)]}, ceiling ${esc(ceilingText(f.ceil))}</span>` : "";
           };
           const when = (instant, tz, withDay) => `${withDay ? `${esc(new Date(instant).toLocaleDateString("en-US", { timeZone: tz, weekday: "short", month: "short", day: "numeric" }))} ` : ""}${esc(clock(instant, tz))} ${esc(zoneAbbr(instant, tz))}<br><b>${esc(zulu(instant).text)}</b>`;
-          return `<tr><td>${esc(l.from)} → ${esc(l.to)}${l.overRange ? `<br><span class="cc-flag">⚠ beyond one leg — plan a fuel stop</span>` : ""}${shift?.text ? `<br><span class="cc-tz">🕐 ${esc(shift.text)}</span>` : ""}${flags}</td>
+          return `<tr><td>${esc(l.from)} → ${esc(l.to)}${l.overRange ? `<br><span class="cc-flag">⚠ tight on gas (${ctx.legRangeNm ?? 400}+ nm)</span>` : ""}${shift?.text ? `<br><span class="cc-tz">🕐 ${esc(shift.text)}</span>` : ""}${flags}</td>
             <td>${sc ? when(sc.dep, sc.fromTz, true) + wxNote(sc.from, sc.dep) : ""}</td>
             <td>${sc ? when(sc.eta, sc.toTz, sc.etaLocal.date !== sc.depLocal.date) + wxNote(sc.to, sc.eta) : ""}</td>
             <td>${Math.round(l.nm)} nm</td><td>${formatFlightTime(l.mins)}</td></tr>`;

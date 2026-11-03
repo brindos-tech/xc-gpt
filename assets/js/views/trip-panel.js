@@ -220,7 +220,8 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
    * (field name, forecast chips, clock change) is behind "Details".
    */
   function legHtml(leg, state, info, { stop, count } = {}) {
-    const flags = legFlags(leg).map((x) => `<div class="fp-flag ${x.level}">⚠ ${esc(x.text)}</div>`).join("");
+    const gas = info.overRange ? `<div class="fp-flag warn">⚠ Tight on gas (${config.aircraft.legRangeNm}+ nm)</div>` : "";
+    const flags = gas + legFlags(leg).map((x) => `<div class="fp-flag ${x.level}">⚠ ${esc(x.text)}</div>`).join("");
     const takeoff = `${leg.depLocal.date}T${leg.depLocal.time}`;
     const shift = clockShift(leg.fromTz, leg.dep, leg.toTz, leg.eta);
     const from = leg.i === 0
@@ -248,7 +249,7 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
         <div class="trip-c trip-c-dep"><span class="trip-cl">Departure</span>${from}</div>
         <div class="trip-c trip-c-arr"><span class="trip-cl">Arrival</span>${to}</div>
         <div class="trip-c trip-c-take"><span class="trip-cl">Takeoff</span><span class="trip-take"><input type="datetime-local" step="300" data-trip-dep data-i="${leg.i}" value="${takeoff}" aria-label="Takeoff, leg ${leg.i + 1}, ${esc(leg.from)} local time"></span></div>
-        <div class="trip-c trip-c-fly"><span class="trip-cl">Flight</span><b>${esc(formatFlightTime(info.mins))}</b><small class="${info.overRange ? "bad-text" : "muted"}">${Math.round(info.nm)} nm${info.overRange ? ` · over ${config.aircraft.legRangeNm}` : ""}</small></div>
+        <div class="trip-c trip-c-fly"><span class="trip-cl">Flight</span><b>${esc(formatFlightTime(info.mins))}</b><small class="muted">${Math.round(info.nm)} nm</small></div>
         <div class="trip-c trip-c-land"><span class="trip-cl">Lands</span><b>${esc(clock(leg.eta, leg.toTz))}</b><small class="muted">${esc(zoneAbbr(leg.eta, leg.toTz))}${arriveDay} · ${esc(zulu(leg.eta).time)}</small></div>
         <span class="trip-ctl">${ctl}</span>
       </div>
