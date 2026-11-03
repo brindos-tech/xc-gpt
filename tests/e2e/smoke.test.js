@@ -30,6 +30,8 @@ before(async () => {
   writeFileSync(path.join(dir, "data/generated/approaches.json"), JSON.stringify({ cycle: "test", airports: { KOKC: ["ILS RWY 35R", "LOC BC RWY 17L", "VOR-A"], KPNC: ["RNAV (GPS) RWY 17"] } }));
   writeFakeWx(dir, JSON.parse(readFileSync("data/curated/config.json", "utf-8")), JSON.parse(readFileSync("data/generated/field-facts.json", "utf-8")));
   writeFakeTfr(dir);
+  // a NOTAM file in the shape scripts/fetch-notams.js publishes: KOKC has a closed runway, KPNC was checked and is clear
+  writeFileSync(path.join(dir, "data/generated/wx/notams.json"), JSON.stringify({ builtAt: new Date().toISOString(), checked: ["KOKC", "KPNC"], fields: { KOKC: [{ kind: "Runway closed", text: "RWY 17R/35L CLSD", number: "11/123", start: new Date(Date.now() - 864e5).toISOString(), end: new Date(Date.now() + 30 * 864e5).toISOString() }] } }));
   execFileSync("node", ["scripts/stamp-version.js", dir, "e2etest1"]);
   site = await serve(dir);
   browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
@@ -376,6 +378,9 @@ test("trip builder: add stops from the sheet, legs and per diem, route string, c
     assert.match(card, /Crew card · KEND/);
     assert.match(card, /1\. KPNC/);
     assert.match(card, /2\. KOKC/);
+    assert.match(card, /NOTAM closures/);
+    assert.match(card, /Runway closed: RWY 17R\/35L CLSD/, "KOKC closed runway is printed");
+    assert.match(card, /None found \(as of/, "KPNC was checked and is clear");
     assert.match(card, /Planning reference only/);
 
     await page.click('#tripBody [data-trip="clear"]');

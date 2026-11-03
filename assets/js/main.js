@@ -71,6 +71,13 @@ async function boot() {
   const filterRail = createFilterRail({ store, config });
   const fieldPanel = createFieldPanel({ store });
 
+  // show-stopper NOTAMs (airport/runway closed...), refreshed by CI; the card says so when they are not available
+  let notamsFile = null;
+  (config.notamsUrl ? fetch(config.notamsUrl, { cache: "no-cache" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))) : Promise.reject(new Error("no url")))
+    .catch(() => loadJson("generated/wx/notams.json"))
+    .then((d) => (notamsFile = d))
+    .catch(() => null);
+
   /** Fill the print-only crew card for the current trip and open the print dialog. */
   function printCrewCard() {
     const state = store.getState();
@@ -96,6 +103,8 @@ async function boot() {
       stateTaxes: stateTax?.states,
       dataNotes,
       forecastAt: (code, instant) => wx.forecastAt(code, instant),
+      notams: notamsFile,
+      notamsWanted: true,
     });
     const prev = document.title;
     document.title = `Crew card ${origin.icao} ${state.tripDate}`;

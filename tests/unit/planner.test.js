@@ -634,3 +634,30 @@ test("runways: every one at least 4,000 x 75 ft is kept for the crew card", asyn
   assert.match(runwaysHtml({ runway: { id: "17C/35C", len: 9217, width: 150, surface: "CONC" } }), /17C\/35C · 9,217′/, "older data: the longest runway");
   assert.equal(runwaysHtml({}), "");
 });
+
+test("NOTAMs: only show-stoppers are kept, and the crew card line says what it knows", async () => {
+  const n = await import("../../assets/js/planner/notams.js");
+  assert.equal(n.showStopper("!OKC 11/123 OKC RWY 17R/35L CLSD 2611011200-2611152359"), "Runway closed");
+  assert.equal(n.showStopper("!PNC 11/001 PNC AD AP CLSD"), "Airport closed");
+  assert.equal(n.showStopper("!PNC 11/002 PNC RWY 17 CLSD EXC EMERG"), "Runway closed");
+  assert.equal(n.showStopper("!PNC 11/003 PNC AIRPORT CLOSED TO TRANSIENT"), "Airport closed");
+  assert.equal(n.showStopper("!PNC 11/004 PNC AVGAS NOT AVBL"), "Fuel unavailable");
+  assert.equal(n.showStopper("!PNC 11/005 PNC TWY B CLSD"), null, "taxiway closures are not show-stoppers");
+  assert.equal(n.showStopper("!PNC 11/006 PNC RWY 17 EDGE LGT U/S"), null);
+  assert.equal(n.showStopper("!PNC 11/007 PNC OBST CRANE 150FT AGL"), null);
+  // dates and items
+  assert.equal(n.parseNotamDate("2611011200").toISOString(), "2026-11-01T12:00:00.000Z");
+  assert.equal(n.parseNotamDate("PERM"), null);
+  const item = { properties: { coreNOTAMData: { notam: { id: "NOTAM_1", number: "11/123", icaoLocation: "KOKC", text: "RWY 17R/35L CLSD", effectiveStart: "2026-11-01T12:00:00Z", effectiveEnd: "2026-11-15T23:59:00Z", type: "N" } } } };
+  const got = n.extractNotam(item);
+  assert.deepEqual([got.location, got.text, got.start, got.type], ["KOKC", "RWY 17R/35L CLSD", "2026-11-01T12:00:00.000Z", "N"]);
+  assert.equal(n.keepShowStoppers([got, { ...got, type: "C" }, { ...got, text: "OBST CRANE" }]).length, 1, "cancels and non-closures are dropped");
+  // what the card prints
+  const file = { builtAt: "2026-11-03T12:00:00Z", checked: ["KOKC", "KPNC"], fields: { KOKC: [{ kind: "Runway closed", text: "RWY 17R/35L CLSD", number: "11/123", start: "2026-11-01T12:00:00.000Z", end: "2026-11-15T23:59:00.000Z" }] } };
+  const at = new Date("2026-11-07T15:00:00Z");
+  assert.match(n.notamLines("KOKC", file, at), /<b>Runway closed<\/b>: RWY 17R\/35L CLSD/);
+  assert.match(n.notamLines("KPNC", file, at), /None found \(as of 2026-11-03 12:00Z\)/);
+  assert.match(n.notamLines("KXYZ", file, at), /not checked/);
+  assert.match(n.notamLines("KOKC", null, at), /not loaded/);
+  assert.match(n.notamLines("KOKC", file, new Date("2026-12-01T00:00:00Z")), /None found/, "expired closures are not printed");
+});

@@ -7,6 +7,7 @@ import { gfcStatus, perDiemFor, fieldStatus, STATUS_LABELS } from "./fields.js";
 import { sunHours } from "./field-panel.js";
 import { APPROACH_TYPES } from "./approaches.js";
 import { legFlags } from "./trip.js";
+import { notamLines } from "./notams.js";
 import { clock, zoneAbbr, zulu, tzLabel, clockShift } from "./sun.js";
 import { CAT_NAMES, flightCategory, ceilingText } from "./wx-model.js";
 
@@ -48,6 +49,7 @@ function stopHtml(s, i, ctx) {
       ${line("FBO", f.fbo ? `${esc(f.fbo)}${f.fboPhone ? ` · <b>${esc(f.fboPhone)}</b>` : ""}` : "None listed")}
       ${line("Gov't fuel", esc(gfc.text) + (contractMerchants.length ? `<br>${contractMerchants.map((m) => `${esc(m.merchant)}${m.phone ? ` ${esc(m.phone)}` : ""}${m.contract ? " (DLA contract)" : ""}`).join("<br>")}` : ""))}
       ${line("Runways", runwaysHtml(f))}
+      ${ctx.notamsWanted ? line("NOTAM closures", notamLines(f.code, ctx.notams, ctx.schedule?.[i]?.eta || new Date(), esc)) : ""}
       ${line("Approaches", esc(types.join(", ")))}
       ${sh ? line(`Sun (${sh.abbr || "local"})`, esc(sh.sunText)) : ""}
       ${sh ? line("FBO hours", esc(sh.hoursText || "not listed") + (f.attendance ? ` <span class="cc-muted">(${esc(f.attendance)})</span>` : "") + sh.flags.map((x) => `<br>⚠ ${esc(x.text)}`).join("")) : ""}
