@@ -143,16 +143,16 @@ export function utcOffsetText(tz, instant) {
 export const tzLabel = (tz, instant) => `${tzName(tz)} (${zoneAbbr(instant, tz)}, ${utcOffsetText(tz, instant)})`;
 
 /**
- * What the clocks do between a departure and an arrival: flying west the clock
- * goes back (you gain an hour), flying east it goes forward (you lose one).
+ * What the clocks do between a departure and an arrival: flying west you gain
+ * an hour, flying east you lose one.
  * @returns {{minutes:number, kind:"none"|"gain"|"lose", text:string}}
  */
 export function clockShift(fromTz, dep, toTz, arr) {
   const minutes = tzOffsetMin(toTz, arr) - tzOffsetMin(fromTz, dep);
   if (!minutes) return { minutes: 0, kind: "none", text: "" };
   const h = Math.abs(minutes) / 60;
-  const amount = Number.isInteger(h) ? `${h} hour${h === 1 ? "" : "s"}` : `${Math.abs(minutes)} minutes`;
+  const amount = Number.isInteger(h) ? `${h} hr` : `${Math.abs(minutes)} min`;
   return minutes < 0
-    ? { minutes, kind: "gain", text: `${tzName(fromTz)} → ${tzName(toTz)}: you gain ${amount} (clocks go back)` }
-    : { minutes, kind: "lose", text: `${tzName(fromTz)} → ${tzName(toTz)}: you lose ${amount} (clocks go forward)` };
+    ? { minutes, kind: "gain", text: `${tzName(fromTz)} → ${tzName(toTz)}: gain ${amount}` }
+    : { minutes, kind: "lose", text: `${tzName(fromTz)} → ${tzName(toTz)}: lose ${amount}` };
 }

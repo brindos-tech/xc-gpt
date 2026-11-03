@@ -41,6 +41,7 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
   let current = null;
   let onPick = null;
   let openLegs = new Set();
+  let openTimelines = new Set();
 
   function showSuggestions(input, pick) {
     current = input;
@@ -198,20 +199,31 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
     return `<span class="trip-wx" style="--c:${CAT_COLORS[cat]}">${CAT_NAMES[cat]} · ceiling ${esc(ceilingText(f.ceil))}${f.thun ? " · thunderstorms" : ""}${ice}</span>`;
   };
 
-  /** The ceiling timeline for a leg, or "" when the leg stays out of instrument conditions (or there is no forecast for it). */
+  /**
+   * The instrument-conditions drop-down for a leg: a red flag under the row when
+   * either end is IFR or lower in the window, closed until opened; inside is the
+   * ceiling timeline. "" when the leg stays out of instrument conditions (or
+   * there is no forecast for it).
+   */
   function timelineHtml(leg) {
     if (!forecastAt) return "";
     const dep = ceilingSeries(forecastAt, leg.from, leg.dep);
     const to = ceilingSeries(forecastAt, leg.to, leg.dep);
     if (!legIsInstrument(dep, to, leg.dep, leg.eta)) return "";
-    const rows = [dep && { label: `${esc(leg.from)} (takeoff)`, series: dep }, to && { label: `${esc(leg.to)} (landing)`, series: to }].filter(Boolean);
-    const lines = rows.map((r) => `<div><b>${r.label.replace(/ \(.*/, "")}</b> ${esc(summarize(r.series, leg.eta, leg.toTz))}</div>`).join("");
-    return `<div class="trip-tl" data-testid="ceiling-timeline">
-      <div class="trip-tl-head small"><b>Instrument conditions</b> <span class="muted">ceiling from takeoff · ${esc(leg.to)} local (${esc(zoneAbbr(leg.eta, leg.toTz))})</span></div>
-      ${timelineSvg({ rows, depAt: leg.dep, etaAt: leg.eta, tz: leg.toTz })}
-      <div class="small trip-tl-sum">${lines}</div>
-      <div class="muted small">Bar height is ceiling (full height = 5,000 ft or higher); colour is flight category. Forecast is 3-hourly and coarse near the ground — check the real weather before you go.</div>
-    </div>`;
+    const rows = [dep && { code: leg.from, label: `${esc(leg.from)} (takeoff)`, series: dep }, to && { code: leg.to, label: `${esc(leg.to)} (landing)`, series: to }].filter(Boolean);
+    const until = leg.eta.getTime() + 90 * 60000;
+    const worst = (series) => Math.max(...series.filter((x) => x && x.t >= leg.dep && x.t.getTime() <= until).map((x) => x.cat));
+    const which = rows.filter((r) => worst(r.series) >= 2).map((r) => `${esc(r.code)} ${CAT_NAMES[worst(r.series)]}`).join(", ");
+    const lines = rows.map((r) => `<div><b>${esc(r.code)}</b> ${esc(summarize(r.series, leg.eta, leg.toTz))}</div>`).join("");
+    return `<details class="trip-tl" data-testid="ceiling-timeline" ${openTimelines.has(leg.i) ? "open" : ""}>
+      <summary class="trip-tl-flag">⚠ Instrument conditions · ${which}</summary>
+      <div class="trip-tl-body">
+        <div class="trip-tl-head small muted">Ceiling from takeoff · times in ${esc(leg.to)} local (${esc(zoneAbbr(leg.eta, leg.toTz))})</div>
+        ${timelineSvg({ rows, depAt: leg.dep, etaAt: leg.eta, tz: leg.toTz })}
+        <div class="small trip-tl-sum">${lines}</div>
+        <div class="muted small">Bar height is ceiling (full height = 5,000 ft or higher); colour is flight category. The forecast is 3-hourly and coarse near the ground — check the real weather before you go.</div>
+      </div>
+    </details>`;
   }
 
   /**
@@ -268,6 +280,7 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
     // an arrival field being typed in must not be re-rendered out from under the user
     const editing = document.activeElement?.matches?.("[data-trip-arr]") && body.contains(document.activeElement) && document.activeElement.value !== document.activeElement.dataset.code;
     if (editing) return c;
+    openTimelines = new Set([...body.querySelectorAll(".trip-tl[open]")].map((d) => Number(d.closest("[data-leg]").dataset.leg)));
     openLegs = new Set([...body.querySelectorAll(".trip-more[open]")].map((d) => Number(d.closest("[data-leg]").dataset.leg))); // Details stay open across re-renders
     addBox.appendChild(suggest); // keep the list out of the markup about to be replaced
     current = null;

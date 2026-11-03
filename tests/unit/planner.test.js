@@ -601,10 +601,10 @@ test("clock helpers: Zulu, zone labels, and gaining/losing an hour", async () =>
   const west = sun.clockShift("America/Chicago", dep, "America/Denver", arr);
   assert.equal(west.kind, "gain");
   assert.equal(west.minutes, -60);
-  assert.match(west.text, /Central → Mountain: you gain 1 hour/);
+  assert.match(west.text, /Central → Mountain: gain 1 hr/);
   const east = sun.clockShift("America/Denver", dep, "America/New_York", arr);
   assert.equal(east.kind, "lose");
-  assert.match(east.text, /you lose 2 hours/);
+  assert.match(east.text, /lose 2 hr/);
 });
 
 test("crew card: time zones listed, shifts called out, local and Zulu on every leg", async () => {
@@ -620,17 +620,18 @@ test("crew card: time zones listed, shifts called out, local and Zulu on every l
   assert.match(html, /KEND<\/td><td>Central \(CST, UTC−6\)/);
   assert.match(html, /KDEN<\/td><td>Mountain \(MST, UTC−7\)/);
   assert.match(html, /gain 1 hr/);
-  assert.match(html, /Central → Mountain: you gain 1 hour/);
+  assert.match(html, /Central → Mountain: gain 1 hr/);
   assert.match(html, /Nov 7 1500Z/, "takeoff in Zulu");
   assert.match(html, /<b>Nov 7 \d{4}Z<\/b>/, "landing in Zulu");
-  assert.match(html, /you lose 1 hour/, "and the way back");
+  assert.match(html, /Mountain → Central: lose 1 hr/, "and the way back");
+  assert.doesNotMatch(html, /🕐|clocks go/, "no emoji or chatter");
   // a leg past 400 nm says so on the card
   const sea = { ...den, code: "KSEA", state: "WA", lat: 47.45, lon: -122.3 };
   const legsFar = trip.tripLegs(o, [sea], config);
   const schFar = trip.scheduleTrip({ origin: o, stops: [{ field: sea, ron: false }], legs: legsFar.legs, tripDate: "2026-11-07" });
   const far = crewCardHtml({ origin: o, stops: [{ field: sea, ron: false }], legs: legsFar, legRangeNm: 400, schedule: schFar, cost: trip.tripPerDiem([{ field: sea, ron: false }], new Date(2026, 10, 7)), tripDate: new Date(2026, 10, 7), route: trip.routeString(o, [sea]), stateTaxes: {}, dataNotes: [] });
-  assert.match(far, /tight on gas \(400\+ nm\)/);
-  assert.doesNotMatch(html, /tight on gas/, "a 380 nm leg is fine");
+  assert.match(far, /Tight on gas/);
+  assert.doesNotMatch(html, /Tight on gas/, "a 380 nm leg is fine");
   // a single-zone trip says so
   const tul = { ...den, code: "KTUL", state: "OK", lat: 36.2, lon: -95.9 };
   const legs2 = trip.tripLegs(o, [tul], config);

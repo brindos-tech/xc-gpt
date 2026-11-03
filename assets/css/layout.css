@@ -340,17 +340,10 @@
 .trip-bar-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .trip-bar-head h3 { margin: 0; font-size: 0.82em; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
 .trip-bar-close { background: none; border: 1px solid var(--border); color: var(--text); border-radius: var(--radius-sm); width: 28px; height: 28px; cursor: pointer; font-size: 1.2em; line-height: 1; }
-.trip-head-btns { display: flex; gap: 6px; }
-.trip-bar-wide { background: none; border: 1px solid var(--border); color: var(--text); border-radius: var(--radius-sm); height: 28px; padding: 0 8px; cursor: pointer; font-size: 0.8em; }
-.trip-resize { display: none; }
 .trip-backdrop, .trip-open-tab, .trip-toggle-btn { display: none; }
 @media (min-width: 861px) {
   .app[data-page="planner"] .app-body { grid-template-columns: var(--rail-width) 1fr var(--tripbar-width); }
   .app[data-page="planner"] .trip-bar { display: block; }
-  /* drag the left edge to make the plan wider */
-  .trip-resize { display: block; position: absolute; left: 0; top: 0; bottom: 0; width: 9px; cursor: col-resize; z-index: 5; touch-action: none; }
-  .trip-resize::after { content: ""; position: absolute; left: 2px; top: 50%; width: 3px; height: 44px; margin-top: -22px; border-radius: 2px; background: var(--border); }
-  .trip-resize:hover::after, .trip-resize:focus-visible::after, .trip-resize.dragging::after { background: var(--accent); }
   .app[data-page="planner"][data-trip="closed"] .app-body { grid-template-columns: var(--rail-width) 1fr 0; }
   .app[data-page="planner"][data-trip="closed"] .trip-bar { display: none; }
   /* the hidden bar leaves a tab on the right edge of the map to bring it back */
@@ -373,7 +366,6 @@
   }
   .trip-bar.open { transform: translateY(0); }
   .trip-bar-close { transform: rotate(90deg); }
-  .trip-bar-wide { display: none; }
   .trip-backdrop { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 519; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
   .trip-backdrop.open { opacity: 1; pointer-events: auto; }
 }

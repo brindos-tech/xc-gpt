@@ -107,14 +107,9 @@ async function boot() {
   // ---- flight plan bar: docked on the right (desktop) or a bottom sheet (phone) ----
   const tripBar = $("tripBar");
   const tripBackdrop = $("tripBackdrop");
-  const remembered = (() => {
-    try {
-      return localStorage.getItem("xcgpt-tripbar");
-    } catch {
-      return null;
-    }
-  })();
-  if (remembered === "closed") app.dataset.trip = "closed";
+  // closed until there is a plan: shared links with legs open it, and so does adding the first one
+  if (!store.getState().trip.length) app.dataset.trip = "closed";
+  let prevStops = store.getState().trip.length;
   function setTripBar(open) {
     if (window.matchMedia("(max-width: 860px)").matches) {
       tripBar.classList.toggle("open", open);
@@ -123,61 +118,9 @@ async function boot() {
     } else {
       if (open) delete app.dataset.trip;
       else app.dataset.trip = "closed";
-      try {
-        localStorage.setItem("xcgpt-tripbar", open ? "open" : "closed");
-      } catch {
-        // not remembered
-      }
       requestAnimationFrame(() => planner.invalidateSize());
     }
   }
-  // width of the docked plan: drag the left edge, arrow keys on it, or the Wider button
-  const widthLimits = () => ({ min: 360, max: Math.max(420, Math.round(window.innerWidth * 0.7)) });
-  function setTripWidth(px, save = true) {
-    const { min, max } = widthLimits();
-    const w = Math.round(Math.min(max, Math.max(min, px)));
-    document.documentElement.style.setProperty("--tripbar-width", `${w}px`);
-    $("tripResize").setAttribute("aria-valuenow", String(w));
-    $("tripWide").setAttribute("aria-pressed", String(w > 700));
-    if (save) {
-      try {
-        localStorage.setItem("xcgpt-tripwidth", String(w));
-      } catch {
-        // not remembered
-      }
-    }
-    requestAnimationFrame(() => planner.invalidateSize());
-    return w;
-  }
-  try {
-    const saved = Number(localStorage.getItem("xcgpt-tripwidth"));
-    if (saved && !window.matchMedia("(max-width: 860px)").matches) setTripWidth(saved, false);
-  } catch {
-    // default width
-  }
-  const resizer = $("tripResize");
-  resizer.addEventListener("pointerdown", (e) => {
-    resizer.setPointerCapture(e.pointerId);
-    resizer.classList.add("dragging");
-    e.preventDefault();
-  });
-  resizer.addEventListener("pointermove", (e) => resizer.classList.contains("dragging") && setTripWidth(window.innerWidth - e.clientX, false));
-  const endDrag = () => {
-    if (!resizer.classList.contains("dragging")) return;
-    resizer.classList.remove("dragging");
-    setTripWidth(tripBar.getBoundingClientRect().width);
-  };
-  resizer.addEventListener("pointerup", endDrag);
-  resizer.addEventListener("pointercancel", endDrag);
-  resizer.addEventListener("keydown", (e) => {
-    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-    e.preventDefault();
-    setTripWidth(tripBar.getBoundingClientRect().width + (e.key === "ArrowLeft" ? 40 : -40));
-  });
-  $("tripWide").addEventListener("click", () => {
-    const now = tripBar.getBoundingClientRect().width;
-    setTripWidth(now > 700 ? 640 : Math.round(window.innerWidth * 0.7));
-  });
   $("tripBarClose").addEventListener("click", () => setTripBar(false));
   $("tripOpenTab").addEventListener("click", () => setTripBar(true));
   $("tripToggle").addEventListener("click", () => setTripBar(!tripBar.classList.contains("open")));
@@ -297,6 +240,9 @@ async function boot() {
     planner.renderFields(selection, state.selectedFieldId, wx.fieldRing);
     wx.render(state);
     const tripInfo = tripPanel.render(state, origin);
+    const stopCount = tripInfo.stops.length;
+    if (stopCount > prevStops && app.dataset.trip === "closed" && !window.matchMedia("(max-width: 860px)").matches) setTripBar(true);
+    prevStops = stopCount;
     const legCount = tripInfo.legs?.legs.length || 0;
     for (const id of ["tripCount", "tripOpenCount", "tripToggleCount"]) $(id).textContent = legCount ? `(${legCount} leg${legCount === 1 ? "" : "s"})` : "";
     planner.setTrip(tripInfo.stops.length ? [[origin.lat, origin.lon], ...tripInfo.stops.map((s) => [s.field.lat, s.field.lon]), ...(state.tripReturn ? [[origin.lat, origin.lon]] : [])] : []);
