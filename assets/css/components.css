@@ -551,18 +551,15 @@ input.trip-to:focus-visible, select.trip-from:focus-visible, .trip-take input:fo
 .welcome-text p { margin: 0 0 8px; font-size: 0.88em; line-height: 1.5; }
 .welcome-big { background: rgba(255,138,61,0.1); border: 1px solid rgba(255,138,61,0.4); border-radius: var(--radius-sm); padding: 8px 10px; }
 .welcome-vis { margin: 0; display: grid; gap: 8px; min-width: 0; }
-.wv-map { position: relative; height: 230px; border-radius: var(--radius-sm); background: #0e1a14; border: 1px solid var(--border); overflow: hidden; }
-.wv-ring { position: absolute; left: 50%; top: 52%; width: 82%; aspect-ratio: 1; transform: translate(-50%, -50%); border: 2px dashed rgba(255,138,61,0.7); border-radius: 50%; }
-.wv-wx { position: absolute; border-radius: 50%; filter: blur(8px); opacity: 0.55; }
-.wv-wx-a { left: 58%; top: 8%; width: 36%; height: 30%; background: radial-gradient(circle, #5b8def 0 35%, transparent 70%); }
-.wv-wx-b { left: 66%; top: 48%; width: 28%; height: 28%; background: radial-gradient(circle, #e65a5a 0 30%, #5b8def 55%, transparent 72%); }
-.wv-wx-c { left: 8%; top: 40%; width: 26%; height: 28%; background: radial-gradient(circle, #ff7ac6 0 25%, #e65a5a 45%, transparent 70%); }
-.wv-base { position: absolute; left: 50%; top: 52%; width: 12px; height: 12px; margin: -6px; border-radius: 50%; background: #fff; border: 2px solid #0e1a14; }
-.wv-base-l { position: absolute; left: calc(50% + 10px); top: calc(52% + 4px); font-size: 11px; color: #fff; }
-.wv-pin { position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px; }
-.wv-pin svg { width: 26px; height: 26px; display: block; }
-.wv-note { position: absolute; font-size: 10.5px; color: #fff; background: rgba(0,0,0,0.65); border-radius: 4px; padding: 1px 5px; white-space: nowrap; }
-.wv-slider { position: absolute; left: 8px; right: 8px; bottom: 8px; display: flex; align-items: center; gap: 8px; background: rgba(26,32,39,0.92); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 5px 8px; font-size: 11px; }
+.wv-map { position: relative; height: 250px; border-radius: var(--radius-sm); background: #0e1a14; border: 1px solid var(--border); overflow: hidden; }
+.wv-leaflet { position: absolute; inset: 0; }
+.wv-leaflet .leaflet-tile-pane { filter: brightness(0.82) saturate(0.85); }
+.wv-marker { background: none; border: none; }
+.wv-marker svg { width: 26px; height: 26px; display: block; }
+.wv-tip.leaflet-tooltip { background: rgba(0,0,0,0.78); color: #fff; border: none; font-size: 10.5px; padding: 1px 6px; box-shadow: none; }
+.wv-tip.leaflet-tooltip::before { display: none; }
+.wv-cap { font-size: 0.72em; color: var(--muted); }
+.wv-slider { z-index: 800; position: absolute; left: 8px; right: 8px; bottom: 8px; display: flex; align-items: center; gap: 8px; background: rgba(26,32,39,0.92); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 5px 8px; font-size: 11px; }
 .wv-slider i { flex: 1; height: 4px; border-radius: 2px; background: linear-gradient(90deg, var(--accent) 0 55%, var(--border) 55%); }
 .wv-key { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.8em; color: var(--muted); }
 .wv-key span { display: inline-flex; align-items: center; gap: 5px; }
