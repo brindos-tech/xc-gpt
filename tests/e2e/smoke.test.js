@@ -411,6 +411,7 @@ test("trip builder: add stops from the sheet, legs and per diem, route string, c
     assert.match(await page.textContent("#tripBody"), /No RON stops/);
 
     // RON adds a night of per diem; a second stop is reorderable
+    await page.click("#tripBody .trip-more summary"); // RON lives under Details
     await page.check("#tripBody [data-trip-ron]");
     await page.waitForFunction(() => /1 night/.test(document.getElementById("tripBody").textContent));
     assert.match(await page.evaluate(() => location.hash), /trip=KOKC(%2A|\*)/);
@@ -418,6 +419,7 @@ test("trip builder: add stops from the sheet, legs and per diem, route string, c
     await page.locator('#plannerMap [data-field="KPNC"]').dispatchEvent("click");
     await page.click('[data-trip-toggle="KPNC"]');
     await page.waitForFunction(() => document.querySelectorAll("#tripBody .trip-stop:not(.trip-ret)").length === 2);
+    await page.locator("#tripBody .trip-more summary").nth(1).click(); // reordering lives under Details
     await page.click('#tripBody [data-trip="up"][data-i="1"]');
     await page.waitForFunction(() => /KEND KPNC KOKC KEND/.test(document.getElementById("tripBody").textContent));
 
@@ -668,7 +670,7 @@ test("flight plan: legs with arrival fields, local landing time, and a ceiling t
     await arr.fill("kokc");
     await page.waitForSelector("#tripBody .trip-combo #tripSuggest li");
     await arr.press("Enter");
-    await page.waitForFunction(() => /trip=KOKC/.test(location.hash) && document.querySelector("#tripBody .trip-leg").textContent.includes("at KOKC"));
+    await page.waitForFunction(() => /trip=KOKC/.test(location.hash) && document.querySelector("#tripBody [data-trip-arr]").dataset.code === "KOKC");
     await page.locator("#tripBody [data-trip-arr]").nth(0).fill("junk");
     await page.locator("#tripBody [data-trip-arr]").nth(0).press("Escape");
     assert.equal(await page.locator("#tripBody [data-trip-arr]").nth(0).inputValue(), "KOKC", "escape restores the field");
@@ -693,12 +695,15 @@ test("flight plan: pick the takeoff date and time of each leg", async () => {
     assert.match(await inputs.nth(0).inputValue(), /^\d{4}-\d{2}-\d{2}T09:00$/, "leg 1 defaults to 09:00 on the trip date");
     const second = await inputs.nth(1).inputValue();
     assert.ok(second > (await inputs.nth(0).inputValue()), "leg 2 is after leg 1");
-    assert.match(await page.textContent("#tripBody .trip-leg"), /Lands \d+:\d\d (AM|PM) \w+ · \d{4}Z at KPNC/);
+    assert.match(await page.textContent("#tripBody .trip-leg .trip-c-land"), /\d+:\d\d (AM|PM)\w+ · \d{4}Z/);
+    assert.match(await page.textContent("#tripBody .trip-leg .trip-c-fly"), /\d+m|\d+:\d\d/, "flight time is in the row");
+    assert.match(await page.textContent("#tripBody .trip-leg .trip-c-fly"), /\d+ nm/);
 
     // set leg 2 two days later: it becomes explicit (with an 'auto' reset) and rides in the URL
     const target = new Date(Date.now() + 2 * 86400000);
     const day = `${target.getFullYear()}-${String(target.getMonth() + 1).padStart(2, "0")}-${String(target.getDate()).padStart(2, "0")}`;
     await inputs.nth(1).fill(`${day}T14:30`);
+    await page.locator("#tripBody .trip-more summary").nth(1).click(); // the reset lives under Details
     await page.waitForSelector('#tripBody [data-trip="reset-dep"]');
     assert.equal(await page.locator("#tripBody [data-trip-dep]").nth(1).inputValue(), `${day}T14:30`);
     assert.match(await page.evaluate(() => location.hash), /trip=KPNC%2CKOKC%40\d{12}|trip=KPNC,KOKC@\d{12}/);
@@ -727,6 +732,44 @@ test("flight plan: pick the takeoff date and time of each leg", async () => {
     assert.match(card, /\d{4}Z/, "Zulu times on the card");
     // the bar itself shows Zulu next to the local takeoff and landing times
     assert.match(await page.textContent("#tripBody"), /\d{4}Z/);
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("flight plan: wider on demand, by the button, the arrow keys or dragging the edge; rows stay one line when wide", async () => {
+  const { page, context, errors } = await openPage({ width: 1600, height: 900 });
+  try {
+    await page.fill("#tripSearch", "KPNC");
+    await page.press("#tripSearch", "Enter");
+    await page.waitForSelector("#tripBody .trip-row");
+    const width = async () => Math.round((await page.locator("#tripBar").boundingBox()).width);
+    const w0 = await width();
+    assert.ok(w0 >= 500, `default is roomy (${w0})`);
+    // wide: the five columns share one line
+    assert.ok((await page.locator("#tripBody .trip-row").first().boundingBox()).height < 60, "the leg is a single line");
+    const lefts = await page.locator("#tripBody .trip-row").first().locator(".trip-c-dep, .trip-c-arr, .trip-c-take, .trip-c-fly, .trip-c-land").evaluateAll((els) => els.map((e) => e.getBoundingClientRect()));
+    for (let k = 1; k < lefts.length; k++) assert.ok(lefts[k].left >= lefts[k - 1].right - 1, "columns do not overlap");
+    await page.click("#tripWide");
+    await page.waitForFunction((w) => document.getElementById("tripBar").getBoundingClientRect().width > w + 100, w0);
+    await page.click("#tripWide");
+    await page.waitForFunction((w) => Math.abs(document.getElementById("tripBar").getBoundingClientRect().width - w) < 4, w0);
+    // arrow keys on the handle
+    await page.focus("#tripResize");
+    await page.keyboard.press("ArrowLeft");
+    await page.waitForFunction((w) => document.getElementById("tripBar").getBoundingClientRect().width > w + 30, w0);
+    // dragging the edge
+    const box = await page.locator("#tripResize").boundingBox();
+    await page.mouse.move(box.x + 4, box.y + 200);
+    await page.mouse.down();
+    await page.mouse.move(box.x - 150, box.y + 200, { steps: 5 });
+    await page.mouse.up();
+    assert.ok((await width()) > w0 + 150);
+    // narrow: the row wraps to two lines (labels appear)
+    await page.setViewportSize({ width: 1100, height: 900 });
+    await page.evaluate(() => document.documentElement.style.setProperty("--tripbar-width", "420px"));
+    await page.waitForFunction(() => getComputedStyle(document.querySelector(".trip-cl")).display === "block");
     assert.deepEqual(errors, []);
   } finally {
     await context.close();

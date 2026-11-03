@@ -130,6 +130,53 @@ async function boot() {
       requestAnimationFrame(() => planner.invalidateSize());
     }
   }
+  // width of the docked plan: drag the left edge, arrow keys on it, or the Wider button
+  const widthLimits = () => ({ min: 360, max: Math.max(420, Math.round(window.innerWidth * 0.7)) });
+  function setTripWidth(px, save = true) {
+    const { min, max } = widthLimits();
+    const w = Math.round(Math.min(max, Math.max(min, px)));
+    document.documentElement.style.setProperty("--tripbar-width", `${w}px`);
+    $("tripResize").setAttribute("aria-valuenow", String(w));
+    $("tripWide").setAttribute("aria-pressed", String(w > 700));
+    if (save) {
+      try {
+        localStorage.setItem("xcgpt-tripwidth", String(w));
+      } catch {
+        // not remembered
+      }
+    }
+    requestAnimationFrame(() => planner.invalidateSize());
+    return w;
+  }
+  try {
+    const saved = Number(localStorage.getItem("xcgpt-tripwidth"));
+    if (saved && !window.matchMedia("(max-width: 860px)").matches) setTripWidth(saved, false);
+  } catch {
+    // default width
+  }
+  const resizer = $("tripResize");
+  resizer.addEventListener("pointerdown", (e) => {
+    resizer.setPointerCapture(e.pointerId);
+    resizer.classList.add("dragging");
+    e.preventDefault();
+  });
+  resizer.addEventListener("pointermove", (e) => resizer.classList.contains("dragging") && setTripWidth(window.innerWidth - e.clientX, false));
+  const endDrag = () => {
+    if (!resizer.classList.contains("dragging")) return;
+    resizer.classList.remove("dragging");
+    setTripWidth(tripBar.getBoundingClientRect().width);
+  };
+  resizer.addEventListener("pointerup", endDrag);
+  resizer.addEventListener("pointercancel", endDrag);
+  resizer.addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
+    setTripWidth(tripBar.getBoundingClientRect().width + (e.key === "ArrowLeft" ? 40 : -40));
+  });
+  $("tripWide").addEventListener("click", () => {
+    const now = tripBar.getBoundingClientRect().width;
+    setTripWidth(now > 700 ? 640 : Math.round(window.innerWidth * 0.7));
+  });
   $("tripBarClose").addEventListener("click", () => setTripBar(false));
   $("tripOpenTab").addEventListener("click", () => setTripBar(true));
   $("tripToggle").addEventListener("click", () => setTripBar(!tripBar.classList.contains("open")));
