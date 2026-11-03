@@ -30,12 +30,20 @@ export function ceilingSeries(forecastAt, code, start, hours = WINDOW_HOURS) {
 export const sampleAt = (series, instant) => series.filter((s) => s && s.t <= instant).at(-1) || null;
 
 /**
- * Does this leg run into instrument conditions? Yes when either end is IFR or
- * lower at any time from takeoff to 90 minutes after landing.
+ * Does this leg run into worse than VFR? Yes when either end is at `minCat`
+ * (default IFR; pass 1 to include marginal VFR) or lower at any time from
+ * takeoff to 90 minutes after landing.
  */
-export function legIsInstrument(dep, to, depAt, etaAt) {
+export function legIsInstrument(dep, to, depAt, etaAt, minCat = IFR) {
   const until = new Date(etaAt.getTime() + 90 * 60000);
-  return [dep, to].some((series) => series?.some((s) => s && s.t >= depAt && s.t <= until && s.cat >= IFR));
+  return [dep, to].some((series) => series?.some((s) => s && s.t >= depAt && s.t <= until && s.cat >= minCat));
+}
+
+/** The worst sample (highest category, then lowest ceiling) in the leg's window, or null when it is all VFR. */
+export function worstSample(series, depAt, etaAt, minCat = 1) {
+  const until = new Date(etaAt.getTime() + 90 * 60000);
+  const hits = (series || []).filter((s) => s && s.t >= depAt && s.t <= until && s.cat >= minCat);
+  return hits.sort((a, b) => b.cat - a.cat || (a.ceilFt ?? Infinity) - (b.ceilFt ?? Infinity))[0] || null;
 }
 
 /** "IFR at landing · lifts to VFR by 1:00 PM CDT (ceiling 3,500 ft)" — the one-line read of a series. */

@@ -692,6 +692,39 @@ test("flight plan: legs with arrival fields, local landing time, and a ceiling t
   }
 });
 
+test("flight plan: VFR says only VFR; marginal and instrument legs carry the ceiling on their tab; Move up / Move down", async () => {
+  const { page, context, errors } = await openPage();
+  try {
+    await page.fill("#tripSearch", "KPNC");
+    await page.press("#tripSearch", "Enter");
+    await page.waitForSelector("#tripBody .trip-row");
+    await page.locator("#tripBody .trip-more summary").first().click();
+    const chips = await page.locator("#tripBody .trip-wx").allTextContents();
+    assert.ok(chips.length && chips.every((c) => c.trim() === "VFR"), `VFR chips are just VFR (${chips})`);
+    assert.equal(await page.locator('[data-testid="ceiling-timeline"]').count(), 0);
+    // reorder buttons are worded Move up / Move down
+    await page.fill("#tripSearch", "KOKC");
+    await page.press("#tripSearch", "Enter");
+    await page.waitForFunction(() => document.querySelectorAll("#tripBody .trip-stop:not(.trip-ret)").length === 2);
+    await page.locator("#tripBody .trip-more summary").nth(1).click();
+    assert.match(await page.textContent('#tripBody [data-trip="up"][data-i="1"]'), /Move up/);
+    assert.match(await page.textContent('#tripBody [data-trip="down"][data-i="0"]'), /Move down/);
+    // marginal VFR in the west (2,200 ft): its own tab with the ceiling in it
+    await page.fill("#tripSearch", "KCSM");
+    await page.press("#tripSearch", "Enter");
+    await page.waitForSelector('[data-testid="ceiling-timeline"].tl-mvfr');
+    assert.match(await page.textContent('[data-testid="ceiling-timeline"].tl-mvfr summary'), /Marginal VFR · KCSM MVFR, ceiling 2,200 ft/);
+    // far west is instrument: red tab with its ceiling
+    await page.fill("#tripSearch", "KLBL");
+    await page.press("#tripSearch", "Enter");
+    await page.waitForSelector('[data-testid="ceiling-timeline"].tl-ifr');
+    assert.match(await page.textContent('[data-testid="ceiling-timeline"].tl-ifr summary'), /Instrument conditions · .*KLBL IFR, ceiling \d/);
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
 test("flight plan: pick the takeoff date and time of each leg", async () => {
   const { page, context, errors } = await openPage();
   try {

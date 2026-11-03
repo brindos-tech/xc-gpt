@@ -479,6 +479,8 @@ input.trip-to:focus-visible, select.trip-from:focus-visible, .trip-take input:fo
 }
 .trip-tl { margin: 4px 0 2px 24px; border: 1px solid rgba(230,90,90,0.55); border-radius: var(--radius-sm); background: rgba(230,90,90,0.08); }
 .trip-tl-flag { cursor: pointer; padding: 5px 8px; font-size: 0.8em; font-weight: 700; color: #ff8f8f; }
+.trip-tl.tl-mvfr { border-color: rgba(91,141,239,0.6); background: rgba(91,141,239,0.08); }
+.trip-tl.tl-mvfr .trip-tl-flag { color: #8fb0ff; }
 .trip-tl-body { display: grid; gap: 3px; padding: 2px 8px 8px; }
 .tl-svg { width: 100%; height: auto; display: block; }
 .tl-label { font-size: 8px; fill: var(--muted); }

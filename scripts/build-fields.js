@@ -40,6 +40,15 @@ export function longestRunway(rows) {
   return rwys[0] || null;
 }
 
+/** Every non-helicopter runway at least minLen × minWidth feet, longest first (the crew card lists them all). */
+export function usableRunways(rows, minLen = 4000, minWidth = 75) {
+  return rows
+    .filter((r) => !/^H/.test(r.RWY_ID))
+    .map((r) => ({ id: r.RWY_ID, len: Number(r.RWY_LEN) || 0, width: Number(r.RWY_WIDTH) || 0, surface: r.SURFACE_TYPE_CODE }))
+    .filter((r) => r.len >= minLen && r.width >= minWidth)
+    .sort((a, b) => b.len - a.len);
+}
+
 export function attendanceText(rows) {
   return rows
     .sort((a, b) => Number(a.SKED_SEQ_NO) - Number(b.SKED_SEQ_NO))
@@ -113,6 +122,7 @@ async function main() {
       hangar: a.TRNS_STRG_HGR_FLAG === "Y",
       attendance: attendanceText(attBySite.get(a.SITE_NO) || []) || null,
       runway: longestRunway(rwyBySite.get(a.SITE_NO) || []),
+      runways: usableRunways(rwyBySite.get(a.SITE_NO) || []),
       ownership: a.OWNERSHIP_TYPE_CODE,
       perDiem: pd,
     };

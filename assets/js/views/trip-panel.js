@@ -8,7 +8,7 @@ import { formatFlightTime } from "../format.js";
 import { esc } from "../planner/html.js";
 import { matchesSearch } from "../planner/fields.js";
 import { greatCircleNm } from "../geo.js";
-import { ceilingSeries, legIsInstrument, summarize, timelineSvg } from "../planner/ceiling-timeline.js";
+import { ceilingSeries, legIsInstrument, worstSample, summarize, timelineSvg } from "../planner/ceiling-timeline.js";
 
 const money = (n) => `$${Math.round(n).toLocaleString("en-US")}`;
 
@@ -189,12 +189,13 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
     return { stops: overnights, legs, schedule, cost: tripPerDiem(overnights, new Date(y, m - 1, d)), route: routeString(origin, fieldsList, state.tripReturn) };
   }
 
+  // VFR just says VFR; anything worse carries its ceiling
   const wxChip = (code, instant) => {
     const f = forecastAt?.(code, instant);
     if (!f) return "";
     const cat = flightCategory(f.ceil, f.vis);
     const ice = f.lice || f.hice ? ` · icing ${Math.max(f.lice, f.hice) === 2 ? "likely" : "possible"}` : "";
-    return `<span class="trip-wx" style="--c:${CAT_COLORS[cat]}">${CAT_NAMES[cat]} · ceiling ${esc(ceilingText(f.ceil))}${f.thun ? " · thunderstorms" : ""}${ice}</span>`;
+    return `<span class="trip-wx" style="--c:${CAT_COLORS[cat]}">${CAT_NAMES[cat]}${cat > 0 ? ` · ceiling ${esc(ceilingText(f.ceil))}` : ""}${f.thun ? " · thunderstorms" : ""}${ice}</span>`;
   };
 
   /**
@@ -207,14 +208,15 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
     if (!forecastAt) return "";
     const dep = ceilingSeries(forecastAt, leg.from, leg.dep);
     const to = ceilingSeries(forecastAt, leg.to, leg.dep);
-    if (!legIsInstrument(dep, to, leg.dep, leg.eta)) return "";
+    if (!legIsInstrument(dep, to, leg.dep, leg.eta, 1)) return "";
     const rows = [dep && { code: leg.from, label: `${esc(leg.from)} (takeoff)`, series: dep }, to && { code: leg.to, label: `${esc(leg.to)} (landing)`, series: to }].filter(Boolean);
-    const until = leg.eta.getTime() + 90 * 60000;
-    const worst = (series) => Math.max(...series.filter((x) => x && x.t >= leg.dep && x.t.getTime() <= until).map((x) => x.cat));
-    const which = rows.filter((r) => worst(r.series) >= 2).map((r) => `${esc(r.code)} ${CAT_NAMES[worst(r.series)]}`).join(", ");
+    // the tab names each affected field, its worst category and that moment's ceiling
+    const worst = rows.map((r) => ({ r, w: worstSample(r.series, leg.dep, leg.eta) })).filter((x) => x.w);
+    const top = Math.max(...worst.map((x) => x.w.cat));
+    const which = worst.map(({ r, w }) => `${esc(r.code)} ${CAT_NAMES[w.cat]}, ceiling ${esc(ceilingText(w.f.ceil))}`).join(" · ");
     const lines = rows.map((r) => `<div><b>${esc(r.code)}</b> ${esc(summarize(r.series, leg.eta, leg.toTz))}</div>`).join("");
-    return `<details class="trip-tl" data-testid="ceiling-timeline" ${openTimelines.has(leg.i) ? "open" : ""}>
-      <summary class="trip-tl-flag">⚠ Instrument conditions · ${which}</summary>
+    return `<details class="trip-tl ${top >= 2 ? "tl-ifr" : "tl-mvfr"}" data-testid="ceiling-timeline" ${openTimelines.has(leg.i) ? "open" : ""}>
+      <summary class="trip-tl-flag">⚠ ${top >= 2 ? "Instrument conditions" : "Marginal VFR"} · ${which}</summary>
       <div class="trip-tl-body">
         <div class="trip-tl-head small muted">Ceiling from takeoff · times in ${esc(leg.to)} local (${esc(zoneAbbr(leg.eta, leg.toTz))})</div>
         ${timelineSvg({ rows, depAt: leg.dep, etaAt: leg.eta, tz: leg.toTz })}
@@ -244,7 +246,7 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
     const ctl = leg.isReturn
       ? `<button type="button" data-trip="remove-return" aria-label="Remove the return leg">×</button>`
       : `<button type="button" data-trip="remove" data-i="${leg.i}" aria-label="Remove leg ${leg.i + 1} to ${esc(leg.to)}">×</button>`;
-    const move = leg.isReturn ? "" : `<span class="trip-move"><button type="button" class="chip" data-trip="up" data-i="${leg.i}" aria-label="Move leg ${leg.i + 1} earlier" ${leg.i === 0 ? "disabled" : ""}>↑ Earlier</button> <button type="button" class="chip" data-trip="down" data-i="${leg.i}" aria-label="Move leg ${leg.i + 1} later" ${leg.i === count - 1 ? "disabled" : ""}>↓ Later</button></span>`;
+    const move = leg.isReturn ? "" : `<span class="trip-move"><button type="button" class="chip" data-trip="up" data-i="${leg.i}" aria-label="Move leg ${leg.i + 1} up" ${leg.i === 0 ? "disabled" : ""}>Move up</button> <button type="button" class="chip" data-trip="down" data-i="${leg.i}" aria-label="Move leg ${leg.i + 1} down" ${leg.i === count - 1 ? "disabled" : ""}>Move down</button></span>`;
     const chips = [wxChip(leg.from, leg.dep) && `<span class="muted">takeoff</span> ${wxChip(leg.from, leg.dep)}`, wxChip(leg.to, leg.eta) && `<span class="muted">landing</span> ${wxChip(leg.to, leg.eta)}`].filter(Boolean).join(" ");
     const details = [
       stop ? `<div><button type="button" class="cm-link" data-trip="select" data-code="${esc(stop.code)}">${esc(stop.field.name)}</button>${stop.field.fuel === "Not Approved" ? ` <span class="bad-text">no fuel</span>` : stop.field.fuel !== "Approved" ? ` <span class="warn-text">fuel: see comments</span>` : ""}</div>` : "",

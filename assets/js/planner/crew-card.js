@@ -21,6 +21,14 @@ function zonesHtml(schedule) {
     <p class="cc-zulu cc-muted">Zulu (UTC) times are in bold below.</p>`;
 }
 
+const rwyText = (r) => `${esc(r.id)} · ${r.len.toLocaleString("en-US")}′ × ${r.width}′ ${esc(r.surface || "")}`.trim();
+
+/** Every runway at least 4,000′ × 75′ (the NASR list); older data with only the longest runway falls back to that one. */
+export function runwaysHtml(f) {
+  const list = f.runways ?? (f.runway ? [f.runway] : []);
+  return list.map(rwyText).join("<br>");
+}
+
 const money = (n) => (n == null ? "—" : `$${Math.round(n).toLocaleString("en-US")}`);
 
 function stopHtml(s, i, ctx) {
@@ -39,7 +47,7 @@ function stopHtml(s, i, ctx) {
       ${line("Classification", esc(f.classification) + (f.approvalList && f.approvalList !== "None" ? ` · ${esc(f.approvalList)}` : ""))}
       ${line("FBO", f.fbo ? `${esc(f.fbo)}${f.fboPhone ? ` · <b>${esc(f.fboPhone)}</b>` : ""}` : "None listed")}
       ${line("Gov't fuel", esc(gfc.text) + (contractMerchants.length ? `<br>${contractMerchants.map((m) => `${esc(m.merchant)}${m.phone ? ` ${esc(m.phone)}` : ""}${m.contract ? " (DLA contract)" : ""}`).join("<br>")}` : ""))}
-      ${line("Runway", f.runway ? `${esc(f.runway.id)} · ${f.runway.len.toLocaleString("en-US")}′ × ${f.runway.width}′ ${esc(f.runway.surface)}` : "")}
+      ${line("Runways", runwaysHtml(f))}
       ${line("Approaches", esc(types.join(", ")))}
       ${sh ? line(`Sun (${sh.abbr || "local"})`, esc(sh.sunText)) : ""}
       ${sh ? line("FBO hours", esc(sh.hoursText || "not listed") + (f.attendance ? ` <span class="cc-muted">(${esc(f.attendance)})</span>` : "") + sh.flags.map((x) => `<br>⚠ ${esc(x.text)}`).join("")) : ""}
@@ -64,7 +72,9 @@ export function crewCardHtml(ctx) {
           const shift = sc ? clockShift(sc.fromTz, sc.dep, sc.toTz, sc.eta) : null;
           const wxNote = (code, instant) => {
             const f = ctx.forecastAt?.(code, instant);
-            return f ? `<br><span class="cc-muted">${CAT_NAMES[flightCategory(f.ceil, f.vis)]}, ceiling ${esc(ceilingText(f.ceil))}</span>` : "";
+            if (!f) return "";
+            const cat = flightCategory(f.ceil, f.vis);
+            return `<br><span class="cc-muted">${CAT_NAMES[cat]}${cat > 0 ? `, ceiling ${esc(ceilingText(f.ceil))}` : ""}</span>`;
           };
           const when = (instant, tz, withDay) => `${withDay ? `${esc(new Date(instant).toLocaleDateString("en-US", { timeZone: tz, weekday: "short", month: "short", day: "numeric" }))} ` : ""}${esc(clock(instant, tz))} ${esc(zoneAbbr(instant, tz))}<br><b>${esc(zulu(instant).text)}</b>`;
           return `<tr><td>${esc(l.from)} → ${esc(l.to)}${l.overRange ? `<br><span class="cc-flag">⚠ Tight on gas</span>` : ""}${shift?.text ? `<br><span class="cc-tz">${esc(shift.text)}</span>` : ""}${flags}</td>

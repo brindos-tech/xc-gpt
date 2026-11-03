@@ -654,3 +654,19 @@ test("crew card: time zones listed, shifts called out, local and Zulu on every l
   assert.match(html2, /all one zone/);
   assert.doesNotMatch(html2, /you gain|you lose/);
 });
+
+test("runways: every one at least 4,000 x 75 ft is kept for the crew card", async () => {
+  const { usableRunways } = await import("../../scripts/build-fields.js");
+  const rows = [
+    { RWY_ID: "17/35", RWY_LEN: "9217", RWY_WIDTH: "150", SURFACE_TYPE_CODE: "CONC" },
+    { RWY_ID: "12/30", RWY_LEN: "6000", RWY_WIDTH: "100", SURFACE_TYPE_CODE: "ASPH" },
+    { RWY_ID: "04/22", RWY_LEN: "3800", RWY_WIDTH: "75", SURFACE_TYPE_CODE: "ASPH" },
+    { RWY_ID: "08/26", RWY_LEN: "5000", RWY_WIDTH: "60", SURFACE_TYPE_CODE: "ASPH" },
+    { RWY_ID: "H1", RWY_LEN: "100", RWY_WIDTH: "100", SURFACE_TYPE_CODE: "CONC" },
+  ];
+  assert.deepEqual(usableRunways(rows).map((r) => r.id), ["17/35", "12/30"], "too short, too narrow and helipads are out");
+  const { runwaysHtml } = await import("../../assets/js/planner/crew-card.js");
+  assert.match(runwaysHtml({ runways: usableRunways(rows) }), /17\/35 · 9,217′ × 150′ CONC<br>12\/30 · 6,000′ × 100′ ASPH/);
+  assert.match(runwaysHtml({ runway: { id: "17C/35C", len: 9217, width: 150, surface: "CONC" } }), /17C\/35C · 9,217′/, "older data: the longest runway");
+  assert.equal(runwaysHtml({}), "");
+});
