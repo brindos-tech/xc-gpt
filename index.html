@@ -141,9 +141,13 @@
     <!-- planner: flight plan, docked on the right (a bottom sheet on phones) -->
     <div class="trip-backdrop" id="tripBackdrop"></div>
     <aside class="trip-bar" id="tripBar" data-page="planner" aria-label="Flight plan">
+      <div class="trip-resize" id="tripResize" role="separator" aria-orientation="vertical" aria-label="Resize the flight plan (drag, or use the arrow keys)" tabindex="0"></div>
       <div class="trip-bar-head">
         <h3>Flight plan <span class="muted small" id="tripCount"></span></h3>
-        <button type="button" class="trip-bar-close" id="tripBarClose" aria-label="Hide flight plan" title="Hide">&rsaquo;</button>
+        <span class="trip-head-btns">
+          <button type="button" class="trip-bar-wide" id="tripWide" aria-pressed="false" title="Make the flight plan wider or narrower">&harr; Wider</button>
+          <button type="button" class="trip-bar-close" id="tripBarClose" aria-label="Hide flight plan" title="Hide">&rsaquo;</button>
+        </span>
       </div>
       <div class="trip-add-box">
         <label class="trip-add-label" id="tripAddLabel" for="tripSearch">Add a leg</label>

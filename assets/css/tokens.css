@@ -44,7 +44,7 @@
   --scrubber-height: 88px;
   --header-height: 60px;
   --tabbar-height: 48px;
-  --tripbar-width: 340px;
+  --tripbar-width: min(640px, 52vw);
   /* Phones get taller tabs for a real tap target. Anything that has to sit
      *above* the tab bar (filter sheet, detail sheet) offsets by this, so
      the three stay in agreement by construction. */

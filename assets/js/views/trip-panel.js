@@ -40,6 +40,7 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
   // field: `current` is the input it is serving and `onPick` what a choice does.
   let current = null;
   let onPick = null;
+  let openLegs = new Set();
 
   function showSuggestions(input, pick) {
     current = input;
@@ -213,26 +214,47 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
     </div>`;
   }
 
-  /** One leg: departure field, arrival field, takeoff time, computed arrival, and the ceiling timeline when it is IFR. */
-  function legHtml(leg, state, flightLine, extra) {
+  /**
+   * One leg as a table row: departure, arrival, takeoff, flight time, landing
+   * time. Warnings and the ceiling timeline sit under the row; the rest
+   * (field name, forecast chips, clock change) is behind "Details".
+   */
+  function legHtml(leg, state, info, { stop, count } = {}) {
     const flags = legFlags(leg).map((x) => `<div class="fp-flag ${x.level}">⚠ ${esc(x.text)}</div>`).join("");
     const takeoff = `${leg.depLocal.date}T${leg.depLocal.time}`;
     const shift = clockShift(leg.fromTz, leg.dep, leg.toTz, leg.eta);
     const from = leg.i === 0
       ? `<select class="trip-from" data-trip-base aria-label="Departure field, leg 1">${config.origins.map((o) => `<option value="${esc(o.id)}" ${o.id === state.originId ? "selected" : ""}>${esc(o.icao)}</option>`).join("")}</select>`
-      : `<b class="trip-from" aria-label="Departure field, leg ${leg.i + 1}">${esc(leg.from)}</b>`;
+      : `<span class="trip-from trip-fixed">${esc(leg.from)}</span>`;
     const to = leg.isReturn
-      ? `<b class="trip-to">${esc(leg.to)}</b>`
-      : `<span class="trip-combo"><input class="trip-to" type="text" data-trip-arr data-i="${leg.i}" data-code="${esc(leg.to)}" value="${esc(leg.to)}" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="tripSuggest" aria-autocomplete="list" aria-label="Arrival field, leg ${leg.i + 1}"></span>`;
-    const arriveDay = leg.etaLocal.date !== leg.depLocal.date ? ` <span class="muted">(${esc(new Date(leg.eta).toLocaleDateString("en-US", { timeZone: leg.toTz, weekday: "short", month: "short", day: "numeric" }))})</span>` : "";
-    return `<div class="trip-leg">
-      <div class="trip-legrow"><span class="trip-legno">Leg ${leg.i + 1}</span>${extra}<span class="trip-break"></span>${from}<span class="trip-arrow" aria-hidden="true">→</span>${to}</div>
-      <label class="trip-dep">Takeoff <input type="datetime-local" step="300" data-trip-dep data-i="${leg.i}" value="${takeoff}" aria-label="Takeoff, leg ${leg.i + 1}, ${esc(leg.from)} local time"> <span class="muted small">${esc(leg.from)} time (${esc(zoneAbbr(leg.dep, leg.fromTz))}) · ${esc(zulu(leg.dep).time)}</span>${leg.explicit && leg.i > 0 ? ` <button type="button" class="cm-link small" data-trip="reset-dep" data-i="${leg.i}">auto</button>` : ""}</label>
-      <div class="trip-arr">Lands <b>${esc(clock(leg.eta, leg.toTz))} ${esc(zoneAbbr(leg.eta, leg.toTz))}</b> · ${esc(zulu(leg.eta).time)} at ${esc(leg.to)}${arriveDay} <span class="muted small">${flightLine}</span></div>
-      ${shift.text ? `<div class="fp-flag info">🕐 ${esc(shift.text)}</div>` : ""}
-      <div class="trip-wxrow small">${wxChip(leg.from, leg.dep) ? `<span class="muted">takeoff</span> ${wxChip(leg.from, leg.dep)}` : ""} ${wxChip(leg.to, leg.eta) ? `<span class="muted">landing</span> ${wxChip(leg.to, leg.eta)}` : ""}</div>
-      ${timelineHtml(leg)}
+      ? `<span class="trip-to trip-fixed">${esc(leg.to)} <small class="muted">return</small></span>`
+      : `<span class="trip-combo"><input class="trip-to" type="text" data-trip-arr data-i="${leg.i}" data-code="${esc(leg.to)}" value="${esc(leg.to)}" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="tripSuggest" aria-autocomplete="list" aria-label="Arrival field, leg ${leg.i + 1}"></span>${leg.ron ? ` <small class="trip-ronmark">RON</small>` : ""}`;
+    const arriveDay = leg.etaLocal.date !== leg.depLocal.date ? ` ${esc(new Date(leg.eta).toLocaleDateString("en-US", { timeZone: leg.toTz, weekday: "short" }))}` : "";
+    const ctl = leg.isReturn
+      ? `<button type="button" data-trip="remove-return" aria-label="Remove the return leg">×</button>`
+      : `<button type="button" data-trip="remove" data-i="${leg.i}" aria-label="Remove leg ${leg.i + 1} to ${esc(leg.to)}">×</button>`;
+    const move = leg.isReturn ? "" : `<span class="trip-move"><button type="button" class="chip" data-trip="up" data-i="${leg.i}" aria-label="Move leg ${leg.i + 1} earlier" ${leg.i === 0 ? "disabled" : ""}>↑ Earlier</button> <button type="button" class="chip" data-trip="down" data-i="${leg.i}" aria-label="Move leg ${leg.i + 1} later" ${leg.i === count - 1 ? "disabled" : ""}>↓ Later</button></span>`;
+    const chips = [wxChip(leg.from, leg.dep) && `<span class="muted">takeoff</span> ${wxChip(leg.from, leg.dep)}`, wxChip(leg.to, leg.eta) && `<span class="muted">landing</span> ${wxChip(leg.to, leg.eta)}`].filter(Boolean).join(" ");
+    const details = [
+      stop ? `<div><button type="button" class="cm-link" data-trip="select" data-code="${esc(stop.code)}">${esc(stop.field.name)}</button>${stop.field.fuel === "Not Approved" ? ` <span class="bad-text">no fuel</span>` : stop.field.fuel !== "Approved" ? ` <span class="warn-text">fuel: see comments</span>` : ""} · <label class="trip-ron"><input type="checkbox" data-trip-ron data-i="${leg.i}" ${stop.ron ? "checked" : ""}> RON here</label></div>` : "",
+      `<div class="muted">Takeoff ${esc(clock(leg.dep, leg.fromTz))} ${esc(zoneAbbr(leg.dep, leg.fromTz))} at ${esc(leg.from)} · ${esc(zulu(leg.dep).time)} · lands ${esc(zulu(leg.eta).time)}${leg.explicit || leg.i === 0 ? "" : " · follows the previous leg"}${leg.explicit && leg.i > 0 ? ` · <button type="button" class="cm-link" data-trip="reset-dep" data-i="${leg.i}">set takeoff back to automatic</button>` : ""}</div>`,
+      shift.text ? `<div class="fp-flag info">${esc(shift.text)}</div>` : "",
+      chips ? `<div class="trip-wxrow">${chips}</div>` : "",
+      move,
+    ].join("");
+    return `<div class="trip-leg" data-leg="${leg.i}">
+      <div class="trip-row">
+        <span class="trip-legno">${leg.i + 1}</span>
+        <div class="trip-c trip-c-dep"><span class="trip-cl">Departure</span>${from}</div>
+        <div class="trip-c trip-c-arr"><span class="trip-cl">Arrival</span>${to}</div>
+        <div class="trip-c trip-c-take"><span class="trip-cl">Takeoff</span><span class="trip-take"><input type="datetime-local" step="300" data-trip-dep data-i="${leg.i}" value="${takeoff}" aria-label="Takeoff, leg ${leg.i + 1}, ${esc(leg.from)} local time"></span></div>
+        <div class="trip-c trip-c-fly"><span class="trip-cl">Flight</span><b>${esc(formatFlightTime(info.mins))}</b><small class="${info.overRange ? "bad-text" : "muted"}">${Math.round(info.nm)} nm${info.overRange ? ` · over ${config.aircraft.legRangeNm}` : ""}</small></div>
+        <div class="trip-c trip-c-land"><span class="trip-cl">Lands</span><b>${esc(clock(leg.eta, leg.toTz))}</b><small class="muted">${esc(zoneAbbr(leg.eta, leg.toTz))}${arriveDay} · ${esc(zulu(leg.eta).time)}</small></div>
+        <span class="trip-ctl">${ctl}</span>
+      </div>
       ${flags}
+      ${timelineHtml(leg)}
+      <details class="trip-more" ${openLegs.has(leg.i) ? "open" : ""}><summary>Details</summary><div class="trip-more-body small">${details}</div></details>
     </div>`;
   }
 
@@ -245,21 +267,18 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
     // an arrival field being typed in must not be re-rendered out from under the user
     const editing = document.activeElement?.matches?.("[data-trip-arr]") && body.contains(document.activeElement) && document.activeElement.value !== document.activeElement.dataset.code;
     if (editing) return c;
+    openLegs = new Set([...body.querySelectorAll(".trip-more[open]")].map((d) => Number(d.closest("[data-leg]").dataset.leg))); // Details stay open across re-renders
     addBox.appendChild(suggest); // keep the list out of the markup about to be replaced
     current = null;
     if (!stops.length) {
-      body.innerHTML = `<div class="rail-hint">Type the arrival field above to add your first leg from ${esc(origin.icao)}, or open any field on the map and tap <b>Add to trip</b>. Each leg gets a takeoff time you can set and a local landing time; when the forecast is instrument you also get a ceiling timeline.</div>`;
+      body.innerHTML = `<div class="rail-hint">Type the arrival field above to add your first leg from ${esc(origin.icao)}, or open any field on the map and tap <b>Add to trip</b>. Each leg is one row: departure, arrival, takeoff time, flight time and the landing time in the arrival field's local time. Instrument legs also get a ceiling timeline.</div>`;
       return c;
     }
-    const flightLine = (leg) => `${Math.round(leg.nm)} nm · ${formatFlightTime(leg.mins)}${leg.overRange ? ` · <span class="bad-text">beyond one leg (${config.aircraft.legRangeNm} nm)</span>` : ""}`;
     body.innerHTML = `
+      <div class="trip-head" aria-hidden="true"><span></span><span>Departure</span><span>Arrival</span><span>Takeoff</span><span>Flight</span><span>Lands</span><span></span></div>
       <ol class="trip-list">
-        ${stops
-          .map((s, i) => `<li class="trip-stop">
-              ${legHtml(schedule[i], state, flightLine(legs.legs[i]), `<span class="trip-ctl"><button type="button" data-trip="up" data-i="${i}" aria-label="Move ${esc(s.code)} earlier" ${i === 0 ? "disabled" : ""}>↑</button><button type="button" data-trip="down" data-i="${i}" aria-label="Move ${esc(s.code)} later" ${i === stops.length - 1 ? "disabled" : ""}>↓</button><button type="button" data-trip="remove" data-i="${i}" aria-label="Remove leg to ${esc(s.code)}">×</button></span>`)}
-              <div class="trip-main"><button type="button" class="cm-link" data-trip="select" data-code="${esc(s.code)}">${esc(s.field.name)}</button>${s.field.fuel === "Not Approved" ? ` <span class="bad-text small">no fuel</span>` : s.field.fuel !== "Approved" ? ` <span class="warn-text small">fuel: see comments</span>` : ""} <label class="trip-ron"><input type="checkbox" data-trip-ron data-i="${i}" ${s.ron ? "checked" : ""}> RON here</label></div></li>`)
-          .join("")}
-        ${state.tripReturn ? `<li class="trip-stop trip-ret">${legHtml(schedule.at(-1), state, flightLine(legs.legs.at(-1)), `<span class="trip-ctl"><button type="button" data-trip="remove-return" aria-label="Remove the return leg">×</button></span>`)}</li>` : `<li class="trip-addret"><button type="button" class="chip" data-trip="add-return">+ Return leg to ${esc(origin.icao)}</button></li>`}
+        ${stops.map((s, i) => `<li class="trip-stop">${legHtml(schedule[i], state, legs.legs[i], { stop: s, count: stops.length })}</li>`).join("")}
+        ${state.tripReturn ? `<li class="trip-stop trip-ret">${legHtml(schedule.at(-1), state, legs.legs.at(-1), { count: stops.length })}</li>` : `<li class="trip-addret"><button type="button" class="chip" data-trip="add-return">+ Return leg to ${esc(origin.icao)}</button></li>`}
       </ol>
       <div class="trip-total"><b>${Math.round(legs.totalNm)} nm</b> · <b>${formatFlightTime(legs.totalMins)}</b> flying · ${legs.legs.length} leg${legs.legs.length === 1 ? "" : "s"}</div>
       <div class="trip-cost small">${cost.nights ? `${cost.nights} night${cost.nights === 1 ? "" : "s"} · lodging ${money(cost.lodging)} + M&amp;IE ${money(cost.meals)} = <b>${money(cost.total)}</b> <span class="muted">(GSA estimate${cost.missing.length ? `; no rate for ${esc(cost.missing.join(", "))}` : ""})</span>` : `<span class="muted">No RON stops, so no per diem counted.</span>`}</div>
