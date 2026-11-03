@@ -25,6 +25,10 @@ Planning reference only — the page says so. ForeFlight / FLIP / NOTAMs remain 
 
 “Add to trip” on a field sheet puts it in the rail's **Trip** list: reorder, mark RON, return to base. It shows legs and flight time from the base (flagging legs beyond the 400 nm leg range), a GSA per diem estimate (lodging per RON field, meals at 75 % on the first and last day), a route string to paste into ForeFlight, and **Print crew card** — a one-page-per-stop printout (FBO + phone, approvals, gov't fuel merchants, hours/sunset, per diem, lodging-tax note). Trips live in the URL (`trip=KOKC*,KTUL`, `*` = RON). Field sheets also show sunrise/sunset/twilight in the field's own time and flag FBO hours (read from the FAA attendance text) that are closed that day or end before sunset.
 
+### Weekend Recs tab
+
+For each upcoming Fri–Sun (12 at first, 8 more on request) the **Weekend Recs** tab shows one best match plus two backups within the range of the selected base, with the 3-day weather outlook once it's inside the forecast. Picks are mixed on purpose across *sports*, *concerts* and *other big events* (`assets/js/weekends.js`): each kind is guaranteed about a third of the weekends where it has something, the rest go to the best remaining candidate, and an event that is already the pick elsewhere (a three-week festival) is discounted, so it isn't all football or all tours. “Big” means a pro/SEC game or PR opportunity, a favourite-artist or arena-scale concert, anything hand-picked, and the low-volume kinds (festival, rodeo, fair, food…) — not the local comedy/theatre noise. The header search narrows the events considered. It shares the Events map's data (`assets/js/events/data.js`).
+
 ### Reviews tab
 
 The **Reviews** tab (between Planner and Events) lists recent reviews from all fields and airspace, the top-rated fields/FBOs and areas (average adjusted for the number of reviews), and who has free food, a crew car or takes the AIR Card; each row opens that field or area on the map. It reads the comments API's `/feed` and `/summary` and says so when the server is unreachable.

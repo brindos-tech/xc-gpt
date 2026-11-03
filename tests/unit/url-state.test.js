@@ -50,6 +50,6 @@ test("a window still running is restored", () => {
 });
 
 test("pages that no longer exist land on the events page", () => {
-  for (const v of ["map", "feed", "places", "artists", "weekends"]) assert.equal(hashToState(`#/v=${v}`, defaults).view, "events");
-  assert.equal(hashToState("#/v=planner", defaults).view, "planner");
+  for (const v of ["map", "feed", "places", "artists"]) assert.equal(hashToState(`#/v=${v}`, defaults).view, "events");
+  for (const v of ["planner", "reviews", "weekends"]) assert.equal(hashToState(`#/v=${v}`, defaults).view, v);
 });

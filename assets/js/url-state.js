@@ -39,7 +39,7 @@ export function hashToState(hash, defaults) {
     // Pages that no longer exist (feed, places, artists, weekend recs) and
     // the old "map" name all land on the events page.
     const v = params.get("v");
-    patch.view = v === "planner" || v === "reviews" ? v : "events";
+    patch.view = v === "planner" || v === "reviews" || v === "weekends" ? v : "events";
   }
   if (params.has("from")) patch.dateRange = { ...defaults.dateRange, start: parseDate(params.get("from")) };
   if (params.has("to")) {

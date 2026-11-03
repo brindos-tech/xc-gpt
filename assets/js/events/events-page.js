@@ -7,13 +7,10 @@ import { applyFiltersMemoized } from "../filters.js";
 import { createMapView } from "../views/map-view.js";
 import { createScrubber } from "../views/scrubber.js";
 import { createDetailPanel } from "../views/detail-panel.js";
+import { loadEventsData } from "./data.js";
 
 export async function createEventsPage({ store, config, meta, loadJson }) {
-  const [rawPlaces, events, weather] = await Promise.all([
-    loadJson("curated/places.json"),
-    loadJson("generated/events.json").catch(() => loadJson("curated/events.seed.json")),
-    loadJson("generated/weather.json").catch(() => ({})),
-  ]);
+  const { places: rawPlaces, events, weather } = await loadEventsData(loadJson);
 
   const originsById = new Map(config.origins.map((o) => [o.id, o]));
   const fuelStopFields = rawPlaces.flatMap((p) => p.airports.filter((a) => a.vanceApproved));

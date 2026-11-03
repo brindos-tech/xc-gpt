@@ -736,3 +736,40 @@ test("mobile: the flight plan opens as a sheet from the header button", async ()
     await context.close();
   }
 });
+
+test("weekend recs tab: a pick and two backups per weekend, a mix of kinds, and 'see on the events map'", async () => {
+  const { page, context, errors } = await openPage();
+  try {
+    await page.click('#tabBar [data-view="weekends"]');
+    await page.waitForSelector("#weekendsPage .wk-card .wk-primary", { timeout: 30000 });
+    assert.match(await page.evaluate(() => location.hash), /v=weekends/);
+    assert.equal(await page.locator("#tabBar button.active").textContent(), "Weekend Recs");
+    // the shared rail stays (base + range), without the planner/events-only sections
+    assert.equal(await page.isVisible("#originChips"), true);
+    assert.equal(await page.isVisible("#airspaceToggles"), false);
+    assert.equal(await page.isVisible("#tripBar"), false);
+
+    const cards = page.locator("#weekendsPage .wk-card");
+    assert.ok((await cards.count()) >= 8, "a dozen weekends");
+    assert.ok((await page.locator("#weekendsPage .wk-card .wk-primary").count()) >= 6);
+    // most weekends have two backups
+    assert.ok((await page.locator("#weekendsPage .wk-card:has(.wk-backup-row:nth-child(2))").count()) >= 4);
+    // a mix: the primaries are not all one kind
+    const kinds = await page.evaluate(() => new Set([...document.querySelectorAll("#weekendsPage .wk-primary .wk-kind")].map((b) => b.textContent.trim())).size);
+    assert.ok(kinds >= 2, `${kinds} kinds among the picks`);
+    assert.match(await page.textContent("#weekendsPage"), /mixed on purpose/);
+
+    // the header search narrows what is considered
+    await page.fill("#globalSearch", "rodeo");
+    await page.waitForFunction(() => /rodeo/i.test(document.querySelector("#weekendsPage .wk-primary .wk-title")?.textContent || ""), null, { timeout: 8000 });
+    await page.fill("#globalSearch", "");
+
+    // see it on the events map: switches page with the place selected and that weekend as the date window
+    await page.locator("#weekendsPage [data-wk-open]").first().click();
+    await page.waitForSelector("#detailPanel.open", { timeout: 15000 });
+    assert.equal(await page.locator("#tabBar button.active").textContent(), "Events");
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
