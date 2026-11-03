@@ -215,8 +215,8 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
     const top = Math.max(...worst.map((x) => x.w.cat));
     const which = worst.map(({ r, w }) => `${esc(r.code)} ${CAT_NAMES[w.cat]}, ceiling ${esc(ceilingText(w.f.ceil))}`).join(" · ");
     const lines = rows.map((r) => `<div><b>${esc(r.code)}</b> ${esc(summarize(r.series, leg.eta, leg.toTz))}</div>`).join("");
-    return `<details class="trip-tl ${top >= 2 ? "tl-ifr" : "tl-mvfr"}" data-testid="ceiling-timeline" ${openTimelines.has(leg.i) ? "open" : ""}>
-      <summary class="trip-tl-flag">⚠ ${top >= 2 ? "Instrument conditions" : "Marginal VFR"} · ${which}</summary>
+    return `<details class="trip-tl ${["", "tl-mvfr", "tl-ifr", "tl-lifr"][top]}" data-testid="ceiling-timeline" ${openTimelines.has(leg.i) ? "open" : ""}>
+      <summary class="trip-tl-flag">⚠ ${top >= 3 ? "Low IFR" : top === 2 ? "Instrument conditions" : "Marginal VFR"} · ${which}</summary>
       <div class="trip-tl-body">
         <div class="trip-tl-head small muted">Ceiling from takeoff · times in ${esc(leg.to)} local (${esc(zoneAbbr(leg.eta, leg.toTz))})</div>
         ${timelineSvg({ rows, depAt: leg.dep, etaAt: leg.eta, tz: leg.toTz })}

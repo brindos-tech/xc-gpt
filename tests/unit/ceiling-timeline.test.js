@@ -59,3 +59,11 @@ test("marginal VFR counts when asked, and the worst sample carries the ceiling",
   const ifr = worstSample(ceilingSeries(forecastAt, "KIFR", dep), dep, eta);
   assert.deepEqual([ifr.cat, ifr.ceilFt], [2, 700]);
 });
+
+test("category colours: MVFR blue, IFR red, LIFR pink", async () => {
+  const { CAT_COLORS, CAT_NAMES } = await import("../../assets/js/planner/wx-model.js");
+  assert.deepEqual(CAT_NAMES, ["VFR", "MVFR", "IFR", "LIFR"]);
+  assert.equal(CAT_COLORS[1], "#5b8def");
+  assert.equal(CAT_COLORS[2], "#e65a5a");
+  assert.equal(CAT_COLORS[3], "#ff7ac6");
+});
