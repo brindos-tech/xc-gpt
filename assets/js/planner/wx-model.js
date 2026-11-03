@@ -120,6 +120,51 @@ export function makeGrid(origins, rangeNm, step = 1) {
   return { lat0, lon0, step, nlat, nlon, cov };
 }
 
+// A coarse outline of the lower 48 (lon, lat), clockwise from the northwest.
+// Only used to decide which 1-degree grid cells are worth fetching.
+const CONUS_OUTLINE = [
+  [-124.7, 48.4], [-123.3, 49.0], [-95.2, 49.0], [-94.6, 48.7], [-89.5, 48.0], [-84.8, 46.5], [-82.4, 45.3], [-82.5, 43.0], [-83.1, 42.0],
+  [-79.0, 42.8], [-79.0, 43.3], [-76.5, 44.0], [-75.0, 44.9], [-71.5, 45.0], [-70.8, 45.4], [-70.0, 46.5], [-69.2, 47.4], [-68.0, 47.3], [-67.8, 45.7], [-67.0, 44.9],
+  [-70.0, 43.7], [-70.7, 42.9], [-70.0, 41.7], [-71.5, 41.3], [-73.9, 40.6], [-74.0, 39.5], [-75.0, 38.4], [-75.9, 37.0], [-75.5, 35.2], [-77.0, 34.4], [-77.9, 33.8],
+  [-79.0, 33.2], [-80.7, 32.0], [-81.4, 30.5], [-80.5, 28.5], [-80.0, 26.7], [-80.3, 25.2], [-81.1, 25.1], [-81.8, 26.5], [-82.7, 27.8], [-82.8, 29.1], [-84.0, 30.0],
+  [-85.4, 29.7], [-86.5, 30.4], [-88.0, 30.3], [-89.4, 30.0], [-89.4, 29.0], [-90.5, 29.1], [-92.0, 29.5], [-93.8, 29.7], [-94.8, 29.2], [-96.4, 28.2], [-97.2, 27.5],
+  [-97.2, 26.0], [-98.5, 26.1], [-99.5, 27.5], [-100.5, 28.7], [-101.4, 29.7], [-102.4, 29.8], [-103.2, 29.0], [-104.5, 29.7], [-105.8, 31.0], [-106.5, 31.8],
+  [-108.2, 31.8], [-108.2, 31.3], [-111.0, 31.3], [-114.8, 32.5], [-117.1, 32.5], [-118.4, 33.8], [-120.6, 34.5], [-121.9, 36.6], [-122.5, 37.8], [-123.8, 39.4],
+  [-124.4, 40.4], [-124.2, 42.0], [-124.5, 43.0], [-124.1, 46.2],
+];
+
+function inOutline(lon, lat, poly = CONUS_OUTLINE) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i];
+    const [xj, yj] = poly[j];
+    if (yi > lat !== yj > lat && lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
+/**
+ * The lower 48 on a regular grid: a cell is fetched when its centre, or a point
+ * half a cell away in any direction, lies inside the outline (so the coasts and
+ * borders get a margin). Same shape as makeGrid().
+ */
+export function makeConusGrid(step = 1) {
+  const lat0 = 24;
+  const lon0 = -125;
+  const nlat = Math.ceil((50 - lat0) / step) + 1;
+  const nlon = Math.ceil((-66 - lon0) / step) + 1;
+  const cov = new Array(nlat * nlon).fill(0);
+  const h = step / 2;
+  for (let r = 0; r < nlat; r++) {
+    for (let c = 0; c < nlon; c++) {
+      const lat = lat0 + r * step;
+      const lon = lon0 + c * step;
+      if ([[0, 0], [h, 0], [-h, 0], [0, h], [0, -h], [h, h], [-h, -h], [h, -h], [-h, h]].some(([dx, dy]) => inOutline(lon + dx, lat + dy))) cov[r * nlon + c] = 1;
+    }
+  }
+  return { lat0, lon0, step, nlat, nlon, cov };
+}
+
 export const gridPoint = (g, k) => ({ lat: g.lat0 + Math.floor(k / g.nlon) * g.step, lon: g.lon0 + (k % g.nlon) * g.step });
 
 /** Indices of the 3-hourly UTC steps (00,03,…,21Z) in an hourly `time` array. */

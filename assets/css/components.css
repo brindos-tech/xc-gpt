@@ -559,6 +559,8 @@ input.trip-to:focus-visible, select.trip-from:focus-visible, .trip-take input:fo
 .wv-tip.leaflet-tooltip { background: rgba(0,0,0,0.78); color: #fff; border: none; font-size: 10.5px; padding: 1px 6px; box-shadow: none; }
 .wv-tip.leaflet-tooltip::before { display: none; }
 .wv-cap { font-size: 0.72em; color: var(--muted); }
+/* the pictures are only pictures: nothing in them reacts to the pointer */
+.welcome-vis .wv-map, .welcome-vis .wv-wxbox, .welcome-vis .wv-key, .welcome-vis .wv-legs, .welcome-vis .wv-card, .welcome-vis .wv-chips, .welcome-vis .wv-rec { pointer-events: none; user-select: none; -webkit-user-select: none; }
 .wv-wxbox { background: rgba(26,32,39,0.96); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; display: grid; gap: 7px; font-size: 0.82em; }
 .wv-wxhead { display: flex; align-items: center; gap: 10px; }
 .wv-wxhead .wv-muted { flex: 1; }

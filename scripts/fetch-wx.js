@@ -16,10 +16,9 @@
 import { readFile, writeFile, mkdir, rm } from "node:fs/promises";
 import path from "node:path";
 import { fetchJsonWithRetry, sleep } from "./lib/http.js";
-import { hourlyVariables, makeGrid, gridPoint, buildWxFiles } from "../assets/js/planner/wx-model.js";
+import { hourlyVariables, makeConusGrid, gridPoint, buildWxFiles } from "../assets/js/planner/wx-model.js";
 
 const OUT_DIR = path.resolve("data/generated/wx");
-const RANGE_NM = 650; // a little past the default 600 nm ring
 const MODEL = "gfs_seamless";
 const FORECAST_DAYS = 9; // UTC today .. +8 covers local today .. +7 across the US
 const CHUNK = 100;
@@ -49,12 +48,11 @@ async function fetchAll(points) {
 }
 
 async function main() {
-  const config = JSON.parse(await readFile("data/curated/config.json", "utf-8"));
   const factsFile = JSON.parse(await readFile("data/generated/field-facts.json", "utf-8"));
-  const grid = makeGrid(config.origins, RANGE_NM);
+  const grid = makeConusGrid(); // the whole lower 48, so any base or destination has a forecast
   const cellIdx = grid.cov.map((c, k) => (c ? k : -1)).filter((k) => k >= 0);
   const fieldCodes = Object.entries(factsFile.facts).filter(([, f]) => Number.isFinite(f.lat) && Number.isFinite(f.lon)).map(([code]) => code);
-  console.log(`Grid ${grid.nlat}x${grid.nlon}, ${cellIdx.length} cells in range; ${fieldCodes.length} fields.`);
+  console.log(`Grid ${grid.nlat}x${grid.nlon}, ${cellIdx.length} cells over the lower 48; ${fieldCodes.length} fields.`);
 
   if (process.argv.includes("--probe")) {
     const [loc] = await fetchChunk([{ lat: 36.3392, lon: -97.9166 }]);
