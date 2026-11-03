@@ -458,7 +458,7 @@ input.trip-to { text-transform: uppercase; }
 .trip-ctl { display: inline-flex; gap: 3px; }
 .trip-ctl button:disabled { opacity: 0.3; cursor: default; }
 input.trip-to:focus-visible, select.trip-from:focus-visible, .trip-take input:focus-visible { outline: 2px solid var(--accent); }
-.trip-ron { display: inline-flex; gap: 4px; align-items: center; color: var(--muted); font-size: 0.78em; cursor: pointer; }
+.trip-ronmark { color: var(--gold); font-size: 0.72em; font-weight: 700; }
 .trip-more { margin-top: 3px; }
 .trip-more summary { cursor: pointer; font-size: 0.74em; color: var(--muted); }
 .trip-more-body { display: grid; gap: 3px; padding-top: 4px; }
@@ -510,7 +510,8 @@ input.trip-to:focus-visible, select.trip-from:focus-visible, .trip-take input:fo
 .wk-title a:hover { text-decoration: underline; }
 .wk-primary .wk-title { font-size: 1.15em; }
 .wk-place { margin: 3px 0 4px; font-size: 0.9em; }
-.wk-city { color: var(--accent); font-weight: 700; }
+.wk-city { color: var(--accent); font-weight: 700; text-decoration: none; }
+.wk-city:hover, .wk-city:focus-visible { text-decoration: underline; }
 .wk-fly { color: var(--accent2, #3ddc97); font-size: 0.9em; }
 .wk-wx { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
 .wk-wx-day { font-size: 0.78em; color: var(--muted); background: var(--panel2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 2px 7px; white-space: nowrap; }

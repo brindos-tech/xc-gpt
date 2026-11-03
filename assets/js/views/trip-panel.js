@@ -154,8 +154,6 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
     }
   });
   body.addEventListener("change", (e) => {
-    const ron = e.target.closest("[data-trip-ron]");
-    if (ron) return update((trip) => trip.map((s, k) => (k === Number(ron.dataset.i) ? { ...s, ron: ron.checked } : s)));
     if (e.target.closest("[data-trip-return]")) return store.setState({ tripReturn: e.target.checked });
     const base = e.target.closest("[data-trip-base]");
     if (base) return store.setState({ originId: base.value, fieldSource: base.value === config.defaultOriginId ? "nav" : "p" }); // same switch as the base chips
@@ -185,10 +183,10 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
     const fieldsList = stops.map((s) => s.field);
     const legs = tripLegs(origin, fieldsList, config, state.tripReturn);
     const schedule = scheduleTrip({ origin, stops, legs: legs.legs, tripDate: state.tripDate, returnDep: state.tripReturnDep });
-    // each night's lodging rate comes from the month of the night it is spent
-    const nights = stops.map((s, i) => ({ ...s, date: s.ron ? new Date(...schedule[i].etaLocal.date.split("-").map((n, k) => (k === 1 ? Number(n) - 1 : Number(n)))) : undefined }));
+    // a stop is a RON when the next leg takes off on a later day; each night's lodging rate comes from the month of that night
+    const overnights = stops.map((s, i) => ({ ...s, ron: schedule[i].ron, nights: schedule[i].nights, date: schedule[i].ron ? new Date(...schedule[i].etaLocal.date.split("-").map((n, k) => (k === 1 ? Number(n) - 1 : Number(n)))) : undefined }));
     const [y, m, d] = state.tripDate.split("-").map(Number);
-    return { stops, legs, schedule, cost: tripPerDiem(nights, new Date(y, m - 1, d)), route: routeString(origin, fieldsList, state.tripReturn) };
+    return { stops: overnights, legs, schedule, cost: tripPerDiem(overnights, new Date(y, m - 1, d)), route: routeString(origin, fieldsList, state.tripReturn) };
   }
 
   const wxChip = (code, instant) => {
@@ -241,7 +239,7 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
       : `<span class="trip-from trip-fixed">${esc(leg.from)}</span>`;
     const to = leg.isReturn
       ? `<span class="trip-to trip-fixed">${esc(leg.to)} <small class="muted">return</small></span>`
-      : `<span class="trip-combo"><input class="trip-to" type="text" data-trip-arr data-i="${leg.i}" data-code="${esc(leg.to)}" value="${esc(leg.to)}" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="tripSuggest" aria-autocomplete="list" aria-label="Arrival field, leg ${leg.i + 1}"></span><label class="trip-ron"><input type="checkbox" data-trip-ron data-i="${leg.i}" ${leg.ron ? "checked" : ""} aria-label="Overnight (RON) at ${esc(leg.to)}"> RON</label>`;
+      : `<span class="trip-combo"><input class="trip-to" type="text" data-trip-arr data-i="${leg.i}" data-code="${esc(leg.to)}" value="${esc(leg.to)}" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="tripSuggest" aria-autocomplete="list" aria-label="Arrival field, leg ${leg.i + 1}"></span>${leg.ron ? `<small class="trip-ronmark">RON · ${leg.nights} night${leg.nights === 1 ? "" : "s"}</small>` : ""}`;
     const arriveDay = leg.etaLocal.date !== leg.depLocal.date ? ` ${esc(new Date(leg.eta).toLocaleDateString("en-US", { timeZone: leg.toTz, weekday: "short" }))}` : "";
     const ctl = leg.isReturn
       ? `<button type="button" data-trip="remove-return" aria-label="Remove the return leg">×</button>`
@@ -295,7 +293,7 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
         ${state.tripReturn ? `<li class="trip-stop trip-ret">${legHtml(schedule.at(-1), state, legs.legs.at(-1), { count: stops.length })}</li>` : `<li class="trip-addret"><button type="button" class="chip" data-trip="add-return">+ Return leg to ${esc(origin.icao)}</button></li>`}
       </ol>
       <div class="trip-total"><b>${Math.round(legs.totalNm)} nm</b> · <b>${formatFlightTime(legs.totalMins)}</b> flying · ${legs.legs.length} leg${legs.legs.length === 1 ? "" : "s"}</div>
-      <div class="trip-cost small">${cost.nights ? `${cost.nights} night${cost.nights === 1 ? "" : "s"} · lodging ${money(cost.lodging)} + M&amp;IE ${money(cost.meals)} = <b>${money(cost.total)}</b> <span class="muted">(GSA estimate${cost.missing.length ? `; no rate for ${esc(cost.missing.join(", "))}` : ""})</span>` : `<span class="muted">No RON stops, so no per diem counted.</span>`}</div>
+      <div class="trip-cost small">${cost.nights ? `${cost.nights} night${cost.nights === 1 ? "" : "s"} · lodging ${money(cost.lodging)} + M&amp;IE ${money(cost.meals)} = <b>${money(cost.total)}</b> <span class="muted">(GSA estimate${cost.missing.length ? `; no rate for ${esc(cost.missing.join(", "))}` : ""})</span>` : `<span class="muted">No overnights (every leg flies the same day it lands), so no per diem counted.</span>`}</div>
       <div class="trip-actions">
         <button type="button" class="chip" data-trip="copy" data-route="${esc(route)}">Copy route</button>
         <button type="button" class="chip" data-trip="print">Print crew card</button>

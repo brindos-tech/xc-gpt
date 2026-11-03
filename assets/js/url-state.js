@@ -10,7 +10,6 @@ export function stateToHash(state) {
   params.set("origin", state.originId);
   params.set("r", String(state.rangeNm));
   if (state.categories.size) params.set("cat", Array.from(state.categories).join(","));
-  if (state.activities.size) params.set("act", Array.from(state.activities).join(","));
   if (state.search) params.set("q", state.search);
   if (state.selectedPlaceId) params.set("place", state.selectedPlaceId);
   // planner
@@ -59,7 +58,6 @@ export function hashToState(hash, defaults) {
   if (params.has("origin")) patch.originId = params.get("origin");
   if (params.has("r")) patch.rangeNm = Number(params.get("r"));
   if (params.has("cat")) patch.categories = new Set(params.get("cat").split(",").filter(Boolean));
-  if (params.has("act")) patch.activities = new Set(params.get("act").split(",").filter(Boolean));
   if (params.has("q")) patch.search = params.get("q");
   if (params.has("place")) patch.selectedPlaceId = params.get("place");
   if (params.has("src")) patch.fieldSource = params.get("src") === "p" ? "p" : "nav";

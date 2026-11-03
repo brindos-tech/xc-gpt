@@ -410,12 +410,17 @@ test("trip builder: add stops from the sheet, legs and per diem, route string, c
     assert.match(await page.textContent('[data-trip-toggle="KOKC"]'), /remove/);
     assert.match(await page.evaluate(() => location.hash), /trip=KOKC/);
     assert.match(await page.textContent("#tripBody"), /KEND KOKC KEND/);
-    assert.match(await page.textContent("#tripBody"), /No RON stops/);
+    assert.match(await page.textContent("#tripBody"), /No overnights/);
+    assert.equal(await page.locator("#tripBody [data-trip-ron]").count(), 0, "no RON boxes");
 
-    // RON adds a night of per diem; a second stop is reorderable
-    await page.check("#tripBody [data-trip-ron]");
+    // taking off a day later than you landed means you are RON: a night of per diem, no box to tick
+    const first = await page.locator("#tripBody [data-trip-dep]").nth(0).inputValue();
+    const next = new Date(`${first.slice(0, 10)}T12:00:00Z`);
+    next.setUTCDate(next.getUTCDate() + 1);
+    await page.locator("#tripBody [data-trip-dep]").nth(1).fill(`${next.toISOString().slice(0, 10)}T09:00`);
     await page.waitForFunction(() => /1 night/.test(document.getElementById("tripBody").textContent));
-    assert.match(await page.evaluate(() => location.hash), /trip=KOKC(%2A|\*)/);
+    assert.match(await page.textContent("#tripBody .trip-ronmark"), /RON · 1 night/);
+    assert.match(await page.evaluate(() => location.hash), /rdep=/);
     await page.click("#fieldClose");
     await page.locator('#plannerMap [data-field="KPNC"]').dispatchEvent("click");
     await page.click('[data-trip-toggle="KPNC"]');
@@ -823,7 +828,7 @@ test("mobile: the flight plan opens as a sheet from the header button", async ()
   }
 });
 
-test("weekend recs tab: a pick and two backups per weekend, a mix of kinds, and 'see on the events map'", async () => {
+test("weekend recs tab: a pick and two backups per weekend, a mix of kinds, and the city links to the events map", async () => {
   const { page, context, errors } = await openPage();
   try {
     await page.click('#tabBar [data-view="weekends"]');
@@ -850,8 +855,11 @@ test("weekend recs tab: a pick and two backups per weekend, a mix of kinds, and 
     await page.waitForFunction(() => /rodeo/i.test(document.querySelector("#weekendsPage .wk-primary .wk-title")?.textContent || ""), null, { timeout: 8000 });
     await page.fill("#globalSearch", "");
 
-    // see it on the events map: switches page with the place selected and that weekend as the date window
-    await page.locator("#weekendsPage [data-wk-open]").first().click();
+    // the orange city is the link to the events map: no separate "see on the events map" line
+    assert.doesNotMatch(await page.textContent("#weekendsPage"), /on the events map/);
+    assert.match(await page.locator("#weekendsPage a.wk-city").first().getAttribute("href"), /^#\/v=events&from=\d{4}-\d{2}-\d{2}&to=\d{4}-\d{2}-\d{2}&place=/);
+    // clicking it switches page with the place selected and that weekend as the date window
+    await page.locator("#weekendsPage a.wk-city").first().click();
     await page.waitForSelector("#detailPanel.open", { timeout: 15000 });
     assert.equal(await page.locator("#tabBar button.active").textContent(), "Events");
     assert.deepEqual(errors, []);

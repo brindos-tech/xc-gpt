@@ -1,19 +1,11 @@
 // The left rail: shared controls (departure base, range) plus the sections
 // for whichever page is showing — fields/airspace on the planner, category
-// and activity on the events page. Sections carry data-page="planner" |
+// on the events page. Sections carry data-page="planner" |
 // "events"; layout.css hides the ones that don't belong to the current page.
 import { AIRSPACE_LAYERS } from "../planner/airspace.js";
 import { APPROACH_TYPES } from "../planner/approaches.js";
 
 const CATEGORIES = ["concert", "festival", "rodeo", "fair", "sports", "art", "food", "outdoors", "holiday"];
-const ACTIVITIES = [
-  { key: "live-music", label: "Live Music" },
-  { key: "art", label: "Art" },
-  { key: "food", label: "Food" },
-  { key: "nightlife", label: "Nightlife" },
-  { key: "outdoors", label: "Outdoors" },
-  { key: "weird", label: "Boutique" },
-];
 
 export function createFilterRail({ store, config }) {
   const $ = (id) => document.getElementById(id);
@@ -24,7 +16,6 @@ export function createFilterRail({ store, config }) {
   const rangeCounts = $("rangeCounts");
   const rangeMarks = $("rangeMarks");
   const categoryChips = $("categoryChips");
-  const activityChips = $("activityChips");
   const fieldSourceSwitch = $("fieldSourceSwitch");
   const airspaceToggles = $("airspaceToggles");
   const approachChips = $("approachChips");
@@ -55,7 +46,6 @@ export function createFilterRail({ store, config }) {
     // "pr" isn't an event category but a tag (see scripts/lib/pr.js) — it
     // rides in this row because it filters the same way.
     `<button class="chip chip-pr" data-cat="pr" title="Possible PR opportunities: air shows (static display / flyover), military appreciation games, venues that have hosted flyovers, patriotic-holiday games">PR ops</button>`;
-  activityChips.innerHTML = ACTIVITIES.map((a) => `<button class="chip" data-act="${a.key}">${a.label}</button>`).join("");
 
   fieldSourceSwitch.innerHTML = `
     <button type="button" data-src="nav">Nav Info List</button>
@@ -90,14 +80,6 @@ export function createFilterRail({ store, config }) {
     const cats = new Set(store.getState().categories);
     cats.has(btn.dataset.cat) ? cats.delete(btn.dataset.cat) : cats.add(btn.dataset.cat);
     store.setState({ categories: cats });
-  });
-
-  activityChips.addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-act]");
-    if (!btn) return;
-    const acts = new Set(store.getState().activities);
-    acts.has(btn.dataset.act) ? acts.delete(btn.dataset.act) : acts.add(btn.dataset.act);
-    store.setState({ activities: acts });
   });
 
   fieldSourceSwitch.addEventListener("click", (e) => {
@@ -145,7 +127,6 @@ export function createFilterRail({ store, config }) {
     rangeSlider.value = state.rangeNm;
     rangeValue.textContent = state.rangeNm;
     categoryChips.querySelectorAll("[data-cat]").forEach((btn) => btn.classList.toggle("active", state.categories.has(btn.dataset.cat)));
-    activityChips.querySelectorAll("[data-act]").forEach((btn) => btn.classList.toggle("active", state.activities.has(btn.dataset.act)));
     fieldSourceSwitch.querySelectorAll("[data-src]").forEach((btn) => btn.classList.toggle("active", btn.dataset.src === state.fieldSource));
     approachChips.querySelectorAll("[data-app]").forEach((btn) => btn.classList.toggle("active", state.approachTypes.has(btn.dataset.app)));
     airspaceToggles.querySelectorAll("[data-air-toggle]").forEach((i) => (i.checked = state.airspace.has(i.dataset.airToggle)));
@@ -162,5 +143,5 @@ export function createFilterRail({ store, config }) {
     if (el) el.textContent = text ? ` · ${text}` : "";
   }
 
-  return { syncFromState, setCounts, setAirspaceStatus, ACTIVITIES };
+  return { syncFromState, setCounts, setAirspaceStatus };
 }
