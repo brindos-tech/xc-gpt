@@ -35,9 +35,9 @@
 
   <nav class="tab-bar" id="tabBar" aria-label="Pages">
     <button class="active" data-view="planner">Planner</button>
-    <button data-view="weekends">Weekend Recs</button>
     <button data-view="reviews">Reviews</button>
     <button data-view="events">Events</button>
+    <button data-view="weekends">Weekend Recs</button>
   </nav>
 
   <div class="app-body">
@@ -146,7 +146,8 @@
         <button type="button" class="trip-bar-close" id="tripBarClose" aria-label="Hide flight plan" title="Hide">&rsaquo;</button>
       </div>
       <div class="trip-add-box">
-        <input type="search" id="tripSearch" placeholder="Add a field: code, name or city" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="tripSuggest" aria-autocomplete="list" aria-label="Add a field to the flight plan">
+        <label class="trip-add-label" id="tripAddLabel" for="tripSearch">Add a leg</label>
+        <input type="search" id="tripSearch" placeholder="Arrival field: code, name or city" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="tripSuggest" aria-autocomplete="list" aria-label="Arrival field of the next leg">
         <ul id="tripSuggest" role="listbox" hidden></ul>
       </div>
       <div id="tripBody"></div>
