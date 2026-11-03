@@ -51,6 +51,8 @@ after(async () => {
 async function openPage(viewport = { width: 1280, height: 900 }, opts = {}) {
   // Service workers off: they take requests out of reach of page.route.
   const context = await browser.newContext({ viewport, serviceWorkers: "block" });
+  // first-time visitors get the welcome screen; every other test has "seen" it already
+  if (opts.welcome !== true) await context.addInitScript(() => localStorage.setItem("xcgpt-welcome-seen", "1"));
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", (err) => errors.push(err.message));
@@ -68,11 +70,34 @@ async function openPage(viewport = { width: 1280, height: 900 }, opts = {}) {
   await page.goto(site.url + (opts.hash || ""));
   await page.waitForFunction(() => document.getElementById("freshnessText")?.textContent.includes("loading") === false);
   // the flight plan starts closed on desktop; most tests want it open (plan: false keeps it closed)
-  if (opts.plan !== false && (await page.isVisible("#tripOpenTab"))) await page.click("#tripOpenTab");
+  if (opts.plan !== false && opts.welcome !== true && (await page.isVisible("#tripOpenTab"))) await page.click("#tripOpenTab");
   return { page, context, errors };
 }
 
 const pins = (page) => page.locator("#plannerMap [data-field]");
+
+test("welcome screen: shown to first-time visitors, explains the pieces, remembered, and reopened from the header", async () => {
+  const { page, context, errors } = await openPage(undefined, { welcome: true });
+  try {
+    assert.equal(await page.locator("#welcome").evaluate((d) => d.open), true, "open on the first visit");
+    const text = await page.textContent("#welcome");
+    for (const word of ["Pick your base", "Flight plan", "RON", "crew card", "Weekend Recs", "ceiling timeline", "tight on gas"]) assert.ok(text.toLowerCase().includes(word.toLowerCase()), word);
+    assert.equal(await page.locator("#welcome .welcome-grid section").count(), 8);
+    await page.click("#welcomeGo");
+    assert.equal(await page.locator("#welcome").evaluate((d) => d.open), false);
+    assert.equal(await page.evaluate(() => localStorage.getItem("xcgpt-welcome-seen")), "1", "remembered");
+    // reopen from the header, close with Escape
+    await page.click("#helpBtn");
+    assert.equal(await page.locator("#welcome").evaluate((d) => d.open), true);
+    await page.keyboard.press("Escape");
+    assert.equal(await page.locator("#welcome").evaluate((d) => d.open), false);
+    // the page underneath works once it is closed
+    assert.ok((await pins(page).count()) > 100);
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
 
 test("planner boots with field pins and throws nothing", async () => {
   const { page, context, errors } = await openPage();

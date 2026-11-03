@@ -2,6 +2,7 @@ import { createStore } from "./store.js";
 import { initUrlState } from "./url-state.js";
 import { formatUpdatedAgo, parseDate } from "./format.js";
 import { createFilterRail } from "./views/filter-rail.js";
+import { initWelcome } from "./views/welcome.js";
 import { createPlannerView } from "./planner/planner-view.js";
 import { createFieldPanel } from "./planner/field-panel.js";
 import { mergeFields, selectFields, meetsRunway } from "./planner/fields.js";
@@ -35,6 +36,7 @@ if ("serviceWorker" in navigator) {
 }
 
 async function boot() {
+  initWelcome(); // static markup: shown at once, before the data loads
   // The planner is the home page, so only its data loads up front. The
   // events page (≈2 MB of event data) loads the first time it's opened.
   const [config, navinfo, factsFile, meta, aircard, approaches, stateTax] = await Promise.all([

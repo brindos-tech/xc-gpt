@@ -31,6 +31,7 @@
       <span class="source-dot ok" id="freshnessDot"></span>
       <span id="freshnessText">loading&hellip;</span>
     </div>
+    <button type="button" class="help-btn" id="helpBtn" aria-haspopup="dialog" title="How to use this site">? How to use</button>
   </header>
 
   <nav class="tab-bar" id="tabBar" aria-label="Pages">
@@ -151,6 +152,54 @@
 </div>
 
 <div id="crewCard" aria-hidden="true"></div>
+
+
+<dialog class="welcome" id="welcome" aria-labelledby="welcomeTitle">
+  <div class="welcome-card">
+    <header class="welcome-head">
+      <h2 id="welcomeTitle">Welcome to XC GPT <span class="accent">&#9992;</span></h2>
+      <p>A planning tool for T-6 cross-country trips: pick a base, see every approved field in range, build a flight plan with local times and weather, and print a crew card.</p>
+    </header>
+    <div class="welcome-grid">
+      <section>
+        <h3><span class="welcome-n">1</span> Pick your base and range</h3>
+        <p>On the left, choose your <b>departure base</b> and drag the <b>range</b> slider. The map shows fields and airspace within that distance. Switch between the <b>Nav Info List</b> (Vance's approved fields) and <b>P-coded fields</b>, and filter by <b>approach type</b> or turn <b>airspace</b> layers (MOAs, restricted areas, TFRs, military routes) on and off.</p>
+      </section>
+      <section>
+        <h3><span class="welcome-n">2</span> Read the map</h3>
+        <p>The pin shape says <b>towered</b>, <b>non-towered</b> or <b>military</b>. A <b>green dot</b> means land, fuel and RON are all approved; a <b>yellow dot</b> means see the comments on the list. Click any pin, or search by code, name or FBO at the top, for its sheet: FBO and phone, runway, fuel, FBO hours, sunrise and sunset, approaches, per diem and state lodging tax, and a forecast by the hour.</p>
+      </section>
+      <section>
+        <h3><span class="welcome-n">3</span> Check the weather</h3>
+        <p>The <b>Weather</b> box on the map starts with just radar. Open it to pick a day, slide through the hours in local time, and switch on flight category (<span class="wc wc-mvfr">MVFR</span> <span class="wc wc-ifr">IFR</span> <span class="wc wc-lifr">LIFR</span>), ceiling, visibility, icing, precipitation and thunderstorms.</p>
+      </section>
+      <section>
+        <h3><span class="welcome-n">4</span> Build a flight plan</h3>
+        <p>Open <b>Flight plan</b> (the tab on the right edge of the map). Type an arrival field in the box, or tap <b>Add to trip</b> on a field's sheet. Each row is one leg: departure, arrival, <b>takeoff time</b> (in that field's local time, change it any time), flight time, and the <b>landing time</b> in the arrival field's local time and Zulu. Use <b>Details</b> on a leg to reorder it or see the forecast chips.</p>
+      </section>
+      <section>
+        <h3><span class="welcome-n">5</span> What the plan tells you</h3>
+        <p>Take off on a <b>later day</b> than you landed and you are assumed <b>RON</b>: those nights count toward per diem. Warnings show under a leg: <b>night landing</b> (after evening civil twilight or before morning), <b>FBO closed</b>, <b>tight on gas</b> (400+ nm), and legs that overlap. If the forecast at either end is <span class="wc wc-mvfr">MVFR</span>, <span class="wc wc-ifr">IFR</span> or <span class="wc wc-lifr">LIFR</span>, a tab opens to a <b>ceiling timeline</b> from your takeoff time.</p>
+      </section>
+      <section>
+        <h3><span class="welcome-n">6</span> Print the crew card</h3>
+        <p>In the flight plan, <b>Print crew card</b> makes a one-page reference: time zones (and whether you gain or lose an hour), every leg in local and Zulu, runways of 4,000 &times; 75 ft or more, FBO phone numbers, approvals, fuel and AIR Card merchants, per diem, and closure NOTAMs. <b>Copy route</b> gives a route string you can paste into ForeFlight.</p>
+      </section>
+      <section>
+        <h3><span class="welcome-n">7</span> Events and weekend recs</h3>
+        <p>The <b>Events</b> tab maps concerts, festivals, rodeos, sports and more in towns within range for the dates you choose. <b>Weekend Recs</b> picks the best event for each upcoming weekend, with two backups and a weather outlook; click a city name to see it on the Events map.</p>
+      </section>
+      <section>
+        <h3><span class="welcome-n">8</span> Share it</h3>
+        <p>The page address holds everything you set: base, range, layers, your flight plan and its times. Copy it from your browser to send someone the same view. Press <b>? How to use</b> at the top to bring this screen back.</p>
+      </section>
+    </div>
+    <p class="welcome-note">Planning reference only. Confirm hours, fuel, PPR and approvals with FLIP, the current Nav Info List and base ops, and check NOTAMs, TFRs and a real weather briefing before you go.</p>
+    <footer class="welcome-foot">
+      <button type="button" class="welcome-go" id="welcomeGo">Got it, show me the map</button>
+    </footer>
+  </div>
+</dialog>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous"></script>
 <script type="module" src="assets/js/main.js"></script>
