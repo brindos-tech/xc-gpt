@@ -249,8 +249,8 @@ async function boot() {
     planner.renderFields(selection, state.selectedFieldId, wx.fieldRing);
     wx.render(state);
     const tripInfo = tripPanel.render(state, origin);
-    const stopCount = tripInfo.stops.length;
-    for (const id of ["tripCount", "tripOpenCount", "tripToggleCount"]) $(id).textContent = stopCount ? `(${stopCount} stop${stopCount === 1 ? "" : "s"})` : "";
+    const legCount = tripInfo.legs?.legs.length || 0;
+    for (const id of ["tripCount", "tripOpenCount", "tripToggleCount"]) $(id).textContent = legCount ? `(${legCount} leg${legCount === 1 ? "" : "s"})` : "";
     planner.setTrip(tripInfo.stops.length ? [[origin.lat, origin.lon], ...tripInfo.stops.map((s) => [s.field.lat, s.field.lon]), ...(state.tripReturn ? [[origin.lat, origin.lon]] : [])] : []);
     planner.setAirspace(state.airspace, state.selectedAirspaceId);
 

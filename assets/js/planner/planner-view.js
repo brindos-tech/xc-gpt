@@ -30,7 +30,7 @@ export function legendHtml() {
   const mini = (towered, military) => `<span class="lg-icon">${pinSvg({ towered, military, status: null }).replace('width="26" height="26"', 'width="13" height="13"')}</span>`;
   const dot = (status, label) => `<div><span class="lg-dot" style="background:${STATUS_COLORS[status]}"></span>${label}</div>`;
   return `<div>${mini(true, false)}Towered</div><div>${mini(false, false)}Non-towered</div><div>${mini(true, true)}Military</div>
-    <hr>${dot("go", "Approved: land, fuel, RON")}${dot("check", "See comments (fuel/RON)")}`;
+    <hr>${dot("go", "Approved")}${dot("check", "See comments")}`;
 }
 
 export function createPlannerView({ config, origin, loadJson, onFieldClick, onAirspaceClick, onAirspaceStatus }) {

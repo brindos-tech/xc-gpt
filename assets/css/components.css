@@ -437,6 +437,32 @@
 .trip-wx { border: 1px solid var(--c); color: var(--c); border-radius: 999px; padding: 0 7px; font-size: 0.92em; white-space: nowrap; }
 .trip-wxrow { display: flex; flex-wrap: wrap; gap: 3px 8px; align-items: center; }
 .trip-ret { margin-top: 2px; }
+.trip-add-label { display: block; font-size: 0.8em; color: var(--muted); margin-bottom: 3px; }
+.trip-legrow { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.trip-break { flex-basis: 100%; height: 0; order: 1; }
+.trip-legrow > .trip-from, .trip-legrow > .trip-arrow, .trip-legrow > .trip-combo, .trip-legrow > .trip-to { order: 2; }
+.trip-legno { font-size: 0.72em; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); flex: 1; }
+.trip-from, .trip-to { font: inherit; font-weight: 700; color: var(--text); }
+select.trip-from, input.trip-to { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 6px; }
+input.trip-to { width: 100%; min-width: 0; text-transform: uppercase; }
+input.trip-to:focus-visible, select.trip-from:focus-visible { outline: 2px solid var(--accent); }
+.trip-combo { position: relative; flex: 1; min-width: 0; }
+.trip-combo #tripSuggest { z-index: 40; }
+.trip-arrow { color: var(--muted); }
+.trip-legrow .trip-ctl { margin-left: auto; display: inline-flex; gap: 4px; }
+.trip-ron { margin-left: 8px; display: inline-flex; gap: 4px; align-items: center; color: var(--muted); font-size: 0.85em; }
+.trip-addret { list-style: none; }
+.trip-main { font-size: 0.85em; }
+.trip-tl { display: grid; gap: 3px; margin-top: 4px; padding: 6px 7px; border: 1px solid rgba(230,90,90,0.5); border-radius: var(--radius-sm); background: rgba(230,90,90,0.07); }
+.tl-svg { width: 100%; height: auto; display: block; }
+.tl-label { font-size: 8px; fill: var(--muted); }
+.tl-bg { fill: rgba(128,128,128,0.12); }
+.tl-guide { stroke: var(--muted); stroke-width: 0.4; stroke-dasharray: 2 2; }
+.tl-guide-t { font-size: 6.5px; fill: var(--muted); }
+.tl-tick { stroke: var(--border); stroke-width: 0.5; }
+.tl-land { stroke: var(--text); stroke-width: 1; stroke-dasharray: 3 2; }
+.tl-land-t { font-size: 8px; fill: var(--text); font-weight: 700; }
+.trip-tl-sum { display: grid; gap: 1px; }
 
 /* ---- planner map key: small, vertical ---- */
 .map-legend.planner-legend { flex-direction: column; flex-wrap: nowrap; gap: 3px; padding: 6px 9px; font-size: 0.66em; line-height: 1.2; max-width: 190px; }

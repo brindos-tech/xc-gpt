@@ -8,6 +8,7 @@ import { formatFlightTime } from "../format.js";
 import { esc } from "../planner/html.js";
 import { matchesSearch } from "../planner/fields.js";
 import { greatCircleNm } from "../geo.js";
+import { ceilingSeries, legIsInstrument, summarize, timelineSvg } from "../planner/ceiling-timeline.js";
 
 const money = (n) => `$${Math.round(n).toLocaleString("en-US")}`;
 
@@ -17,6 +18,9 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
   const suggest = document.getElementById("tripSuggest");
   let active = -1;
   let shown = [];
+
+  const addBox = suggest.parentElement;
+  const addLabel = document.getElementById("tripAddLabel");
 
   /** Fields matching the box, best first: exact code, code prefix, then nearest to the base. Already-chosen stops are left out. */
   function suggestions(q) {
@@ -32,25 +36,43 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
       .slice(0, 7);
   }
 
-  function showSuggestions() {
-    shown = suggestions(search.value);
+  // One suggestion list serves the "add a leg" box and every leg's arrival
+  // field: `current` is the input it is serving and `onPick` what a choice does.
+  let current = null;
+  let onPick = null;
+
+  function showSuggestions(input, pick) {
+    current = input;
+    onPick = pick;
+    // the list sits under whichever input is being typed in
+    (input.closest(".trip-combo") || addBox).appendChild(suggest);
+    shown = suggestions(input.value);
     active = shown.length ? 0 : -1;
     suggest.hidden = !shown.length;
-    search.setAttribute("aria-expanded", String(shown.length > 0));
+    input.setAttribute("aria-expanded", String(shown.length > 0));
     suggest.innerHTML = shown
       .map(({ f, d }, i) => `<li role="option" id="tripSug${i}" data-code="${esc(f.code)}" aria-selected="${i === active}" class="${i === active ? "active" : ""}"><b>${esc(f.code)}</b> <span>${esc(f.name)}</span><small class="muted">${esc(f.city)} · ${Math.round(d)} nm</small></li>`)
       .join("");
   }
 
-  function addStop(code) {
-    store.setState((s) => (s.trip.some((x) => x.code === code) ? {} : { trip: [...s.trip, { code, ron: false }] }));
-    search.value = "";
-    showSuggestions();
-    search.focus();
+  function hideSuggestions() {
+    suggest.hidden = true;
+    current?.setAttribute("aria-expanded", "false");
   }
 
-  search.addEventListener("input", showSuggestions);
-  search.addEventListener("keydown", (e) => {
+  function pickSuggestion(code) {
+    const input = current;
+    const pick = onPick;
+    hideSuggestions();
+    if (input !== search) Object.assign(input, { value: code }).dataset.code = code; // no longer a half-typed edit: let the re-render through
+    pick(code);
+    if (input === search) {
+      search.value = "";
+      search.focus();
+    }
+  }
+
+  function comboKeys(e, input, pick) {
     if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       if (!shown.length) return;
       e.preventDefault();
@@ -61,22 +83,44 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
       });
     } else if (e.key === "Enter") {
       e.preventDefault();
-      if (shown[active]) addStop(shown[active].f.code);
+      if (shown[active]) pickSuggestion(shown[active].f.code);
     } else if (e.key === "Escape") {
-      search.value = "";
-      showSuggestions();
+      if (input === search) input.value = "";
+      else input.value = input.dataset.code || "";
+      hideSuggestions();
     }
+  }
+
+  const addStop = (code) => store.setState((s) => (s.trip.some((x) => x.code === code) ? {} : { trip: [...s.trip, { code, ron: false }] }));
+  const changeStop = (i, code) => store.setState((s) => (s.trip[i] && !s.trip.some((x, k) => k !== i && x.code === code) ? { trip: s.trip.map((x, k) => (k === i ? { ...x, code } : { ...x })) } : {}));
+
+  search.addEventListener("input", () => showSuggestions(search, addStop));
+  search.addEventListener("keydown", (e) => comboKeys(e, search, addStop));
+  search.addEventListener("focus", () => search.value && showSuggestions(search, addStop));
+  search.addEventListener("blur", () => setTimeout(() => current === search && hideSuggestions(), 120));
+
+  // arrival fields inside the legs (delegated: they are re-rendered with the plan)
+  const arrPick = (input) => (code) => changeStop(Number(input.dataset.i), code);
+  body.addEventListener("focusin", (e) => e.target.matches?.("[data-trip-arr]") && e.target.select());
+  body.addEventListener("input", (e) => e.target.matches?.("[data-trip-arr]") && showSuggestions(e.target, arrPick(e.target)));
+  body.addEventListener("keydown", (e) => e.target.matches?.("[data-trip-arr]") && comboKeys(e, e.target, arrPick(e.target)));
+  body.addEventListener("focusout", (e) => {
+    const input = e.target;
+    if (!input.matches?.("[data-trip-arr]")) return;
+    setTimeout(() => {
+      if (current === input) hideSuggestions();
+      if (input.isConnected && document.activeElement !== input) input.value = input.dataset.code; // abandoned edit
+    }, 120);
   });
+
   // mousedown, not click: the input's blur would close the list before a click lands
   suggest.addEventListener("mousedown", (e) => {
     const li = e.target.closest("li[data-code]");
     if (li) {
       e.preventDefault();
-      addStop(li.dataset.code);
+      pickSuggestion(li.dataset.code);
     }
   });
-  search.addEventListener("blur", () => setTimeout(() => ((suggest.hidden = true), search.setAttribute("aria-expanded", "false")), 120));
-  search.addEventListener("focus", () => search.value && showSuggestions());
 
   const update = (fn) => store.setState((s) => ({ trip: fn(s.trip.map((x) => ({ ...x }))) }));
 
@@ -85,6 +129,8 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
     if (!t) return;
     const i = Number(t.dataset.i);
     switch (t.dataset.trip) {
+      case "remove-return": return store.setState({ tripReturn: false });
+      case "add-return": return store.setState({ tripReturn: true });
       case "remove": return update((trip) => trip.filter((_, k) => k !== i));
       case "up": return update((trip) => (i > 0 ? (trip.splice(i - 1, 0, ...trip.splice(i, 1)), trip) : trip));
       case "down": return update((trip) => (i < trip.length - 1 ? (trip.splice(i + 1, 0, ...trip.splice(i, 1)), trip) : trip));
@@ -109,6 +155,8 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
     const ron = e.target.closest("[data-trip-ron]");
     if (ron) return update((trip) => trip.map((s, k) => (k === Number(ron.dataset.i) ? { ...s, ron: ron.checked } : s)));
     if (e.target.closest("[data-trip-return]")) return store.setState({ tripReturn: e.target.checked });
+    const base = e.target.closest("[data-trip-base]");
+    if (base) return store.setState({ originId: base.value, fieldSource: base.value === config.defaultOriginId ? "nav" : "p" }); // same switch as the base chips
     const dep = e.target.closest("[data-trip-dep]");
     if (dep) setDeparture(Number(dep.dataset.i), dep.value);
   });
@@ -149,17 +197,41 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
     return `<span class="trip-wx" style="--c:${CAT_COLORS[cat]}">${CAT_NAMES[cat]} · ceiling ${esc(ceilingText(f.ceil))}${f.thun ? " · thunderstorms" : ""}${ice}</span>`;
   };
 
-  /** One leg's schedule block: takeoff picker, arrival, forecast and flags. */
-  function legHtml(leg, state, flightLine) {
+  /** The ceiling timeline for a leg, or "" when the leg stays out of instrument conditions (or there is no forecast for it). */
+  function timelineHtml(leg) {
+    if (!forecastAt) return "";
+    const dep = ceilingSeries(forecastAt, leg.from, leg.dep);
+    const to = ceilingSeries(forecastAt, leg.to, leg.dep);
+    if (!legIsInstrument(dep, to, leg.dep, leg.eta)) return "";
+    const rows = [dep && { label: `${esc(leg.from)} (takeoff)`, series: dep }, to && { label: `${esc(leg.to)} (landing)`, series: to }].filter(Boolean);
+    const lines = rows.map((r) => `<div><b>${r.label.replace(/ \(.*/, "")}</b> ${esc(summarize(r.series, leg.eta, leg.toTz))}</div>`).join("");
+    return `<div class="trip-tl" data-testid="ceiling-timeline">
+      <div class="trip-tl-head small"><b>Instrument conditions</b> <span class="muted">ceiling from takeoff · ${esc(leg.to)} local (${esc(zoneAbbr(leg.eta, leg.toTz))})</span></div>
+      ${timelineSvg({ rows, depAt: leg.dep, etaAt: leg.eta, tz: leg.toTz })}
+      <div class="small trip-tl-sum">${lines}</div>
+      <div class="muted small">Bar height is ceiling (full height = 5,000 ft or higher); colour is flight category. Forecast is 3-hourly and coarse near the ground — check the real weather before you go.</div>
+    </div>`;
+  }
+
+  /** One leg: departure field, arrival field, takeoff time, computed arrival, and the ceiling timeline when it is IFR. */
+  function legHtml(leg, state, flightLine, extra) {
     const flags = legFlags(leg).map((x) => `<div class="fp-flag ${x.level}">⚠ ${esc(x.text)}</div>`).join("");
     const takeoff = `${leg.depLocal.date}T${leg.depLocal.time}`;
     const shift = clockShift(leg.fromTz, leg.dep, leg.toTz, leg.eta);
+    const from = leg.i === 0
+      ? `<select class="trip-from" data-trip-base aria-label="Departure field, leg 1">${config.origins.map((o) => `<option value="${esc(o.id)}" ${o.id === state.originId ? "selected" : ""}>${esc(o.icao)}</option>`).join("")}</select>`
+      : `<b class="trip-from" aria-label="Departure field, leg ${leg.i + 1}">${esc(leg.from)}</b>`;
+    const to = leg.isReturn
+      ? `<b class="trip-to">${esc(leg.to)}</b>`
+      : `<span class="trip-combo"><input class="trip-to" type="text" data-trip-arr data-i="${leg.i}" data-code="${esc(leg.to)}" value="${esc(leg.to)}" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="tripSuggest" aria-autocomplete="list" aria-label="Arrival field, leg ${leg.i + 1}"></span>`;
+    const arriveDay = leg.etaLocal.date !== leg.depLocal.date ? ` <span class="muted">(${esc(new Date(leg.eta).toLocaleDateString("en-US", { timeZone: leg.toTz, weekday: "short", month: "short", day: "numeric" }))})</span>` : "";
     return `<div class="trip-leg">
-      <div class="trip-leg-line muted small">Leg ${leg.i + 1}: ${esc(leg.from)} → ${esc(leg.to)} · ${flightLine}</div>
+      <div class="trip-legrow"><span class="trip-legno">Leg ${leg.i + 1}</span>${extra}<span class="trip-break"></span>${from}<span class="trip-arrow" aria-hidden="true">→</span>${to}</div>
       <label class="trip-dep">Takeoff <input type="datetime-local" step="300" data-trip-dep data-i="${leg.i}" value="${takeoff}" aria-label="Takeoff, leg ${leg.i + 1}, ${esc(leg.from)} local time"> <span class="muted small">${esc(leg.from)} time (${esc(zoneAbbr(leg.dep, leg.fromTz))}) · ${esc(zulu(leg.dep).time)}</span>${leg.explicit && leg.i > 0 ? ` <button type="button" class="cm-link small" data-trip="reset-dep" data-i="${leg.i}">auto</button>` : ""}</label>
-      <div class="trip-arr small">Lands ${esc(clock(leg.eta, leg.toTz))} ${esc(zoneAbbr(leg.eta, leg.toTz))} · ${esc(zulu(leg.eta).time)} at ${esc(leg.to)}${leg.etaLocal.date !== leg.depLocal.date ? ` <span class="muted">(${esc(new Date(leg.eta).toLocaleDateString("en-US", { timeZone: leg.toTz, weekday: "short", month: "short", day: "numeric" }))})</span>` : ""}</div>
+      <div class="trip-arr">Lands <b>${esc(clock(leg.eta, leg.toTz))} ${esc(zoneAbbr(leg.eta, leg.toTz))}</b> · ${esc(zulu(leg.eta).time)} at ${esc(leg.to)}${arriveDay} <span class="muted small">${flightLine}</span></div>
       ${shift.text ? `<div class="fp-flag info">🕐 ${esc(shift.text)}</div>` : ""}
       <div class="trip-wxrow small">${wxChip(leg.from, leg.dep) ? `<span class="muted">takeoff</span> ${wxChip(leg.from, leg.dep)}` : ""} ${wxChip(leg.to, leg.eta) ? `<span class="muted">landing</span> ${wxChip(leg.to, leg.eta)}` : ""}</div>
+      ${timelineHtml(leg)}
       ${flags}
     </div>`;
   }
@@ -167,28 +239,28 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
   function render(state, origin) {
     const c = compute(state, origin);
     const { stops, legs, schedule, cost, route } = c;
+    // the "add a leg" box says where the next leg starts
+    const lastCode = stops.length ? stops.at(-1).code : origin.icao;
+    if (addLabel) addLabel.textContent = `Add leg ${stops.length + 1}: ${lastCode} →`;
+    // an arrival field being typed in must not be re-rendered out from under the user
+    const editing = document.activeElement?.matches?.("[data-trip-arr]") && body.contains(document.activeElement) && document.activeElement.value !== document.activeElement.dataset.code;
+    if (editing) return c;
+    addBox.appendChild(suggest); // keep the list out of the markup about to be replaced
+    current = null;
     if (!stops.length) {
-      body.innerHTML = `<div class="rail-hint">Type a field above to add it, or open any field on the map and tap <b>Add to trip</b>. Stops get legs, takeoff times you can set, flight time, a per diem estimate, a route string for ForeFlight and a printable crew card.</div>`;
+      body.innerHTML = `<div class="rail-hint">Type the arrival field above to add your first leg from ${esc(origin.icao)}, or open any field on the map and tap <b>Add to trip</b>. Each leg gets a takeoff time you can set and a local landing time; when the forecast is instrument you also get a ceiling timeline.</div>`;
       return c;
     }
     const flightLine = (leg) => `${Math.round(leg.nm)} nm · ${formatFlightTime(leg.mins)}${leg.overRange ? ` · <span class="bad-text">beyond one leg (${config.aircraft.legRangeNm} nm)</span>` : ""}`;
     body.innerHTML = `
       <ol class="trip-list">
-        <li class="trip-base"><span>${esc(origin.icao)}</span><span class="muted small">start</span></li>
         ${stops
           .map((s, i) => `<li class="trip-stop">
-              ${legHtml(schedule[i], state, flightLine(legs.legs[i]))}
-              <div class="trip-main"><button type="button" class="cm-link" data-trip="select" data-code="${esc(s.code)}"><b>${esc(s.code)}</b></button> <span class="muted small">${esc(s.field.name)}</span>${s.field.fuel === "Not Approved" ? ` <span class="bad-text small">no fuel</span>` : s.field.fuel !== "Approved" ? ` <span class="warn-text small">fuel: see comments</span>` : ""}</div>
-              <div class="trip-ctl">
-                <label><input type="checkbox" data-trip-ron data-i="${i}" ${s.ron ? "checked" : ""}> RON</label>
-                <button type="button" data-trip="up" data-i="${i}" aria-label="Move ${esc(s.code)} earlier" ${i === 0 ? "disabled" : ""}>↑</button>
-                <button type="button" data-trip="down" data-i="${i}" aria-label="Move ${esc(s.code)} later" ${i === stops.length - 1 ? "disabled" : ""}>↓</button>
-                <button type="button" data-trip="remove" data-i="${i}" aria-label="Remove ${esc(s.code)}">×</button>
-              </div></li>`)
+              ${legHtml(schedule[i], state, flightLine(legs.legs[i]), `<span class="trip-ctl"><button type="button" data-trip="up" data-i="${i}" aria-label="Move ${esc(s.code)} earlier" ${i === 0 ? "disabled" : ""}>↑</button><button type="button" data-trip="down" data-i="${i}" aria-label="Move ${esc(s.code)} later" ${i === stops.length - 1 ? "disabled" : ""}>↓</button><button type="button" data-trip="remove" data-i="${i}" aria-label="Remove leg to ${esc(s.code)}">×</button></span>`)}
+              <div class="trip-main"><button type="button" class="cm-link" data-trip="select" data-code="${esc(s.code)}">${esc(s.field.name)}</button>${s.field.fuel === "Not Approved" ? ` <span class="bad-text small">no fuel</span>` : s.field.fuel !== "Approved" ? ` <span class="warn-text small">fuel: see comments</span>` : ""} <label class="trip-ron"><input type="checkbox" data-trip-ron data-i="${i}" ${s.ron ? "checked" : ""}> RON here</label></div></li>`)
           .join("")}
-        ${state.tripReturn ? `<li class="trip-stop trip-ret">${legHtml(schedule.at(-1), state, flightLine(legs.legs.at(-1)))}<div class="trip-main"><b>${esc(origin.icao)}</b> <span class="muted small">return</span></div></li>` : ""}
+        ${state.tripReturn ? `<li class="trip-stop trip-ret">${legHtml(schedule.at(-1), state, flightLine(legs.legs.at(-1)), `<span class="trip-ctl"><button type="button" data-trip="remove-return" aria-label="Remove the return leg">×</button></span>`)}</li>` : `<li class="trip-addret"><button type="button" class="chip" data-trip="add-return">+ Return leg to ${esc(origin.icao)}</button></li>`}
       </ol>
-      <label class="trip-return"><input type="checkbox" data-trip-return ${state.tripReturn ? "checked" : ""}> Return to ${esc(origin.icao)}</label>
       <div class="trip-total"><b>${Math.round(legs.totalNm)} nm</b> · <b>${formatFlightTime(legs.totalMins)}</b> flying · ${legs.legs.length} leg${legs.legs.length === 1 ? "" : "s"}</div>
       <div class="trip-cost small">${cost.nights ? `${cost.nights} night${cost.nights === 1 ? "" : "s"} · lodging ${money(cost.lodging)} + M&amp;IE ${money(cost.meals)} = <b>${money(cost.total)}</b> <span class="muted">(GSA estimate${cost.missing.length ? `; no rate for ${esc(cost.missing.join(", "))}` : ""})</span>` : `<span class="muted">No RON stops, so no per diem counted.</span>`}</div>
       <div class="trip-actions">

@@ -643,6 +643,41 @@ test("reviews tab says so when the comments server is unreachable", async () => 
   }
 });
 
+test("flight plan: legs with arrival fields, local landing time, and a ceiling timeline only when it is instrument", async () => {
+  const { page, context, errors } = await openPage();
+  try {
+    // a clear eastern leg: departure and arrival fields, takeoff time, local landing time — no timeline
+    await page.fill("#tripSearch", "KPNC");
+    await page.press("#tripSearch", "Enter");
+    await page.waitForSelector("#tripBody .trip-leg");
+    assert.equal(await page.locator("#tripBody .trip-stop:not(.trip-ret) [data-trip-base]").inputValue(), "vance");
+    assert.equal(await page.inputValue("#tripBody [data-trip-arr]"), "KPNC");
+    assert.match(await page.textContent("#tripAddLabel"), /Add leg 2: KPNC/);
+    assert.equal(await page.locator('[data-testid="ceiling-timeline"]').count(), 0, "VFR legs have no timeline");
+
+    // add a leg into the very low overcast far to the west: the timeline appears with a bar per half hour
+    await page.fill("#tripSearch", "KLBL");
+    await page.press("#tripSearch", "Enter");
+    await page.waitForSelector('[data-testid="ceiling-timeline"]');
+    assert.ok((await page.locator('[data-testid="ceiling-timeline"] svg rect[fill]').count()) > 20);
+    assert.match(await page.textContent('[data-testid="ceiling-timeline"]'), /IFR at landing/);
+    assert.match(await page.getAttribute('[data-testid="ceiling-timeline"] svg', "aria-label"), /KLBL/);
+
+    // retype an arrival field: pick from the list and the leg changes
+    const arr = page.locator("#tripBody [data-trip-arr]").nth(0);
+    await arr.fill("kokc");
+    await page.waitForSelector("#tripBody .trip-combo #tripSuggest li");
+    await arr.press("Enter");
+    await page.waitForFunction(() => /trip=KOKC/.test(location.hash) && document.querySelector("#tripBody .trip-leg").textContent.includes("at KOKC"));
+    await page.locator("#tripBody [data-trip-arr]").nth(0).fill("junk");
+    await page.locator("#tripBody [data-trip-arr]").nth(0).press("Escape");
+    assert.equal(await page.locator("#tripBody [data-trip-arr]").nth(0).inputValue(), "KOKC", "escape restores the field");
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
 test("flight plan: pick the takeoff date and time of each leg", async () => {
   const { page, context, errors } = await openPage();
   try {
@@ -703,7 +738,7 @@ test("flight plan bar can be hidden and brought back; the map key is small and s
   try {
     // the key: three marks and the two dot colours — nothing about red, orange or faded fields
     const key = (await page.textContent("#plannerLegend")).replace(/\s+/g, " ");
-    for (const word of ["Towered", "Non-towered", "Military", "Approved: land, fuel, RON", "See comments (fuel/RON)"]) assert.ok(key.includes(word), word);
+    for (const word of ["Towered", "Non-towered", "Military", "Approved", "See comments"]) assert.ok(key.includes(word), word);
     assert.doesNotMatch(key, /No fuel|not approved|faded|outside range/i);
     assert.equal(await page.locator("#plannerLegend svg").count(), 3);
     const box = await page.locator("#plannerLegend").boundingBox();
@@ -733,7 +768,7 @@ test("mobile: the flight plan opens as a sheet from the header button", async ()
     await page.fill("#tripSearch", "KPNC");
     await page.press("#tripSearch", "Enter");
     await page.waitForSelector("#tripBody .trip-stop");
-    assert.match(await page.textContent("#tripToggleCount"), /1 stop/);
+    assert.match(await page.textContent("#tripToggleCount"), /2 legs/);
     await page.click("#tripBarClose");
     await page.waitForFunction(() => !document.getElementById("tripBar").classList.contains("open"));
     assert.deepEqual(errors, []);

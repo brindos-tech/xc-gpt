@@ -1,6 +1,6 @@
 // A synthetic forecast in the exact shape scripts/fetch-wx.js publishes, so
 // the browser test can exercise the weather UI without calling Open-Meteo.
-// Western cells get a low overcast with icing temperatures; the rest is clear.
+// Western cells get a low overcast with icing temperatures, the far west (past -100.5) a very low one (IFR); the rest is clear.
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { LEVELS_HPA, makeGrid, gridPoint, buildWxFiles } from "../../assets/js/planner/wx-model.js";
@@ -23,7 +23,7 @@ export function writeFakeWx(siteDir, config, factsFile) {
     };
     for (const p of LEVELS_HPA) {
       hourly[`temperature_${p}hPa`] = times.map(() => 15 - (1000 - p) * 0.06);
-      hourly[`cloud_cover_${p}hPa`] = times.map(() => (west && p === 900 ? 95 : west && p === 700 ? 90 : 0));
+      hourly[`cloud_cover_${p}hPa`] = times.map(() => (west && p === 900 ? 95 : west && p === 700 ? 90 : lon < -100.5 && p === 950 ? 95 : 0));
       hourly[`geopotential_height_${p}hPa`] = times.map(() => 100 + (1000 - p) * 8.7);
     }
     return { elevation: 300, hourly };
