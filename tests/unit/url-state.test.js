@@ -22,7 +22,8 @@ test("state round-trips through the hash", () => {
   assert.equal(patch.originId, "sheppard");
   assert.equal(patch.rangeNm, 450);
   assert.deepEqual([...patch.categories].sort(), ["art", "food"]);
-  assert.deepEqual([...patch.activities], ["weird"]);
+  assert.equal(patch.activities, undefined, "the activity filter is gone, so old act= links do nothing");
+  assert.doesNotMatch(stateToHash(state), /act=/);
   assert.equal(patch.search, "rodeo");
   assert.equal(patch.selectedPlaceId, "taos-nm");
   assert.equal(patch.fieldSource, "p");

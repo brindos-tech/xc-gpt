@@ -828,7 +828,7 @@ test("mobile: the flight plan opens as a sheet from the header button", async ()
   }
 });
 
-test("weekend recs tab: a pick and two backups per weekend, a mix of kinds, and 'see on the events map'", async () => {
+test("weekend recs tab: a pick and two backups per weekend, a mix of kinds, and the city links to the events map", async () => {
   const { page, context, errors } = await openPage();
   try {
     await page.click('#tabBar [data-view="weekends"]');
@@ -855,8 +855,11 @@ test("weekend recs tab: a pick and two backups per weekend, a mix of kinds, and 
     await page.waitForFunction(() => /rodeo/i.test(document.querySelector("#weekendsPage .wk-primary .wk-title")?.textContent || ""), null, { timeout: 8000 });
     await page.fill("#globalSearch", "");
 
-    // see it on the events map: switches page with the place selected and that weekend as the date window
-    await page.locator("#weekendsPage [data-wk-open]").first().click();
+    // the orange city is the link to the events map: no separate "see on the events map" line
+    assert.doesNotMatch(await page.textContent("#weekendsPage"), /on the events map/);
+    assert.match(await page.locator("#weekendsPage a.wk-city").first().getAttribute("href"), /^#\/v=events&from=\d{4}-\d{2}-\d{2}&to=\d{4}-\d{2}-\d{2}&place=/);
+    // clicking it switches page with the place selected and that weekend as the date window
+    await page.locator("#weekendsPage a.wk-city").first().click();
     await page.waitForSelector("#detailPanel.open", { timeout: 15000 });
     assert.equal(await page.locator("#tabBar button.active").textContent(), "Events");
     assert.deepEqual(errors, []);

@@ -59,6 +59,7 @@ export function createWeekendsPage({ root, store, config, loadJson, today }) {
     }
     const open = e.target.closest("[data-wk-open]");
     if (open) {
+      e.preventDefault();
       const friday = parseDate(open.dataset.wkWeek);
       store.setState({ view: "events", selectedPlaceId: open.dataset.wkOpen, dateRange: { start: friday, end: addDays(friday, 2) } });
     }
@@ -88,9 +89,8 @@ export function createWeekendsPage({ root, store, config, loadJson, today }) {
     const link = c.event.url ? `<a href="${esc(c.event.url)}" target="_blank" rel="noopener noreferrer">${esc(title)} ↗</a>` : esc(title);
     return `<div class="${primary ? "wk-primary" : "wk-backup"}">
       <div class="wk-line">${primary ? `<span class="badge best-match">Best match</span>` : ""}${badge(c.group)}<b class="wk-title">${link}</b></div>
-      <div class="wk-place"><span class="wk-city">${esc(c.place.name)}${c.place.state ? `, ${esc(c.place.state)}` : ""}</span> <span class="wk-fly">${esc(formatFlightTime(c.place.flightMinutes))} · ${Math.round(c.place.distanceNm)} nm</span> <span class="muted small">${esc(eventWhen(c.event, week))}</span>${more}</div>
+      <div class="wk-place"><a class="wk-city" href="#/v=events&amp;from=${toDateKey(week.friday)}&amp;to=${toDateKey(addDays(week.friday, 2))}&amp;place=${encodeURIComponent(c.place.id)}" data-wk-open="${esc(c.place.id)}" data-wk-week="${toDateKey(week.friday)}" title="See ${esc(c.place.name)} on the events map">${esc(c.place.name)}${c.place.state ? `, ${esc(c.place.state)}` : ""}</a> <span class="wk-fly">${esc(formatFlightTime(c.place.flightMinutes))} · ${Math.round(c.place.distanceNm)} nm</span> <span class="muted small">${esc(eventWhen(c.event, week))}</span>${more}</div>
       ${primary ? weatherHtml(data.weather?.[c.place.id], week.friday) : ""}
-      <div><button type="button" class="cm-link small" data-wk-open="${esc(c.place.id)}" data-wk-week="${toDateKey(week.friday)}">See ${esc(c.place.name)} on the events map</button></div>
     </div>`;
   }
 

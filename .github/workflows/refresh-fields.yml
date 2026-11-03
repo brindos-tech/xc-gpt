@@ -1,12 +1,15 @@
 name: Refresh fields & airspace
 
-# Weekly: FAA NASR airport facts + GSA per diem for every nav-list field,
+# Mondays and Thursdays: FAA NASR airport facts + GSA per diem for every nav-list field,
 # and the airspace layers (FAA SUA / MTR geometry merged with the curated
-# AP/1A-AP/1B scheduling details). NASR publishes every 28 days and GSA
-# yearly, so weekly is plenty. A finished run triggers deploy-pages.yml.
+# AP/1A-AP/1B scheduling details). NASR changes every 28 days, always on a
+# Thursday, so the Thursday run picks a new cycle up the day it takes effect;
+# Monday catches anything else (GSA changes yearly). A finished run triggers
+# deploy-pages.yml.
 on:
   schedule:
     - cron: "17 7 * * 1" # Mondays 07:17 UTC
+    - cron: "17 7 * * 4" # Thursdays 07:17 UTC (AIRAC cycles take effect on Thursdays)
   workflow_dispatch: {}
 
 permissions:

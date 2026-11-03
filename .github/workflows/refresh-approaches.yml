@@ -1,12 +1,14 @@
 name: Refresh approaches
 
 # Instrument approaches per nav-list field from the FAA d-TPP metadata
-# (scripts/fetch-approaches.js). The data changes every 28 days, so weekly is
-# plenty (the file is d-TPP_Metafile.xml); the commit only happens when something changed. A finished run
-# triggers deploy-pages.yml.
+# (scripts/fetch-approaches.js). The data changes every 28 days, always on a
+# Thursday, so it runs Thursdays (the day a new cycle takes effect) and
+# Mondays (the file is d-TPP_Metafile.xml); the commit only happens when
+# something changed. A finished run triggers deploy-pages.yml.
 on:
   schedule:
     - cron: "29 8 * * 1" # Mondays 08:29 UTC
+    - cron: "29 8 * * 4" # Thursdays 08:29 UTC (AIRAC cycles take effect on Thursdays)
   workflow_dispatch: {}
 
 permissions:

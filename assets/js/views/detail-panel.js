@@ -50,7 +50,7 @@ function buildWeatherSection(weather) {
     <h5>16-Day Outlook</h5>
     ${icingBanner}
     <div class="dp-wx-strip">${daysHtml}</div>
-    <div class="dp-wx-note">Advisory only — not a substitute for a real weather briefing.</div>
+    <div class="dp-wx-note">Advisory only</div>
   `;
 }
 
