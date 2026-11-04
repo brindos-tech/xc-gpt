@@ -77,3 +77,18 @@ test("forecast grid: the whole lower 48 is covered, ocean and neighbours are not
   const n = g.cov.filter(Boolean).length;
   assert.ok(n > 800 && n < 1100, `cell count stays near today's cost (${n})`);
 });
+
+test("alternate check: a forecast ceiling under 2,000 ft near the ETA", async () => {
+  const { alternateCheck } = await import("../../assets/js/planner/ceiling-timeline.js");
+  const at = (ceilHundreds) => () => ({ ceil: ceilHundreds, vis: 100 });
+  assert.equal(alternateCheck(at(15), "KX", eta).ceilFt, 1500);
+  assert.equal(alternateCheck(at(19), "KX", eta).ceilFt, 1900);
+  assert.equal(alternateCheck(at(20), "KX", eta), null, "2,000 ft exactly is not below 2,000");
+  assert.equal(alternateCheck(at(255), "KX", eta), null, "no ceiling");
+  assert.equal(alternateCheck(() => null, "KX", eta), null, "no forecast, no flag");
+  // lowest ceiling in the hour either side of arrival counts, one that lifts well after does not
+  const lifts = (code, t) => ({ ceil: t < new Date(eta.getTime() - 61 * 60000) ? 8 : 40, vis: 100 });
+  assert.equal(alternateCheck(lifts, "KX", eta), null);
+  const dips = (code, t) => ({ ceil: t > new Date(eta.getTime() + 20 * 60000) ? 12 : 40, vis: 100 });
+  assert.equal(alternateCheck(dips, "KX", eta).ceilFt, 1200);
+});

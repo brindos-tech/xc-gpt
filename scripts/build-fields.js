@@ -49,6 +49,17 @@ export function usableRunways(rows, minLen = 4000, minWidth = 75) {
     .sort((a, b) => b.len - a.len);
 }
 
+/** Runway ends flown with a right-hand traffic pattern ("17", "35L"), from NASR APT_RWY_END.csv rows of one airport. */
+export function rightTrafficEnds(rows) {
+  return rows.filter((r) => r.RIGHT_HAND_TRAFFIC_PAT_FLAG === "Y" && !/^H/.test(r.RWY_ID || "")).map((r) => r.RWY_END_ID).filter(Boolean);
+}
+
+/** The overlying air route traffic control center, from an APT_BASE row. */
+export function artccOf(a) {
+  const id = a.RESP_ARTCC_ID || "";
+  return id ? { id, name: (a.RESP_ARTCC_NAME || "").replace(/\s+(ARTCC|CENTER)$/i, "").trim() } : null;
+}
+
 export function attendanceText(rows) {
   return rows
     .sort((a, b) => Number(a.SKED_SEQ_NO) - Number(b.SKED_SEQ_NO))
@@ -73,6 +84,14 @@ async function main() {
   const base = parseCsvObjects(readNasrCsv(dir, "APT_BASE.csv"));
   const rwys = parseCsvObjects(readNasrCsv(dir, "APT_RWY.csv"));
   const att = parseCsvObjects(readNasrCsv(dir, "APT_ATT.csv"));
+  let rwyEnds = [];
+  try {
+    rwyEnds = parseCsvObjects(readNasrCsv(dir, "APT_RWY_END.csv"));
+  } catch (err) {
+    console.log(`No APT_RWY_END.csv (${err.message}): right-traffic runways will be missing`);
+  }
+  if (rwyEnds.length && !("RIGHT_HAND_TRAFFIC_PAT_FLAG" in rwyEnds[0])) console.log(`APT_RWY_END columns: ${Object.keys(rwyEnds[0]).join(", ")}`);
+  if (base.length && !("RESP_ARTCC_ID" in base[0])) console.log(`APT_BASE has no RESP_ARTCC_ID; columns: ${Object.keys(base[0]).join(", ")}`);
   console.log(`NASR cycle ${cycle}: ${base.length} airports, ${rwys.length} runways`);
 
   const byIcao = new Map(base.filter((r) => r.ICAO_ID).map((r) => [r.ICAO_ID, r]));
@@ -80,6 +99,7 @@ async function main() {
   const group = (rows) => rows.reduce((m, r) => (m.get(r.SITE_NO)?.push(r) ?? m.set(r.SITE_NO, [r]), m), new Map());
   const rwyBySite = group(rwys);
   const attBySite = group(att);
+  const endsBySite = group(rwyEnds);
 
   // per diem: current FY always; next FY once GSA publishes it (August)
   const perDiem = {};
@@ -123,6 +143,8 @@ async function main() {
       attendance: attendanceText(attBySite.get(a.SITE_NO) || []) || null,
       runway: longestRunway(rwyBySite.get(a.SITE_NO) || []),
       runways: usableRunways(rwyBySite.get(a.SITE_NO) || []),
+      artcc: artccOf(a),
+      rightTraffic: rightTrafficEnds(endsBySite.get(a.SITE_NO) || []),
       ownership: a.OWNERSHIP_TYPE_CODE,
       perDiem: pd,
     };

@@ -92,3 +92,19 @@ export function timelineSvg({ rows, depAt, etaAt, tz, hours = WINDOW_HOURS }) {
   const alt = rows.map((row) => `${row.label}: ${summarize(row.series, etaAt, tz)}`).join("; ");
   return `<svg class="tl-svg" viewBox="0 0 ${W} ${bottom + 14}" role="img" aria-label="Ceiling timeline from takeoff. ${alt.replace(/"/g, "'")}">${g}</svg>`;
 }
+
+/**
+ * "Alternate may be required": the lowest forecast ceiling at the arrival field
+ * within `windowMin` minutes either side of the ETA, when it is below `belowFt`.
+ * @returns {{ceilFt:number, f:object}|null}
+ */
+export function alternateCheck(forecastAt, code, eta, belowFt = 2000, windowMin = 60) {
+  let worst = null;
+  for (let m = -windowMin; m <= windowMin; m += 30) {
+    const f = forecastAt(code, new Date(eta.getTime() + m * 60000));
+    if (!f || f.ceil >= NO_CEILING) continue;
+    const ceilFt = f.ceil * 100;
+    if (ceilFt < belowFt && (!worst || ceilFt < worst.ceilFt)) worst = { ceilFt, f };
+  }
+  return worst;
+}

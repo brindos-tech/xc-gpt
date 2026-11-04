@@ -679,3 +679,33 @@ test("NOTAMs: only show-stoppers are kept, and the crew card line says what it k
   assert.match(n.notamLines("KOKC", file, new Date("2026-12-01T00:00:00Z")), /None found/, "expired closures are not printed");
   assert.equal(n.overlapsWindow({ start: null, end: null }, arrive, leave), true, "no dates: in force until further notice");
 });
+
+test("crew card: elevation, who controls the field, and right-traffic runways are called out", async () => {
+  const { controlInfo, rightTrafficText, crewCardHtml } = await import("../../assets/js/planner/crew-card.js");
+  const { rightTrafficEnds, artccOf } = await import("../../scripts/build-fields.js");
+  // data helpers
+  assert.deepEqual(rightTrafficEnds([{ RWY_ID: "17/35", RWY_END_ID: "17", RIGHT_HAND_TRAFFIC_PAT_FLAG: "N" }, { RWY_ID: "17/35", RWY_END_ID: "35", RIGHT_HAND_TRAFFIC_PAT_FLAG: "Y" }, { RWY_ID: "H1", RWY_END_ID: "H1", RIGHT_HAND_TRAFFIC_PAT_FLAG: "Y" }]), ["35"]);
+  assert.deepEqual(artccOf({ RESP_ARTCC_ID: "ZFW", RESP_ARTCC_NAME: "FORT WORTH CENTER" }), { id: "ZFW", name: "FORT WORTH" });
+  assert.equal(artccOf({}), null);
+  // who you talk to
+  const zfw = { id: "ZFW", name: "FORT WORTH" };
+  assert.match(controlInfo({ tower: "ATCT-TRACON", artcc: zfw }).text, /Tower \+ approach control \(TRACON\) · ZFW FORT WORTH Center/);
+  assert.equal(controlInfo({ tower: "ATCT-RAPCON", artcc: zfw }).flagged, true);
+  assert.match(controlInfo({ tower: "ATCT-A/C" }).text, /approach control \(A\/C\)/);
+  assert.match(controlInfo({ tower: "NON-ATCT", artcc: zfw }).text, /No tower · center control \(ZFW FORT WORTH Center\)/);
+  assert.equal(controlInfo({ tower: "NON-ATCT", artcc: zfw }).flagged, true);
+  assert.deepEqual(controlInfo({ tower: "ATCT" }), { text: "Tower only, no approach control at the field", flagged: false });
+  assert.equal(rightTrafficText({ rightTraffic: ["17", "35L"] }), "17, 35L");
+  assert.equal(rightTrafficText({}), "");
+  // on the card
+  const trip = await import("../../assets/js/planner/trip.js");
+  const o = { icao: "KEND", lat: 36.3392, lon: -97.9166, tz: "America/Chicago" };
+  const f = { code: "KGCK", name: "Garden City Regional", city: "Garden City, KS", state: "KS", lat: 37.93, lon: -100.72, elevFt: 2891, tower: "NON-ATCT", artcc: { id: "ZKC", name: "KANSAS CITY" }, rightTraffic: ["12", "30"], runways: [{ id: "17/35", len: 7300, width: 100, surface: "ASPH" }], land: "Approved", fuel: "Approved", ron: "Approved", classification: "Civil", aircard: [], approaches: [], approachTypes: [] };
+  const stops = [{ field: f, ron: false }];
+  const legs = trip.tripLegs(o, [f], config);
+  const schedule = trip.scheduleTrip({ origin: o, stops, legs: legs.legs, tripDate: "2026-11-07" });
+  const html = crewCardHtml({ origin: o, stops, legs, schedule, cost: trip.tripPerDiem(stops, new Date(2026, 10, 7)), tripDate: new Date(2026, 10, 7), route: "x", stateTaxes: {}, dataNotes: [] });
+  assert.match(html, /Elevation<\/th><td><b class="cc-hi">2,891′ MSL<\/b>/);
+  assert.match(html, /ATC<\/th><td><b class="cc-hi">No tower · center control \(ZKC KANSAS CITY Center\)<\/b>/);
+  assert.match(html, /Traffic pattern<\/th><td><b class="cc-hi">Right traffic: runway 12, 30<\/b>/);
+});

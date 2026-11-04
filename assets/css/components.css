@@ -374,6 +374,7 @@
   #crewCard .cc-total td { font-weight: 700; border-top: 1pt solid #111; }
   #crewCard .cc-stop { break-inside: avoid; margin-bottom: 10pt; }
   #crewCard .cc-muted { color: #555; }
+  #crewCard .cc-hi { background: #fff0a0; padding: 0 3px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   #crewCard .cc-flag { color: #8a4b00; font-size: 9pt; }
   #crewCard .cc-foot { font-size: 9pt; color: #333; border-top: 1pt solid #999; padding-top: 4pt; }
   @page { margin: 14mm; }
@@ -436,7 +437,8 @@
 .trip-ret { margin-top: 2px; }
 .trip-add-label { display: block; font-size: 0.8em; color: var(--muted); margin-bottom: 3px; }
 .trip-combo { position: relative; display: block; min-width: 0; }
-.trip-combo #tripSuggest { z-index: 40; }
+/* the arrival field is narrow, the list of matches is not: it opens wider than the field, kept inside the bar */
+.trip-combo #tripSuggest { z-index: 40; right: auto; left: 0; width: 340px; max-width: calc(100cqw - 28px); }
 .trip-addret { list-style: none; }
 .trip-stop { padding: 6px 8px; }
 
@@ -476,6 +478,7 @@ input.trip-to:focus-visible, select.trip-from:focus-visible, .trip-take input:fo
   .trip-take input { font-size: 0.9em; }
   .trip-cl { display: block; }
   .trip-take input { font-size: 0.9em; }
+  .trip-combo #tripSuggest { left: auto; right: 0; }
 }
 .trip-tl { margin: 4px 0 2px 24px; border: 1px solid rgba(230,90,90,0.55); border-radius: var(--radius-sm); background: rgba(230,90,90,0.08); }
 .trip-tl-flag { cursor: pointer; padding: 5px 8px; font-size: 0.8em; font-weight: 700; color: #ff8f8f; }

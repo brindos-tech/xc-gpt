@@ -536,6 +536,11 @@ test("flight plan: legs with arrival fields, local landing time, and a ceiling t
     const arr = page.locator("#tripBody [data-trip-arr]").nth(0);
     await arr.fill("kokc");
     await page.waitForSelector("#tripBody .trip-combo #tripSuggest li");
+    // the list of matches is wider than the narrow arrival field and stays inside the bar
+    const list = await page.locator("#tripSuggest").boundingBox();
+    const bar = await page.locator("#tripBar").boundingBox();
+    assert.ok(list.width >= 300, `suggestion list is wide enough (${Math.round(list.width)} px)`);
+    assert.ok(list.x >= bar.x && list.x + list.width <= bar.x + bar.width + 1, "and inside the flight plan bar");
     await arr.press("Enter");
     await page.waitForFunction(() => /trip=KOKC/.test(location.hash) && document.querySelector("#tripBody [data-trip-arr]").dataset.code === "KOKC");
     await page.locator("#tripBody [data-trip-arr]").nth(0).fill("junk");
@@ -569,11 +574,14 @@ test("flight plan: VFR says only VFR; marginal and instrument legs carry the cei
     await page.press("#tripSearch", "Enter");
     await page.waitForSelector('[data-testid="ceiling-timeline"].tl-mvfr');
     assert.match(await page.textContent('[data-testid="ceiling-timeline"].tl-mvfr summary'), /^⚠ KCSM MVFR, ceiling 2,200 ft/);
+    // "alternate may be required" only where the forecast ceiling at the arrival is under 2,000 ft
+    assert.equal(await page.locator("#tripBody .fp-flag", { hasText: "Alternate may be required" }).count(), 0, "KPNC, KOKC and KCSM are all above 2,000 ft");
     // far west is instrument: red tab with its ceiling
     await page.fill("#tripSearch", "KLBL");
     await page.press("#tripSearch", "Enter");
     await page.waitForSelector('[data-testid="ceiling-timeline"].tl-ifr');
     assert.match(await page.textContent('[data-testid="ceiling-timeline"].tl-ifr summary'), /KLBL IFR, ceiling \d/);
+    assert.match(await page.locator("#tripBody .fp-flag", { hasText: "Alternate may be required" }).first().textContent(), /forecast ceiling 800 ft at KLBL/);
     assert.deepEqual(errors, []);
   } finally {
     await context.close();
