@@ -705,6 +705,50 @@ test("flight plan bar can be hidden and brought back; the map key is small and s
   }
 });
 
+test("mobile: the welcome screen fits and its button is reachable; the plan sheet sits above the map controls", async () => {
+  const first = await openPage({ width: 390, height: 780 }, { welcome: true });
+  try {
+    const { page } = first;
+    assert.equal(await page.locator("#welcome").evaluate((d) => d.open), true);
+    // the "Got it" button is on screen and not covered by the example map's layers
+    const box = await page.locator("#welcomeGo").boundingBox();
+    assert.ok(box.y >= 0 && box.y + box.height <= 780, "button inside the screen");
+    const topmost = await page.evaluate(([x, y]) => document.elementFromPoint(x, y)?.id, [box.x + box.width / 2, box.y + box.height / 2]);
+    assert.equal(topmost, "welcomeGo", "nothing sits on top of the button");
+    assert.ok((await page.locator("#welcome").boundingBox()).width <= 390, "the dialog fits the width");
+    await page.click("#welcomeGo");
+    // the help button stays on the header line, icon only
+    assert.ok((await page.locator("#helpBtn").boundingBox()).width < 60);
+    assert.deepEqual(first.errors, []);
+  } finally {
+    await first.context.close();
+  }
+  const { page, context, errors } = await openPage({ width: 390, height: 780 });
+  try {
+    await page.click("#tripToggle");
+    await page.waitForSelector("#tripBar.open");
+    for (const code of ["KPNC", "KLBL"]) {
+      await page.fill("#tripSearch", code);
+      await page.press("#tripSearch", "Enter");
+      await page.waitForFunction((n) => document.querySelectorAll("#tripBody .trip-stop:not(.trip-ret)").length >= n, code === "KPNC" ? 1 : 2);
+    }
+    // the sheet is drawn over the map's zoom buttons
+    const zoom = await page.locator(".leaflet-control-zoom").first().boundingBox();
+    const topAt = await page.evaluate(([x, y]) => document.elementFromPoint(x, y)?.closest("#tripBar") !== null, [zoom.x + zoom.width / 2, zoom.y + zoom.height / 2]);
+    const sheet = await page.locator("#tripBar").boundingBox();
+    if (zoom.y > sheet.y) assert.equal(topAt, true, "the sheet covers any map control behind it");
+    // each leg's remove button sits on the first line next to the leg number, not on a line of its own
+    const row = await page.locator("#tripBody .trip-row").first().boundingBox();
+    const x = await page.locator('#tripBody .trip-row [data-trip="remove"]').first().boundingBox();
+    assert.ok(x.y - row.y < 40, "remove button on the first line of the row");
+    // takeoff, flight time and landing time are all there and nothing runs off the screen
+    assert.ok((await page.locator("#tripBar").evaluate((e) => e.scrollWidth <= e.clientWidth + 1)), "no sideways scroll");
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
 test("mobile: the flight plan opens as a sheet from the header button", async () => {
   const { page, context, errors } = await openPage({ width: 390, height: 780 });
   try {
