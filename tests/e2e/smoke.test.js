@@ -536,6 +536,11 @@ test("flight plan: legs with arrival fields, local landing time, and a ceiling t
     const arr = page.locator("#tripBody [data-trip-arr]").nth(0);
     await arr.fill("kokc");
     await page.waitForSelector("#tripBody .trip-combo #tripSuggest li");
+    // the list of matches is wider than the narrow arrival field and stays inside the bar
+    const list = await page.locator("#tripSuggest").boundingBox();
+    const bar = await page.locator("#tripBar").boundingBox();
+    assert.ok(list.width >= 300, `suggestion list is wide enough (${Math.round(list.width)} px)`);
+    assert.ok(list.x >= bar.x && list.x + list.width <= bar.x + bar.width + 1, "and inside the flight plan bar");
     await arr.press("Enter");
     await page.waitForFunction(() => /trip=KOKC/.test(location.hash) && document.querySelector("#tripBody [data-trip-arr]").dataset.code === "KOKC");
     await page.locator("#tripBody [data-trip-arr]").nth(0).fill("junk");
