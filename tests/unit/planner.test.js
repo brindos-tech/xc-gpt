@@ -691,6 +691,7 @@ test("crew card: elevation, who controls the field, and right-traffic runways ar
   const zfw = { id: "ZFW", name: "FORT WORTH" };
   assert.match(controlInfo({ tower: "ATCT-TRACON", artcc: zfw }).text, /Tower \+ approach control \(TRACON\) · ZFW FORT WORTH Center/);
   assert.equal(controlInfo({ tower: "ATCT-RAPCON", artcc: zfw }).flagged, true);
+  assert.match(controlInfo({ tower: "NON-ATCT", artcc: { id: "ZKC", name: "" } }).text, /ZKC Kansas City Center/, "the centre name comes from its id when the data has none");
   assert.match(controlInfo({ tower: "ATCT-A/C" }).text, /approach control \(A\/C\)/);
   assert.match(controlInfo({ tower: "NON-ATCT", artcc: zfw }).text, /No tower · center control \(ZFW FORT WORTH Center\)/);
   assert.equal(controlInfo({ tower: "NON-ATCT", artcc: zfw }).flagged, true);

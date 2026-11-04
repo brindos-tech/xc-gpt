@@ -30,11 +30,14 @@ export function runwaysHtml(f) {
   return list.map(rwyText).join("<br>");
 }
 
+const ARTCC_NAMES = { ZAB: "Albuquerque", ZAU: "Chicago", ZBW: "Boston", ZDC: "Washington", ZDV: "Denver", ZFW: "Fort Worth", ZHU: "Houston", ZID: "Indianapolis", ZJX: "Jacksonville", ZKC: "Kansas City", ZLA: "Los Angeles", ZLC: "Salt Lake City", ZMA: "Miami", ZME: "Memphis", ZMP: "Minneapolis", ZNY: "New York", ZOA: "Oakland", ZOB: "Cleveland", ZSE: "Seattle", ZTL: "Atlanta" };
+
 /** Who you talk to at the field: tower, approach control (TRACON / RAPCON / RATCF / approach-control tower) and the overlying center. */
 export function controlInfo(f) {
   const t = String(f.tower || "");
   const approach = /TRACON|RAPCON|RATCF|TRACAB|A\/C/.test(t);
-  const center = f.artcc?.id ? `${f.artcc.id}${f.artcc.name ? ` ${f.artcc.name}` : ""} Center` : "";
+  const centerName = f.artcc?.name || ARTCC_NAMES[f.artcc?.id] || "";
+  const center = f.artcc?.id ? `${f.artcc.id}${centerName ? ` ${centerName}` : ""} Center` : "";
   if (!t) return center ? { text: center, flagged: true } : null;
   if (/^NON/.test(t)) return { text: `No tower · ${center ? `center control (${center})` : "center control"}`, flagged: true };
   if (approach) return { text: `Tower + approach control (${t.replace(/^ATCT-?/, "") || "approach"})${center ? ` · ${center}` : ""}`, flagged: true };
