@@ -32,7 +32,7 @@ const MAP_FIELDS = [
 const NM = 1852;
 let miniMap = null;
 
-/** A small, fixed Leaflet map: real tiles, the base's range ring, the real pin marks and a weather overlay. */
+/** A small, fixed Leaflet map: real tiles, the base's range ring, the real pin marks and an example radar picture. */
 function buildMiniMap() {
   const L = window.L;
   const el = document.getElementById("welcomeMap");
@@ -42,10 +42,8 @@ function buildMiniMap() {
   miniMap.fitBounds([[35.25, -98.4], [36.9, -95.6]], { paddingTopLeft: [14, 26], paddingBottomRight: [14, 22] });
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 12 }).addTo(miniMap);
   L.circle([36.3398, -97.9172], { radius: 70 * NM, color: "#ff8a3d", weight: 2, dashArray: "6,6", fill: false, interactive: false }).addTo(miniMap);
-  // weather: made-up patches, just to show the colours
-  for (const [lat, lon, nm, color] of [[36.55, -96.1, 22, "#5b8def"], [35.55, -96.15, 16, "#e65a5a"], [35.6, -98.3, 12, "#ff7ac6"]]) {
-    L.circle([lat, lon], { radius: nm * NM, color, weight: 0, fillColor: color, fillOpacity: 0.32, interactive: false }).addTo(miniMap);
-  }
+  // radar: a made-up squall line drawn in the standard NEXRAD colours (scripts/make-welcome-radar.mjs)
+  L.imageOverlay("assets/img/welcome-radar.png", [[34.6, -100.4], [37.6, -94.2]], { opacity: 0.85, interactive: false }).addTo(miniMap);
   for (const f of MAP_FIELDS) {
     const m = L.marker([f.lat, f.lon], { icon: L.divIcon({ className: "wv-marker", html: pinSvg(f), iconSize: [26, 26], iconAnchor: [13, 13] }), interactive: false, keyboard: false }).addTo(miniMap);
     const text = f.label || f.tip;

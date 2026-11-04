@@ -67,3 +67,13 @@ test("category colours: MVFR blue, IFR red, LIFR pink", async () => {
   assert.equal(CAT_COLORS[2], "#e65a5a");
   assert.equal(CAT_COLORS[3], "#ff7ac6");
 });
+
+test("forecast grid: the whole lower 48 is covered, ocean and neighbours are not", async () => {
+  const { makeConusGrid } = await import("../../assets/js/planner/wx-model.js");
+  const g = makeConusGrid();
+  const covered = (lat, lon) => Boolean(g.cov[Math.round(lat - g.lat0) * g.nlon + Math.round(lon - g.lon0)]);
+  for (const [name, lat, lon] of [["Seattle", 47.45, -122.3], ["Boston", 42.36, -71.0], ["Miami", 25.8, -80.3], ["Los Angeles", 33.94, -118.4], ["Caribou ME", 46.87, -68.0], ["Vance", 36.34, -97.9], ["Key West-ish", 25.0, -81.0], ["San Diego", 32.7, -117.2]]) assert.ok(covered(lat, lon), name);
+  for (const [name, lat, lon] of [["Atlantic", 32, -68], ["Pacific", 36, -125], ["Gulf", 26, -90], ["Toronto", 43.7, -79.4], ["Mexico City", 19.4, -99.1]]) assert.ok(!covered(lat, lon), name);
+  const n = g.cov.filter(Boolean).length;
+  assert.ok(n > 800 && n < 1100, `cell count stays near today's cost (${n})`);
+});
