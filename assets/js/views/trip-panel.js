@@ -8,7 +8,7 @@ import { formatFlightTime } from "../format.js";
 import { esc } from "../planner/html.js";
 import { matchesSearch } from "../planner/fields.js";
 import { greatCircleNm } from "../geo.js";
-import { ceilingSeries, legIsInstrument, worstSample, summarize, timelineSvg } from "../planner/ceiling-timeline.js";
+import { ceilingSeries, legIsInstrument, worstSample, summarize, timelineSvg, alternateCheck } from "../planner/ceiling-timeline.js";
 
 const money = (n) => `$${Math.round(n).toLocaleString("en-US")}`;
 
@@ -233,7 +233,9 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
    */
   function legHtml(leg, state, info, { stop, count } = {}) {
     const gas = info.overRange ? `<div class="fp-flag warn">⚠ Tight on gas (${config.aircraft.legRangeNm}+ nm)</div>` : "";
-    const flags = gas + legFlags(leg).map((x) => `<div class="fp-flag ${x.level}">⚠ ${esc(x.text)}</div>`).join("");
+    const alt = forecastAt ? alternateCheck(forecastAt, leg.to, leg.eta) : null;
+    const altFlag = alt ? `<div class="fp-flag warn">⚠ Alternate may be required (forecast ceiling ${esc(ceilingText(alt.f.ceil))} at ${esc(leg.to)})</div>` : "";
+    const flags = gas + altFlag + legFlags(leg).map((x) => `<div class="fp-flag ${x.level}">⚠ ${esc(x.text)}</div>`).join("");
     const takeoff = `${leg.depLocal.date}T${leg.depLocal.time}`;
     const shift = clockShift(leg.fromTz, leg.dep, leg.toTz, leg.eta);
     const from = leg.i === 0

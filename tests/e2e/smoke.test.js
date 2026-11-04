@@ -574,11 +574,14 @@ test("flight plan: VFR says only VFR; marginal and instrument legs carry the cei
     await page.press("#tripSearch", "Enter");
     await page.waitForSelector('[data-testid="ceiling-timeline"].tl-mvfr');
     assert.match(await page.textContent('[data-testid="ceiling-timeline"].tl-mvfr summary'), /^⚠ KCSM MVFR, ceiling 2,200 ft/);
+    // "alternate may be required" only where the forecast ceiling at the arrival is under 2,000 ft
+    assert.equal(await page.locator("#tripBody .fp-flag", { hasText: "Alternate may be required" }).count(), 0, "KPNC, KOKC and KCSM are all above 2,000 ft");
     // far west is instrument: red tab with its ceiling
     await page.fill("#tripSearch", "KLBL");
     await page.press("#tripSearch", "Enter");
     await page.waitForSelector('[data-testid="ceiling-timeline"].tl-ifr');
     assert.match(await page.textContent('[data-testid="ceiling-timeline"].tl-ifr summary'), /KLBL IFR, ceiling \d/);
+    assert.match(await page.locator("#tripBody .fp-flag", { hasText: "Alternate may be required" }).first().textContent(), /forecast ceiling 800 ft at KLBL/);
     assert.deepEqual(errors, []);
   } finally {
     await context.close();

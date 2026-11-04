@@ -30,6 +30,20 @@ export function runwaysHtml(f) {
   return list.map(rwyText).join("<br>");
 }
 
+/** Who you talk to at the field: tower, approach control (TRACON / RAPCON / RATCF / approach-control tower) and the overlying center. */
+export function controlInfo(f) {
+  const t = String(f.tower || "");
+  const approach = /TRACON|RAPCON|RATCF|TRACAB|A\/C/.test(t);
+  const center = f.artcc?.id ? `${f.artcc.id}${f.artcc.name ? ` ${f.artcc.name}` : ""} Center` : "";
+  if (!t) return center ? { text: center, flagged: true } : null;
+  if (/^NON/.test(t)) return { text: `No tower · ${center ? `center control (${center})` : "center control"}`, flagged: true };
+  if (approach) return { text: `Tower + approach control (${t.replace(/^ATCT-?/, "") || "approach"})${center ? ` · ${center}` : ""}`, flagged: true };
+  return { text: `Tower only, no approach control at the field${center ? ` · ${center}` : ""}`, flagged: false };
+}
+
+/** Runway ends with right-hand traffic, e.g. "17, 35L"; "" when there are none. */
+export const rightTrafficText = (f) => (f.rightTraffic?.length ? f.rightTraffic.join(", ") : "");
+
 const money = (n) => (n == null ? "—" : `$${Math.round(n).toLocaleString("en-US")}`);
 
 function stopHtml(s, i, ctx) {
@@ -48,7 +62,13 @@ function stopHtml(s, i, ctx) {
       ${line("Classification", esc(f.classification) + (f.approvalList && f.approvalList !== "None" ? ` · ${esc(f.approvalList)}` : ""))}
       ${line("FBO", f.fbo ? `${esc(f.fbo)}${f.fboPhone ? ` · <b>${esc(f.fboPhone)}</b>` : ""}` : "None listed")}
       ${line("Gov't fuel", esc(gfc.text) + (contractMerchants.length ? `<br>${contractMerchants.map((m) => `${esc(m.merchant)}${m.phone ? ` ${esc(m.phone)}` : ""}${m.contract ? " (DLA contract)" : ""}`).join("<br>")}` : ""))}
+      ${f.elevFt != null ? line("Elevation", `<b class="cc-hi">${f.elevFt.toLocaleString("en-US")}′ MSL</b>`) : ""}
+      ${(() => {
+        const c = controlInfo(f);
+        return c ? line("ATC", c.flagged ? `<b class="cc-hi">${esc(c.text)}</b>` : esc(c.text)) : "";
+      })()}
       ${line("Runways", runwaysHtml(f))}
+      ${rightTrafficText(f) ? line("Traffic pattern", `<b class="cc-hi">Right traffic: runway ${esc(rightTrafficText(f))}</b>`) : ""}
       ${ctx.notamsWanted ? line("Closures (NOTAM)", notamLines(f.code, ctx.notams, ctx.schedule?.[i]?.eta || new Date(), ctx.schedule?.[i + 1]?.dep || ctx.schedule?.[i]?.eta || new Date(), esc)) : ""}
       ${line("Approaches", esc(types.join(", ")))}
       ${sh ? line(`Sun (${sh.abbr || "local"})`, esc(sh.sunText)) : ""}
