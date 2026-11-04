@@ -32,10 +32,19 @@ async function show(name, url, init = {}) {
   }
 }
 
-await show("NOTAM Search home", "https://notams.aim.faa.gov/notamSearch/");
-await show("NOTAM Search, POST by location", "https://notams.aim.faa.gov/notamSearch/search", {
-  method: "POST",
-  headers: { "content-type": "application/x-www-form-urlencoded; charset=UTF-8", "x-requested-with": "XMLHttpRequest" },
-  body: new URLSearchParams({ searchType: "0", designatorsForLocation: "KOKC", formatType: "DOMESTIC", notamType: "", operatorType: "", operatorCondition: "" }).toString(),
-});
-await show("DINS (old host)", "https://www.notams.faa.gov/dinsQueryWeb/queryRetrievalMapAction.do?reportType=Raw&retrieveLocId=KOKC&actionType=notamRetrievalByICAOs&submit=View+NOTAMs");
+await show("NMS root", "https://nms.aim.faa.gov/");
+await show("api.faa.gov root", "https://api.faa.gov/");
+await show("external-api.faa.gov root", "https://external-api.faa.gov/");
+for (const url of ["https://aviationweather.gov/api/data/openapi", "https://aviationweather.gov/data/api/openapi.yaml", "https://aviationweather.gov/api/data/notam?ids=KOKC&format=json"]) {
+  console.log(`\n===== ${url}`);
+  try {
+    const res = await fetch(url, { headers: { "user-agent": UA }, signal: AbortSignal.timeout(30000) });
+    const body = await res.text();
+    console.log(`HTTP ${res.status} · ${res.headers.get("content-type")} · ${body.length} bytes · mentions notam: ${/notam/i.test(body)}`);
+    console.log(body.slice(0, 600));
+    const m = [...body.matchAll(/["']?\/[a-z/]*notam[a-z/]*["']?/gi)].slice(0, 5).map((x) => x[0]);
+    if (m.length) console.log("notam paths:", m.join(" "));
+  } catch (err) {
+    console.log(`FAILED: ${err.message} ${err.cause?.code || ""}`);
+  }
+}
