@@ -1,6 +1,6 @@
 // Bidirectional state <-> location.hash, so a link fully reproduces a view.
 import { toDateKey, parseDate } from "./format.js";
-import { encodeTrip, decodeTrip, encodeDep, decodeDep } from "./planner/trip.js";
+import { encodeTrip, decodeTrip, encodeDep, decodeDep, isValidDate } from "./planner/trip.js";
 
 export function stateToHash(state) {
   const params = new URLSearchParams();
@@ -22,12 +22,18 @@ export function stateToHash(state) {
   if (state.selectedFieldId) params.set("fld", state.selectedFieldId);
   if (state.selectedAirspaceId) params.set("as", state.selectedAirspaceId);
   if (state.tripDate) params.set("day", state.tripDate);
+  if (state.wxDay && state.wxDay !== state.tripDate) params.set("wd", state.wxDay);
   params.set("wx", state.wxLayers.size ? Array.from(state.wxLayers).join(",") : "none");
   if (state.wxTime) params.set("wxt", state.wxTime);
   return `#/${params.toString()}`;
 }
 
-export function hashToState(hash, defaults) {
+/**
+ * @param {object} defaults the state to fall back on (and `today`, to drop dates that are over)
+ * @param {{originIds?:Set<string>, rangeMin?:number, rangeMax?:number}} [limits] what this build accepts; a value
+ *   outside them is ignored rather than loaded, so a garbled or old link opens the default view instead of breaking the page
+ */
+export function hashToState(hash, defaults, limits = {}) {
   const clean = hash.replace(/^#\/?/, "");
   const params = new URLSearchParams(clean);
   const patch = {};
@@ -38,8 +44,8 @@ export function hashToState(hash, defaults) {
     const v = params.get("v");
     patch.view = v === "planner" || v === "weekends" ? v : v === "reviews" ? "planner" : "events"; // the Reviews page is gone for now: old links land on the planner
   }
-  if (params.has("from")) patch.dateRange = { ...defaults.dateRange, start: parseDate(params.get("from")) };
-  if (params.has("to")) {
+  if (isValidDate(params.get("from"))) patch.dateRange = { ...defaults.dateRange, start: parseDate(params.get("from")) };
+  if (isValidDate(params.get("to"))) {
     patch.dateRange = { ...(patch.dateRange || defaults.dateRange), end: parseDate(params.get("to")) };
   }
   // A link's date window is worth restoring — that's the point of a
@@ -53,8 +59,11 @@ export function hashToState(hash, defaults) {
     delete patch.dateRange;
   }
 
-  if (params.has("origin")) patch.originId = params.get("origin");
-  if (params.has("r")) patch.rangeNm = Number(params.get("r"));
+  if (params.has("origin") && (!limits.originIds || limits.originIds.has(params.get("origin")))) patch.originId = params.get("origin");
+  if (params.has("r")) {
+    const r = Number(params.get("r"));
+    if (Number.isFinite(r) && r >= (limits.rangeMin ?? 0) && r <= (limits.rangeMax ?? Infinity)) patch.rangeNm = r;
+  }
   if (params.has("cat")) patch.categories = new Set(params.get("cat").split(",").filter(Boolean));
   if (params.has("q")) patch.search = params.get("q");
   if (params.has("place")) patch.selectedPlaceId = params.get("place");
@@ -66,29 +75,37 @@ export function hashToState(hash, defaults) {
   if (params.has("air")) patch.airspace = new Set(params.get("air").split(",").filter(Boolean));
   if (params.has("fld")) patch.selectedFieldId = params.get("fld");
   if (params.has("as")) patch.selectedAirspaceId = params.get("as");
-  if (params.has("day") && /^\d{4}-\d{2}-\d{2}$/.test(params.get("day"))) patch.tripDate = params.get("day");
+  // a trip or weather day that has already passed means nothing to a new visitor: keep today
+  const upcoming = (str) => isValidDate(str) && (!defaults.today || parseDate(str) >= defaults.today);
+  if (upcoming(params.get("day"))) {
+    patch.tripDate = params.get("day");
+    patch.wxDay = patch.tripDate; // links made before the weather day was separate
+  }
+  if (upcoming(params.get("wd"))) patch.wxDay = params.get("wd");
   if (params.has("wx")) patch.wxLayers = new Set(params.get("wx").split(",").filter((k) => k && k !== "none"));
   if (params.has("wxt") && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z$/.test(params.get("wxt"))) patch.wxTime = params.get("wxt");
 
   return patch;
 }
 
-export function initUrlState(store) {
+export function initUrlState(store, limits = {}) {
   if (window.location.hash && window.location.hash.length > 3) {
-    const patch = hashToState(window.location.hash, store.getState());
+    const patch = hashToState(window.location.hash, store.getState(), limits);
     store.setState(patch);
   }
 
   // setTimeout, not requestAnimationFrame — this is background bookkeeping,
   // not a paint-timed update, and rAF can be suspended entirely in a
   // backgrounded/non-visible tab, silently freezing the URL out of sync.
+  // The state is read when the timer fires, so a change made in the same
+  // moment as another is never left out of the address.
   let replaceQueued = false;
-  store.subscribe((state) => {
+  store.subscribe(() => {
     if (replaceQueued) return;
     replaceQueued = true;
     setTimeout(() => {
       replaceQueued = false;
-      const hash = stateToHash(state);
+      const hash = stateToHash(store.getState());
       if (hash !== window.location.hash) {
         history.replaceState(null, "", hash);
       }

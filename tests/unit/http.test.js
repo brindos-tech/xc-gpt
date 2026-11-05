@@ -37,6 +37,25 @@ test("a 5xx is retried until it succeeds", async () => {
   );
 });
 
+test("a response that arrives cut off or garbled is retried too (it crashed a refresh run on 4 Nov)", async () => {
+  await withServer(
+    (n, req, res) => (n < 3 ? res.writeHead(200).end('{"items":[1,2,3') : res.writeHead(200).end('{"ok":true}')),
+    async (url, hits) => {
+      assert.deepEqual(await fetchJsonWithRetry(url, {}, { baseDelayMs: 1 }), { ok: true });
+      assert.equal(hits(), 3);
+    }
+  );
+});
+
+test("error messages carry the address without its query string (API keys ride there)", async () => {
+  await withServer(
+    (n, req, res) => res.writeHead(403).end("no"),
+    async (url) => {
+      await assert.rejects(fetchJsonWithRetry(`${url}/x?apikey=SECRET123&q=1`, {}, { baseDelayMs: 1 }), (err) => !err.message.includes("SECRET123") && err.message.includes("/x"));
+    }
+  );
+});
+
 test("SeatGeek fetch stops at the first rejected-key response and exits cleanly", async () => {
   await withServer(
     (n, req, res) => res.writeHead(403).end('{"message":"Invalid client credentials"}'),

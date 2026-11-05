@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  issues: write # the failure alert step opens an issue
 
 concurrency:
   group: refresh-data
@@ -63,7 +64,12 @@ jobs:
             echo "No changes to commit."
           else
             git commit -m "chore: refresh generated data ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
-            git push
+            pushed=0
+            for i in 1 2 3; do
+              if git pull --rebase origin "${GITHUB_REF_NAME}" && git push; then pushed=1; break; fi
+              sleep $((i * 5))
+            done
+            [ "$pushed" = 1 ]
           fi
 
       - name: Open issue on validation failure

@@ -78,17 +78,23 @@ test("forecast grid: the whole lower 48 is covered, ocean and neighbours are not
   assert.ok(n > 800 && n < 1100, `cell count stays near today's cost (${n})`);
 });
 
-test("alternate check: a forecast ceiling under 2,000 ft near the ETA", async () => {
-  const { alternateCheck } = await import("../../assets/js/planner/ceiling-timeline.js");
-  const at = (ceilHundreds) => () => ({ ceil: ceilHundreds, vis: 100 });
-  assert.equal(alternateCheck(at(15), "KX", eta).ceilFt, 1500);
-  assert.equal(alternateCheck(at(19), "KX", eta).ceilFt, 1900);
+test("alternate check: a forecast ceiling under 2,000 ft or visibility under 3 SM near the ETA", async () => {
+  const { alternateCheck, alternateReason } = await import("../../assets/js/planner/ceiling-timeline.js");
+  const at = (ceilHundreds, vis = 100) => () => ({ ceil: ceilHundreds, vis });
+  assert.equal(alternateCheck(at(15), "KX", eta).ceilHundreds, 15);
+  assert.equal(alternateCheck(at(19), "KX", eta).ceilHundreds, 19);
   assert.equal(alternateCheck(at(20), "KX", eta), null, "2,000 ft exactly is not below 2,000");
-  assert.equal(alternateCheck(at(255), "KX", eta), null, "no ceiling");
+  assert.equal(alternateCheck(at(255), "KX", eta), null, "no ceiling, good visibility");
   assert.equal(alternateCheck(() => null, "KX", eta), null, "no forecast, no flag");
-  // lowest ceiling in the hour either side of arrival counts, one that lifts well after does not
+  // visibility alone counts: no ceiling but half a mile
+  const fog = alternateCheck(at(255, 5), "KX", eta);
+  assert.deepEqual(fog, { ceilHundreds: null, visTenths: 5 });
+  assert.equal(alternateReason(fog), "forecast visibility 0.5 SM");
+  assert.equal(alternateCheck(at(255, 30), "KX", eta), null, "3 SM exactly is not below 3");
+  assert.equal(alternateReason(alternateCheck(at(8, 20), "KX", eta)), "forecast ceiling 800 ft and visibility 2 SM");
+  // lowest value in the hour either side of arrival counts, one that lifts well before does not
   const lifts = (code, t) => ({ ceil: t < new Date(eta.getTime() - 61 * 60000) ? 8 : 40, vis: 100 });
   assert.equal(alternateCheck(lifts, "KX", eta), null);
   const dips = (code, t) => ({ ceil: t > new Date(eta.getTime() + 20 * 60000) ? 12 : 40, vis: 100 });
-  assert.equal(alternateCheck(dips, "KX", eta).ceilFt, 1200);
+  assert.equal(alternateCheck(dips, "KX", eta).ceilHundreds, 12);
 });

@@ -1,5 +1,6 @@
 import { formatFlightTime, formatDateRange, decodeEntities, weatherCodeLabel, dowShort, parseDate } from "../format.js";
 import { eventScore } from "../score.js";
+import { esc, safeUrl } from "../planner/html.js";
 import { ICING_TEMP_F, ICING_PRECIP_PCT } from "../weather.js";
 
 // The panel is a quick-glance summary, not the full agenda — cap it to the
@@ -133,15 +134,15 @@ export function createDetailPanel({ store, meta, config }) {
           .map((ev) => {
             const badge = ev.confidence !== "confirmed" ? `<span class="badge estimate">est.</span>` : "";
             const fav = ev.isFavoriteArtist ? `<span class="badge favorite">★</span>` : "";
-            const prBadge = ev.pr ? `<span class="badge pr" title="${ev.pr.replace(/"/g, "&quot;")}">PR</span>` : "";
-            const linkUrl = ev.url || ev.ticketUrl;
+            const prBadge = ev.pr ? `<span class="badge pr" title="${esc(ev.pr)}">PR</span>` : "";
+            const linkUrl = safeUrl(ev.url) || safeUrl(ev.ticketUrl);
             const flagged = linkUrl && linkHealth[linkUrl];
             const link = linkUrl
               ? flagged
                 ? `<span class="badge broken-link" title="This link looked dead the last time we checked (${flagged.status ?? "network error"}).">link may be dead</span>`
-                : `<a class="dp-event-link" href="${linkUrl}" target="_blank" rel="noopener noreferrer">event page ↗</a>`
+                : `<a class="dp-event-link" href="${esc(linkUrl)}" target="_blank" rel="noopener noreferrer">event page ↗</a>`
               : "";
-            return `<div class="dp-event-row"><b>${formatDateRange(ev.start, ev.end)}</b> — ${decodeEntities(ev.title)} ${prBadge}${fav}${badge} ${link}${ev.pr ? `<div class="dp-pr">${ev.pr}</div>` : ""}</div>`;
+            return `<div class="dp-event-row"><b>${formatDateRange(ev.start, ev.end)}</b> — ${esc(decodeEntities(ev.title))} ${prBadge}${fav}${badge} ${link}${ev.pr ? `<div class="dp-pr">${esc(ev.pr)}</div>` : ""}</div>`;
           })
           .join("")
       : `<div class="dp-event-row" style="color:var(--muted)">No events in the current window.</div>`;
@@ -151,9 +152,9 @@ export function createDetailPanel({ store, meta, config }) {
         : "";
 
     content.innerHTML = `
-      <h3>${place.name}${place.state ? `, ${place.state}` : ""}</h3>
+      <h3>${esc(place.name)}${place.state ? `, ${esc(place.state)}` : ""}</h3>
       <div class="dp-dist">${formatFlightTime(place.flightMinutes)} · ${Math.round(place.distanceNm)} nm${place.route && !place.route.feasible ? " · no feasible fuel stop found" : place.legs > 1 ? ` · ${place.legs} legs` : ""}</div>
-      <div class="dp-blurb">${decodeEntities(place.blurb)}</div>
+      <div class="dp-blurb">${esc(decodeEntities(place.blurb))}</div>
       ${airportsHtml}
       <div class="dp-events">
         <h5>Events in window</h5>

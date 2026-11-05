@@ -2,6 +2,8 @@
 // Data: data/generated/airspace-sua.json and airspace-mtr.json (FAA geometry
 // + AP/1A/AP/1B scheduling details, see scripts/fetch-airspace.js).
 
+import { esc } from "./html.js";
+
 export const AIRSPACE_LAYERS = [
   { key: "TFR", label: "TFRs", file: "tfr", match: (p) => p.type === "TFR", style: { color: "#ff3b6b", weight: 1.6, fillOpacity: 0.14, dashArray: "5,3" } },
   { key: "MOA", label: "MOAs", file: "sua", match: (p) => p.type === "MOA", style: { color: "#b98af0", weight: 1.2, fillOpacity: 0.07 } },
@@ -18,11 +20,11 @@ export const DEFAULT_AIRSPACE = ["TFR", "MOA", "R", "W", "A"];
 const TYPE_NAMES = { TFR: "Temporary Flight Restriction", MOA: "Military Operations Area", R: "Restricted Area", W: "Warning Area", A: "Alert Area", IR: "IFR Military Training Route", VR: "VFR Military Training Route", SR: "Slow-speed Low-altitude Training Route" };
 export const typeName = (t) => TYPE_NAMES[t] || t;
 
-/** Short hover text. */
+/** Short hover text (Leaflet renders it as HTML, so every field is escaped: TFR text is free text from the FAA). */
 export function airspaceTooltip(p) {
-  if (p.type === "TFR") return `<b>${p.name}</b>${p.kind ? ` · ${p.kind}` : ""}${p.title ? `<br>${p.title}` : ""}`;
-  if (p.type === "IR" || p.type === "VR" || p.type === "SR") return `<b>${p.name}</b>${p.altitudes ? ` · ${p.altitudes}` : ""}`;
-  return `<b>${p.name}</b> · ${[p.bottom, p.top].filter(Boolean).join(" – ")}`;
+  if (p.type === "TFR") return `<b>${esc(p.name)}</b>${p.kind ? ` · ${esc(p.kind)}` : ""}${p.title ? `<br>${esc(p.title)}` : ""}`;
+  if (p.type === "IR" || p.type === "VR" || p.type === "SR") return `<b>${esc(p.name)}</b>${p.altitudes ? ` · ${esc(p.altitudes)}` : ""}`;
+  return `<b>${esc(p.name)}</b> · ${esc([p.bottom, p.top].filter(Boolean).join(" – "))}`;
 }
 
 /** Rows for the detail panel: [label, value] with nulls dropped. */

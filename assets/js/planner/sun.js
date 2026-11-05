@@ -67,9 +67,9 @@ export function fieldTimeZone(state, lat, lon) {
     case "KS": return lon < -101.5 ? m : c;
     case "NE": return lon < -101 ? m : c;
     case "SD": return lon < -100.4 ? m : c;
-    case "ND": return lon < -101 ? m : c;
+    case "ND": return lon < -100.9 && lat < 47.5 ? m : c; // only the south-west corner is Mountain (Minot, Williston and Bismarck are Central)
     case "FL": return lon < -85 ? c : "America/New_York";
-    case "KY": return lon < -85.4 ? c : "America/New_York";
+    case "KY": return (lat > 37.5 ? lon < -85.95 : lon < -85.1) ? c : "America/New_York"; // Louisville and Elizabethtown are Eastern; Bowling Green, Glasgow and Fort Campbell Central
     case "TN": return lon > -85.4 ? "America/New_York" : c;
     case "ID": return lat > 45.4 ? "America/Los_Angeles" : "America/Boise";
     case "OR": return lon > -117.2 && lat < 44.5 ? m : "America/Los_Angeles";

@@ -1,6 +1,9 @@
 // Fetch wrapper with retry/backoff and a simple rate limiter. Node 20+ has
 // global fetch — no dependency needed.
 
+/** A URL without its query string (API keys ride there) for error messages and logs. */
+export const redact = (url) => String(url).split("?")[0];
+
 export function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -54,10 +57,10 @@ export async function fetchJsonWithRetry(url, options = {}, { retries = 3, baseD
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const res = await fetch(url, options);
-      if (res.ok) return res.json();
+      if (res.ok) return await res.json(); // awaited so a half-received body is caught here and retried
 
       if (res.status === 429 || res.status >= 500) {
-        lastError = new Error(`HTTP ${res.status} from ${url}`);
+        lastError = new Error(`HTTP ${res.status} from ${redact(url)}`);
         const delay = baseDelayMs * Math.pow(2, attempt);
         await sleep(delay);
         continue;
@@ -67,7 +70,7 @@ export async function fetchJsonWithRetry(url, options = {}, { retries = 3, baseD
       // of retrying a request that will fail the same way every time (a bad
       // API key otherwise costs four requests and ~7s of backoff per call)
       const body = await res.text().catch(() => "");
-      const err = new Error(`HTTP ${res.status} from ${url}: ${body.slice(0, 300)}`);
+      const err = new Error(`HTTP ${res.status} from ${redact(url)}: ${body.slice(0, 300)}`);
       err.status = res.status;
       err.retryable = false;
       throw err;

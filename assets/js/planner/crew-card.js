@@ -2,7 +2,7 @@
 // paper (FBO + phone, approvals, gov't fuel, hours, per diem, tax note). Built
 // into #crewCard, which only shows when printing. Planning reference only.
 import { esc } from "./html.js";
-import { formatFlightTime } from "../format.js";
+import { formatFlightTime, parseDate } from "../format.js";
 import { gfcStatus, perDiemFor, fieldStatus, STATUS_LABELS } from "./fields.js";
 import { sunHours } from "./field-panel.js";
 import { APPROACH_TYPES } from "./approaches.js";
@@ -10,6 +10,7 @@ import { legFlags } from "./trip.js";
 import { notamLines } from "./notams.js";
 import { clock, zoneAbbr, zulu, tzLabel, clockShift } from "./sun.js";
 import { CAT_NAMES, flightCategory, ceilingText } from "./wx-model.js";
+import { alternateCheck, alternateReason } from "./ceiling-timeline.js";
 
 /** The time zones along the trip, with what happens to your clock at each change. */
 function zonesHtml(schedule) {
@@ -52,14 +53,17 @@ const money = (n) => (n == null ? "—" : `$${Math.round(n).toLocaleString("en-U
 function stopHtml(s, i, ctx) {
   const f = s.field;
   const gfc = gfcStatus(f);
-  const pd = perDiemFor(f, ctx.tripDate);
-  const sh = sunHours(f, ctx.tripDate);
+  // everything dated at this stop (sun, FBO hours, the month's per diem) is for the day the crew arrives, not the trip's first day
+  const arrives = ctx.schedule?.[i]?.etaLocal?.date;
+  const day = arrives ? parseDate(arrives) : ctx.tripDate;
+  const pd = perDiemFor(f, day);
+  const sh = sunHours(f, day);
   const tax = ctx.stateTaxes?.[f.state];
   const contractMerchants = (f.aircard || []).filter((m) => m.contract || m.onSite).slice(0, 3);
   const types = (f.approachTypes || []).map((k) => APPROACH_TYPES.find((t) => t.key === k)?.label).filter(Boolean);
   const line = (k, v) => (v ? `<tr><th>${esc(k)}</th><td>${v}</td></tr>` : "");
   return `<section class="cc-stop">
-    <h3>${i + 1}. ${esc(f.code)} — ${esc(f.name)} <small>${esc(f.city)}${s.ron ? " · RON" : ""}</small></h3>
+    <h3>${i + 1}. ${esc(f.code)} — ${esc(f.name)} <small>${esc(f.city)}${s.ron ? " · RON" : ""}${arrives ? ` · arrive ${esc(day.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }))}` : ""}</small></h3>
     <table>
       ${line("Approvals", `Land <b>${esc(f.land || "—")}</b> · Fuel <b>${esc(f.fuel || "—")}</b> · RON <b>${esc(f.ron || "—")}</b> <span class="cc-muted">(${esc(STATUS_LABELS[fieldStatus(f)])})</span>`)}
       ${line("Classification", esc(f.classification) + (f.approvalList && f.approvalList !== "None" ? ` · ${esc(f.approvalList)}` : ""))}
@@ -95,6 +99,8 @@ export function crewCardHtml(ctx) {
           const sc = ctx.schedule?.[i];
           const flags = sc ? legFlags(sc).map((x) => `<br><span class="cc-flag">⚠ ${esc(x.text)}</span>`).join("") : "";
           const shift = sc ? clockShift(sc.fromTz, sc.dep, sc.toTz, sc.eta) : null;
+          const alt = sc && ctx.forecastAt ? alternateCheck(ctx.forecastAt, sc.to, sc.eta) : null;
+          const altNote = alt ? `<br><span class="cc-flag">⚠ Alternate may be required (${esc(alternateReason(alt))} at ${esc(sc.to)})</span>` : "";
           const wxNote = (code, instant) => {
             const f = ctx.forecastAt?.(code, instant);
             if (!f) return "";
@@ -102,7 +108,7 @@ export function crewCardHtml(ctx) {
             return `<br><span class="cc-muted">${CAT_NAMES[cat]}${cat > 0 ? `, ceiling ${esc(ceilingText(f.ceil))}` : ""}</span>`;
           };
           const when = (instant, tz, withDay) => `${withDay ? `${esc(new Date(instant).toLocaleDateString("en-US", { timeZone: tz, weekday: "short", month: "short", day: "numeric" }))} ` : ""}${esc(clock(instant, tz))} ${esc(zoneAbbr(instant, tz))}<br><b>${esc(zulu(instant).text)}</b>`;
-          return `<tr><td>${esc(l.from)} → ${esc(l.to)}${l.overRange ? `<br><span class="cc-flag">⚠ Tight on gas</span>` : ""}${shift?.text ? `<br><span class="cc-tz">${esc(shift.text)}</span>` : ""}${flags}</td>
+          return `<tr><td>${esc(l.from)} → ${esc(l.to)}${l.overRange ? `<br><span class="cc-flag">⚠ Tight on gas</span>` : ""}${shift?.text ? `<br><span class="cc-tz">${esc(shift.text)}</span>` : ""}${altNote}${flags}</td>
             <td>${sc ? when(sc.dep, sc.fromTz, true) + wxNote(sc.from, sc.dep) : ""}</td>
             <td>${sc ? when(sc.eta, sc.toTz, sc.etaLocal.date !== sc.depLocal.date) + wxNote(sc.to, sc.eta) : ""}</td>
             <td>${Math.round(l.nm)} nm</td><td>${formatFlightTime(l.mins)}</td></tr>`;

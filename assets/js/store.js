@@ -28,7 +28,8 @@ function defaultState(config, today) {
     airspace: new Set(DEFAULT_AIRSPACE),
     selectedFieldId: null,
     selectedAirspaceId: null,
-    tripDate: toDateKey(today), // day of travel: drives weather, per diem month and hotel dates
+    tripDate: toDateKey(today), // first takeoff day of the flight plan (set by leg 1; the weather bar does not move it)
+    wxDay: toDateKey(today), // the day being looked at: the weather bar, and the sun, hours, forecast and per diem month in a field sheet
     wxLayers: new Set(DEFAULT_WX), // weather overlays on the planner map (empty = off)
     wxTime: null, // ISO UTC step picked on the slider; null = default for the day
   };
@@ -60,8 +61,15 @@ export function createStore(config, today = new Date()) {
       listeners.add(fn);
       return () => listeners.delete(fn);
     },
+    /**
+     * "Reset filters": the filters go back to their defaults. The page you are on, the flight plan and its dates are
+     * not filters and stay (so does the base while a plan is built from it).
+     */
     reset() {
-      state = defaultState(config, state.today);
+      const fresh = defaultState(config, state.today);
+      const keep = ["view", "trip", "tripReturn", "tripReturnDep", "tripDate", "wxDay"];
+      if (state.trip.length) keep.push("originId", "fieldSource");
+      state = { ...fresh, ...Object.fromEntries(keep.map((k) => [k, state[k]])) };
       notify();
     },
   };
