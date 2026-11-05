@@ -6,20 +6,32 @@ import { sunTimes, fieldTimeZone, zonedInstant, wallClock, minutesOfDay, clock }
 import { hoursForDay, fmtMin } from "./hours.js";
 
 /**
- * The URL form of the stops: "KOKC*@202611070900,KTUL" — * marks a RON stop and
- * @YYYYMMDDHHmm the takeoff time (field-local) of the leg that ends at that stop.
+ * The URL form of the stops: "KOKC@202611070900,KTUL" — @YYYYMMDDHHmm is the takeoff time
+ * (field-local) of the leg that ends at that stop.
  */
 const compact = (dep) => dep.replace(/[-:T]/g, "");
 const expand = (c) => `${c.slice(0, 4)}-${c.slice(4, 6)}-${c.slice(6, 8)}T${c.slice(8, 10)}:${c.slice(10, 12)}`;
-export const encodeTrip = (stops) => stops.map((s) => `${s.code}${s.ron ? "*" : ""}${s.dep ? `@${compact(s.dep)}` : ""}`).join(",");
+
+/** A real calendar date "YYYY-MM-DD" (2026-02-30 is not one). */
+export function isValidDate(str) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(str || "");
+  if (!m) return false;
+  const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+  return d.getUTCFullYear() === Number(m[1]) && d.getUTCMonth() === Number(m[2]) - 1 && d.getUTCDate() === Number(m[3]);
+}
+/** A real takeoff time "YYYY-MM-DDTHH:mm". */
+export const isValidDep = (str) => /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(str || "") && isValidDate(str.slice(0, 10)) && Number(str.slice(11, 13)) < 24 && Number(str.slice(14, 16)) < 60;
+
+// The URL no longer carries a RON marker (RON comes from the takeoff dates); old links with a "*" still open.
+export const encodeTrip = (stops) => stops.map((s) => `${s.code}${s.dep ? `@${compact(s.dep)}` : ""}`).join(",");
 export const decodeTrip = (text) =>
   String(text || "")
     .split(",")
     .map((t) => /^([A-Z0-9]{2,5})(\*)?(?:@(\d{12}))?$/.exec(t.trim()))
     .filter(Boolean)
-    .map((m) => ({ code: m[1], ron: Boolean(m[2]), ...(m[3] ? { dep: expand(m[3]) } : {}) }));
+    .map((m) => ({ code: m[1], ron: false, ...(m[3] && isValidDep(expand(m[3])) ? { dep: expand(m[3]) } : {}) }));
 export const encodeDep = (dep) => (dep ? compact(dep) : "");
-export const decodeDep = (c) => (/^\d{12}$/.test(c || "") ? expand(c) : "");
+export const decodeDep = (c) => (/^\d{12}$/.test(c || "") && isValidDep(expand(c)) ? expand(c) : "");
 
 /**
  * Legs: base -> stop 1 -> … -> last stop (-> base when `roundTrip`).

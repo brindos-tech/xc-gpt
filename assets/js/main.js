@@ -277,8 +277,8 @@ async function boot() {
         planner.ensureAirspaceData(state.selectedAirspaceId).then(render).catch(() => {});
       }
     }
-    const [y, m, d] = state.tripDate.split("-").map(Number);
-    fieldPanel.render({ field, airspace, ctx: { origin, config, tripDate: new Date(y, m - 1, d), wxRows: field ? wx.fieldRows(field.code, state.tripDate) : null, stateTax: field ? stateTax?.states?.[field.state] : null, stateTaxAsOf: stateTax?.asOf, inTrip: field ? state.trip.some((x) => x.code === field.code) : false } });
+    const [y, m, d] = state.wxDay.split("-").map(Number);
+    fieldPanel.render({ field, airspace, ctx: { origin, config, tripDate: new Date(y, m - 1, d), wxRows: field ? wx.fieldRows(field.code, state.wxDay) : null, stateTax: field ? stateTax?.states?.[field.state] : null, stateTaxAsOf: stateTax?.asOf, inTrip: field ? state.trip.some((x) => x.code === field.code) : false } });
   }
 
   function renderEvents(state) {
@@ -323,7 +323,11 @@ async function boot() {
   }
 
   store.subscribe(render);
-  initUrlState(store);
+  initUrlState(store, { originIds: new Set(config.origins.map((o) => o.id)), rangeMin: config.rangeSlider.min, rangeMax: config.rangeSlider.max });
+  // A link can name a field that is gone from the list, under the runway cutoff or without a position. Drop those
+  // once, here, so the legs on screen are exactly the stops in the state (buttons act on the leg they sit on).
+  const known = (code) => fieldsByCode.get(code)?.hasPosition;
+  if (store.getState().trip.some((x) => !known(x.code))) store.setState((st) => ({ trip: st.trip.filter((x) => known(x.code)) }));
   render();
 
   // The map container can report zero size if Leaflet initializes before the

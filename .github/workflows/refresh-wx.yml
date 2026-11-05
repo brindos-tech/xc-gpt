@@ -37,14 +37,20 @@ jobs:
         run: node scripts/fetch-wx.js
 
       # the forecast publish replaces the whole branch, so include fresh TFRs
+      # an FAA outage must not cost the forecast: if this fails, the last published tfr.json is carried over below
       - name: Fetch TFRs
+        continue-on-error: true
         run: node scripts/fetch-tfr.js
 
       - name: Publish to wx-data
         run: |
           set -e
-          # the NOTAM file has its own workflow: carry it over so this replace does not drop it
-          if git fetch --depth=1 origin wx-data && git show FETCH_HEAD:wx/notams.json > /tmp/notams.json 2>/dev/null; then cp /tmp/notams.json data/generated/wx/notams.json; fi
+          # files with their own workflows (NOTAMs) and the last good TFRs (if the fetch above failed) are carried
+          # over so this replace does not drop them
+          git fetch --depth=1 origin wx-data || true
+          for f in notams.json tfr.json; do
+            if [ ! -f "data/generated/wx/$f" ] && git show "FETCH_HEAD:wx/$f" > "/tmp/$f" 2>/dev/null; then cp "/tmp/$f" "data/generated/wx/$f"; echo "kept the previous $f"; fi
+          done
           tmp="$(mktemp -d)"
           cp -r data/generated/wx "$tmp/wx"
           git config user.name "xc-gpt-bot"

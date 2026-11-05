@@ -189,6 +189,10 @@
   .app { height: auto; min-height: 100dvh; grid-template-rows: auto auto 1fr; }
   .app-header { flex-wrap: wrap; height: auto; padding: 10px 14px; }
   .header-search { order: 3; max-width: none; flex-basis: 100%; }
+  /* the freshness text gives way so the help button stays on the same line */
+  .app-header .freshness { flex: 1 1 200px; min-width: 0; overflow: hidden; justify-content: flex-end; }
+  .app-header .freshness #freshnessText { overflow: hidden; text-overflow: ellipsis; }
+  .app-header .help-btn { flex: none; }
 
   .app-body { grid-template-columns: 1fr; }
   .filter-rail {
@@ -359,14 +363,14 @@
   .trip-bar {
     display: block;
     position: fixed; left: 0; right: 0; bottom: env(safe-area-inset-bottom, 0px);
-    max-height: 72vh; z-index: 520;
+    max-height: 78vh; z-index: 1210;
     border-left: none; border-top: 1px solid var(--border);
     border-radius: var(--radius-lg) var(--radius-lg) 0 0; box-shadow: var(--shadow-lg);
     transform: translateY(110%); transition: transform 0.2s ease;
   }
   .trip-bar.open { transform: translateY(0); }
   .trip-bar-close { transform: rotate(90deg); }
-  .trip-backdrop { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 519; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+  .trip-backdrop { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1205; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
   .trip-backdrop.open { opacity: 1; pointer-events: auto; }
 }
 .app:not([data-page="planner"]) .trip-bar, .app:not([data-page="planner"]) .trip-backdrop, .app:not([data-page="planner"]) .trip-open-tab, .app:not([data-page="planner"]) .trip-toggle-btn { display: none !important; }

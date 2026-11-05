@@ -1,4 +1,5 @@
 import { formatFlightTime, formatDateRange, decodeEntities } from "../format.js";
+import { esc } from "../planner/html.js";
 
 const CATEGORY_COLORS = {
   concert: "var(--cat-concert)", festival: "var(--cat-festival)", rodeo: "var(--cat-rodeo)",
@@ -87,10 +88,10 @@ export function createMapView({ config, origin }) {
       // what's actually happening there across a few dates.
       const topEvents = place.rankedEvents ? place.rankedEvents.slice(0, 3) : [];
       const eventLinesHtml = topEvents
-        .map((e) => `<br><span style="color:var(--gold)">${formatDateRange(e.start, e.end)} — ${decodeEntities(e.title)}</span>`)
+        .map((e) => `<br><span style="color:var(--gold)">${formatDateRange(e.start, e.end)} — ${esc(decodeEntities(e.title))}</span>`)
         .join("");
       marker.bindTooltip(
-        `<b>${place.name}</b> — ${formatFlightTime(place.flightMinutes)}${count ? ` · ${count} event${count === 1 ? "" : "s"}` : ""}${eventLinesHtml}`,
+        `<b>${esc(place.name)}</b> — ${formatFlightTime(place.flightMinutes)}${count ? ` · ${count} event${count === 1 ? "" : "s"}` : ""}${eventLinesHtml}`,
         { className: "map-tooltip", direction: "top", offset: [0, -6] }
       );
       marker.on("click", () => onPinClick(place.id));

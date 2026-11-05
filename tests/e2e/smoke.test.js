@@ -290,12 +290,13 @@ test("weather bar: day picker, time slider, overlays, field forecast", async () 
     await page.waitForFunction(() => document.querySelectorAll("#plannerMap .leaflet-wx-pane img").length >= 3);
     await page.waitForFunction(() => document.querySelectorAll("#plannerMap [data-field][data-ring]").length > 0);
 
-    // picking a later day moves the whole app's trip date and the slider range
+    // picking a later day moves the weather (and the field sheet's day), not the flight plan's trip date
     const days = page.locator("[data-wx-day]:not([disabled])");
     const later = days.nth(2);
     const key = await later.getAttribute("data-wx-day");
     await later.click();
-    await page.waitForFunction((k) => /day=/.test(location.hash) && location.hash.includes(`day=${k}`), key);
+    await page.waitForFunction((k) => location.hash.includes(`wd=${k}`), key);
+    assert.ok(!(await page.evaluate(() => location.hash)).includes(`day=${key}`), "the trip date stays where it was");
     assert.ok(Number(await page.getAttribute("#wxSlider", "max")) >= 1, "several time steps that day");
 
     // the slider changes the selected time and the URL remembers it
@@ -588,6 +589,89 @@ test("flight plan: VFR says only VFR; marginal and instrument legs carry the cei
   }
 });
 
+test("event feeds: hostile titles, notes and links are shown as text and never run", async () => {
+  const { page, context, errors } = await openPage(undefined, {
+    plan: false,
+    hash: "#/v=events&place=houston-tx",
+    setup: (p) =>
+      p.route(/generated\/events\.json/, async (route) => {
+        const res = await route.fetch();
+        const events = await res.json();
+        const ev = events.find((e) => e.id === "rec-texas-renaissance-festival-2026");
+        ev.title = `Fest &lt;img src=x onerror="window.__xss=1"&gt;`;
+        ev.url = "javascript:window.__xss=2";
+        ev.pr = `<img src=x onerror="window.__xss=3">`;
+        await route.fulfill({ json: events });
+      }),
+  });
+  try {
+    await page.waitForSelector("#detailPanel.open", { timeout: 20000 });
+    await page.waitForTimeout(500);
+    assert.equal(await page.evaluate(() => window.__xss), undefined, "no event text became live code");
+    const text = await page.textContent("#detailPanel");
+    assert.ok(text.includes("<img src=x"), "the hostile title is shown as plain text");
+    assert.equal(await page.locator('#detailPanel a[href^="javascript:"]').count(), 0, "no javascript: link");
+    assert.equal(await page.locator("#detailPanel img[onerror]").count(), 0);
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("launch robustness: bad links, a missing forecast, hidden stops, the weather day and Reset filters", async () => {
+  // a garbled link opens the default view instead of breaking the page
+  const bad = await openPage(undefined, { plan: false, hash: "#/v=planner&origin=randolph&r=abc&from=garbage&day=2026-02-30&trip=KPNC@202613450000" });
+  try {
+    assert.ok((await pins(bad.page).count()) > 100, "the map still loads");
+    assert.deepEqual(bad.errors, []);
+  } finally {
+    await bad.context.close();
+  }
+
+  // the forecast index is missing: the page stays responsive and simply has no weather bar
+  const noWx = await openPage(undefined, {
+    plan: false,
+    setup: (page) => page.route(/generated\/wx\/(index|fields)\.json/, (route) => route.fulfill({ status: 404, body: "not found" })),
+  });
+  try {
+    assert.ok((await pins(noWx.page).count()) > 100);
+    const alive = await Promise.race([noWx.page.evaluate(() => new Promise((r) => setTimeout(() => r("ok"), 50))), new Promise((r) => setTimeout(() => r("frozen"), 5000))]);
+    assert.equal(alive, "ok", "the page is not stuck in a loop");
+    assert.equal(await noWx.page.isVisible("#wxBar"), false, "no weather bar without a forecast");
+    assert.deepEqual(noWx.errors, []);
+  } finally {
+    await noWx.context.close();
+  }
+
+  // a link naming a field that is not on the list: the legs shown are the stops kept, and their buttons act on them
+  const { page, context, errors } = await openPage(undefined, { hash: "#/v=planner&trip=KZZZ,KPNC,KOKC" });
+  try {
+    await page.waitForFunction(() => document.querySelectorAll("#tripBody .trip-stop:not(.trip-ret)").length === 2);
+    assert.equal(await page.locator("#tripBody .trip-stop:not(.trip-ret) [data-trip-arr]").first().inputValue(), "KPNC");
+    await page.locator('#tripBody [data-trip="remove"][data-i="0"]').click();
+    await page.waitForFunction(() => document.querySelectorAll("#tripBody .trip-stop:not(.trip-ret)").length === 1);
+    assert.equal(await page.locator("#tripBody [data-trip-arr]").first().inputValue(), "KOKC", "the leg that was removed is the one whose button was pressed");
+    assert.ok(!(await page.evaluate(() => location.hash)).includes("KZZZ"));
+
+    // browsing the weather by day does not move the flight plan
+    const planDay = await page.locator("#tripBody [data-trip-dep]").first().inputValue();
+    await page.locator("#wxCollapse").click();
+    await page.locator("[data-wx-day]:not([disabled])").nth(2).click();
+    await page.waitForFunction(() => /wd=/.test(location.hash));
+    assert.equal(await page.locator("#tripBody [data-trip-dep]").first().inputValue(), planDay, "leg 1 stays on its day");
+    assert.match(await page.textContent("#tripBody"), /No overnights/, "no phantom RON from moving the weather day");
+
+    // Reset filters keeps the plan and the page
+    await page.fill("#globalSearch", "zzz");
+    await page.click("#railReset");
+    assert.equal(await page.locator("#tripBody [data-trip-arr]").first().inputValue(), "KOKC", "the plan survives Reset filters");
+    assert.equal(await page.inputValue("#globalSearch"), "");
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
 test("flight plan: pick the takeoff date and time of each leg", async () => {
   const { page, context, errors } = await openPage();
   try {
@@ -699,6 +783,50 @@ test("flight plan bar can be hidden and brought back; the map key is small and s
     await page.click("#tripOpenTab");
     await page.waitForFunction(() => !document.querySelector(".app").dataset.trip);
     assert.equal(await page.isVisible("#tripBar"), true);
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("mobile: the welcome screen fits and its button is reachable; the plan sheet sits above the map controls", async () => {
+  const first = await openPage({ width: 390, height: 780 }, { welcome: true });
+  try {
+    const { page } = first;
+    assert.equal(await page.locator("#welcome").evaluate((d) => d.open), true);
+    // the "Got it" button is on screen and not covered by the example map's layers
+    const box = await page.locator("#welcomeGo").boundingBox();
+    assert.ok(box.y >= 0 && box.y + box.height <= 780, "button inside the screen");
+    const topmost = await page.evaluate(([x, y]) => document.elementFromPoint(x, y)?.id, [box.x + box.width / 2, box.y + box.height / 2]);
+    assert.equal(topmost, "welcomeGo", "nothing sits on top of the button");
+    assert.ok((await page.locator("#welcome").boundingBox()).width <= 390, "the dialog fits the width");
+    await page.click("#welcomeGo");
+    // the help button stays on the header line, icon only
+    assert.ok((await page.locator("#helpBtn").boundingBox()).width < 60);
+    assert.deepEqual(first.errors, []);
+  } finally {
+    await first.context.close();
+  }
+  const { page, context, errors } = await openPage({ width: 390, height: 780 });
+  try {
+    await page.click("#tripToggle");
+    await page.waitForSelector("#tripBar.open");
+    for (const code of ["KPNC", "KLBL"]) {
+      await page.fill("#tripSearch", code);
+      await page.press("#tripSearch", "Enter");
+      await page.waitForFunction((n) => document.querySelectorAll("#tripBody .trip-stop:not(.trip-ret)").length >= n, code === "KPNC" ? 1 : 2);
+    }
+    // the sheet is drawn over the map's zoom buttons
+    const zoom = await page.locator(".leaflet-control-zoom").first().boundingBox();
+    const topAt = await page.evaluate(([x, y]) => document.elementFromPoint(x, y)?.closest("#tripBar") !== null, [zoom.x + zoom.width / 2, zoom.y + zoom.height / 2]);
+    const sheet = await page.locator("#tripBar").boundingBox();
+    if (zoom.y > sheet.y) assert.equal(topAt, true, "the sheet covers any map control behind it");
+    // each leg's remove button sits on the first line next to the leg number, not on a line of its own
+    const row = await page.locator("#tripBody .trip-row").first().boundingBox();
+    const x = await page.locator('#tripBody .trip-row [data-trip="remove"]').first().boundingBox();
+    assert.ok(x.y - row.y < 40, "remove button on the first line of the row");
+    // takeoff, flight time and landing time are all there and nothing runs off the screen
+    assert.ok((await page.locator("#tripBar").evaluate((e) => e.scrollWidth <= e.clientWidth + 1)), "no sideways scroll");
     assert.deepEqual(errors, []);
   } finally {
     await context.close();

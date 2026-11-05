@@ -37,6 +37,7 @@ export function createWxController({ store, map, loadJson, today, onChange }) {
   const bar = document.getElementById("wxBar");
   let ready = false;
   let loading = false;
+  let failed = false; // the weather index would not load: stay out of the way (the bar stays hidden)
   let collapsed = true; // starts as a small header; the arrow opens the controls
   let overlays = new Map(); // style key -> L.ImageOverlay
   let drawnKey = "";
@@ -50,14 +51,14 @@ export function createWxController({ store, map, loadJson, today, onChange }) {
 
   /** The step to show: the user's pick if it belongs to the day, else a sensible default. */
   function currentStep(state) {
-    const steps = stepsFor(state.tripDate);
+    const steps = stepsFor(state.wxDay);
     if (!steps.length) return null;
     if (state.wxTime && steps.includes(state.wxTime)) return state.wxTime;
-    const target = state.tripDate === toDateKey(today) ? Date.now() : parseDate(state.tripDate).getTime() + 10 * 3600 * 1000;
+    const target = state.wxDay === toDateKey(today) ? Date.now() : parseDate(state.wxDay).getTime() + 10 * 3600 * 1000;
     return steps.reduce((best, s) => (Math.abs(new Date(s) - target) < Math.abs(new Date(best) - target) ? s : best));
   }
 
-  const isNow = (state, step) => state.tripDate === toDateKey(today) && step && Math.abs(new Date(step) - Date.now()) <= NOW_WINDOW_MS;
+  const isNow = (state, step) => state.wxDay === toDateKey(today) && step && Math.abs(new Date(step) - Date.now()) <= NOW_WINDOW_MS;
 
   // ---- bar ----
   function buildBar() {
@@ -85,14 +86,14 @@ export function createWxController({ store, map, loadJson, today, onChange }) {
 
     bar.addEventListener("click", (e) => {
       const day = e.target.closest("[data-wx-day]");
-      if (day && !day.disabled) return store.setState({ tripDate: day.dataset.wxDay, wxTime: null });
+      if (day && !day.disabled) return store.setState({ wxDay: day.dataset.wxDay, wxTime: null });
       const layer = e.target.closest("[data-wx-layer]");
       if (layer) {
         const next = new Set(store.getState().wxLayers);
         next.has(layer.dataset.wxLayer) ? next.delete(layer.dataset.wxLayer) : next.add(layer.dataset.wxLayer);
         return store.setState({ wxLayers: next });
       }
-      if (e.target.closest("#wxNow")) return store.setState({ tripDate: toDateKey(today), wxTime: nearestToNow() });
+      if (e.target.closest("#wxNow")) return store.setState({ wxDay: toDateKey(today), wxTime: nearestToNow() });
       if (e.target.closest("#wxCollapse")) {
         collapsed = !collapsed;
         bar.querySelector("#wxBody").hidden = collapsed;
@@ -103,7 +104,7 @@ export function createWxController({ store, map, loadJson, today, onChange }) {
       }
     });
     bar.querySelector("#wxSlider").addEventListener("input", (e) => {
-      const steps = stepsFor(store.getState().tripDate);
+      const steps = stepsFor(store.getState().wxDay);
       const s = steps[Number(e.target.value)];
       if (s) store.setState({ wxTime: s });
     });
@@ -116,9 +117,9 @@ export function createWxController({ store, map, loadJson, today, onChange }) {
   }
 
   function syncBar(state, step) {
-    const steps = stepsFor(state.tripDate);
+    const steps = stepsFor(state.wxDay);
     bar.querySelectorAll("[data-wx-day]").forEach((b) => {
-      b.classList.toggle("active", b.dataset.wxDay === state.tripDate);
+      b.classList.toggle("active", b.dataset.wxDay === state.wxDay);
       b.disabled = !stepsFor(b.dataset.wxDay).length;
     });
     bar.querySelectorAll("[data-wx-layer]").forEach((b) => b.classList.toggle("active", state.wxLayers.has(b.dataset.wxLayer)));
@@ -246,15 +247,22 @@ export function createWxController({ store, map, loadJson, today, onChange }) {
 
   // ---- lifecycle ----
   async function load() {
-    if (loading || ready) return;
+    if (loading || ready || failed) return;
     loading = true;
     const ok = await wxData.init();
+    if (!ok) {
+      // no index (not published yet, offline, a bad response): give up for this visit. Calling onChange() here
+      // would re-render the planner, which would ask to load again, forever.
+      failed = true;
+      loading = false;
+      return;
+    }
     if (ok) {
       buildBar();
       // fields file is only needed for pin rings and the field sheet
       wxData.loadFields().then(() => onChange());
       ready = true;
-      const first = stepsFor(store.getState().tripDate)[0];
+      const first = stepsFor(store.getState().wxDay)[0];
       if (first) await wxData.ensureSteps([first]).catch(() => {});
     }
     loading = false;
@@ -263,12 +271,13 @@ export function createWxController({ store, map, loadJson, today, onChange }) {
 
   /** Called on every planner render. */
   function render(state) {
+    if (failed) return;
     if (!ready) {
       load();
       return;
     }
     const step = currentStep(state);
-    const key = `${state.tripDate}|${step}|${[...state.wxLayers].sort().join(",")}`;
+    const key = `${state.wxDay}|${step}|${[...state.wxLayers].sort().join(",")}`;
     syncBar(state, step);
     if (key !== lastRenderKey) {
       lastRenderKey = key;

@@ -94,17 +94,26 @@ export function timelineSvg({ rows, depAt, etaAt, tz, hours = WINDOW_HOURS }) {
 }
 
 /**
- * "Alternate may be required": the lowest forecast ceiling at the arrival field
- * within `windowMin` minutes either side of the ETA, when it is below `belowFt`.
- * @returns {{ceilFt:number, f:object}|null}
+ * "Alternate may be required": near the ETA (within `windowMin` minutes either side), the forecast
+ * ceiling is below `belowFt` or the visibility is below `belowSm` statute miles.
+ * @returns {{ceilHundreds:number|null, visTenths:number|null}|null} the lowest of each that qualified
  */
-export function alternateCheck(forecastAt, code, eta, belowFt = 2000, windowMin = 60) {
-  let worst = null;
+export function alternateCheck(forecastAt, code, eta, belowFt = 2000, windowMin = 60, belowSm = 3) {
+  let ceil = null;
+  let vis = null;
   for (let m = -windowMin; m <= windowMin; m += 30) {
     const f = forecastAt(code, new Date(eta.getTime() + m * 60000));
-    if (!f || f.ceil >= NO_CEILING) continue;
-    const ceilFt = f.ceil * 100;
-    if (ceilFt < belowFt && (!worst || ceilFt < worst.ceilFt)) worst = { ceilFt, f };
+    if (!f) continue;
+    if (f.ceil < NO_CEILING && f.ceil * 100 < belowFt && (ceil == null || f.ceil < ceil)) ceil = f.ceil;
+    if (Number.isFinite(f.vis) && f.vis < belowSm * 10 && (vis == null || f.vis < vis)) vis = f.vis;
   }
-  return worst;
+  return ceil == null && vis == null ? null : { ceilHundreds: ceil, visTenths: vis };
+}
+
+/** "forecast ceiling 800 ft and visibility 2 SM" for the flag text. */
+export function alternateReason(alt) {
+  const parts = [];
+  if (alt.ceilHundreds != null) parts.push(`ceiling ${(alt.ceilHundreds * 100).toLocaleString("en-US")} ft`);
+  if (alt.visTenths != null) parts.push(`visibility ${alt.visTenths / 10} SM`);
+  return `forecast ${parts.join(" and ")}`;
 }

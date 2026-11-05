@@ -425,8 +425,8 @@ test("tfr: WFS shapes merge with the list's types into slim features", async () 
 // ---- trip builder ----
 test("trip: legs, range flags, route string and URL encoding", async () => {
   const trip = await import("../../assets/js/planner/trip.js");
-  assert.equal(trip.encodeTrip([{ code: "KOKC", ron: true }, { code: "KTUL", ron: false }]), "KOKC*,KTUL");
-  assert.deepEqual(trip.decodeTrip("KOKC*,KTUL,bad!,"), [{ code: "KOKC", ron: true }, { code: "KTUL", ron: false }]);
+  assert.equal(trip.encodeTrip([{ code: "KOKC", ron: true }, { code: "KTUL", ron: false }]), "KOKC,KTUL", "RON comes from the takeoff dates, not the link");
+  assert.deepEqual(trip.decodeTrip("KOKC*,KTUL,bad!,"), [{ code: "KOKC", ron: false }, { code: "KTUL", ron: false }], "old links with a RON marker still open");
   const o = { icao: "KEND", lat: 36.3392, lon: -97.9166 };
   const stops = [{ code: "KOKC", lat: 35.39, lon: -97.6 }, { code: "KMSY", lat: 29.99, lon: -90.26 }];
   const r = trip.tripLegs(o, stops, config);
@@ -498,8 +498,13 @@ test("clock helpers: wall-clock <-> instant in a zone, across daylight time", as
 test("trip URL: takeoff times ride along with each stop", async () => {
   const trip = await import("../../assets/js/planner/trip.js");
   const stops = [{ code: "KOKC", ron: true, dep: "2026-11-07T09:30" }, { code: "KTUL", ron: false }];
-  assert.equal(trip.encodeTrip(stops), "KOKC*@202611070930,KTUL");
-  assert.deepEqual(trip.decodeTrip("KOKC*@202611070930,KTUL,junk,KXXX@12"), stops);
+  assert.equal(trip.encodeTrip(stops), "KOKC@202611070930,KTUL");
+  assert.deepEqual(trip.decodeTrip("KOKC@202611070930,KTUL,junk,KXXX@12"), [{ code: "KOKC", ron: false, dep: "2026-11-07T09:30" }, { code: "KTUL", ron: false }]);
+  // impossible times are dropped, not rolled into another day
+  assert.deepEqual(trip.decodeTrip("KOKC@202613450000,KTUL@202611072561"), [{ code: "KOKC", ron: false }, { code: "KTUL", ron: false }]);
+  assert.equal(trip.decodeDep("202602300900"), "");
+  assert.equal(trip.isValidDate("2026-02-30"), false);
+  assert.equal(trip.isValidDate("2028-02-29"), true);
   assert.equal(trip.decodeDep(trip.encodeDep("2026-11-08T17:05")), "2026-11-08T17:05");
   assert.equal(trip.decodeDep("nope"), "");
 });
@@ -691,6 +696,7 @@ test("crew card: elevation, who controls the field, and right-traffic runways ar
   const zfw = { id: "ZFW", name: "FORT WORTH" };
   assert.match(controlInfo({ tower: "ATCT-TRACON", artcc: zfw }).text, /Tower \+ approach control \(TRACON\) · ZFW FORT WORTH Center/);
   assert.equal(controlInfo({ tower: "ATCT-RAPCON", artcc: zfw }).flagged, true);
+  assert.match(controlInfo({ tower: "NON-ATCT", artcc: { id: "ZKC", name: "" } }).text, /ZKC Kansas City Center/, "the centre name comes from its id when the data has none");
   assert.match(controlInfo({ tower: "ATCT-A/C" }).text, /approach control \(A\/C\)/);
   assert.match(controlInfo({ tower: "NON-ATCT", artcc: zfw }).text, /No tower · center control \(ZFW FORT WORTH Center\)/);
   assert.equal(controlInfo({ tower: "NON-ATCT", artcc: zfw }).flagged, true);
@@ -708,4 +714,78 @@ test("crew card: elevation, who controls the field, and right-traffic runways ar
   assert.match(html, /Elevation<\/th><td><b class="cc-hi">2,891′ MSL<\/b>/);
   assert.match(html, /ATC<\/th><td><b class="cc-hi">No tower · center control \(ZKC KANSAS CITY Center\)<\/b>/);
   assert.match(html, /Traffic pattern<\/th><td><b class="cc-hi">Right traffic: runway 12, 30<\/b>/);
+});
+
+test("crew card: each stop's hours, sun and per diem are for the day the crew arrives there", async () => {
+  const { crewCardHtml } = await import("../../assets/js/planner/crew-card.js");
+  const trip = await import("../../assets/js/planner/trip.js");
+  const o = { icao: "KEND", lat: 36.3392, lon: -97.9166, tz: "America/Chicago" };
+  // a weekday-only FBO: open Mon-Fri 0700-1700
+  const f = { code: "KPNC", name: "Ponca City", city: "Ponca City, OK", state: "OK", lat: 36.73, lon: -97.1, attendance: "MON-FRI 0700-1700", land: "Approved", fuel: "Approved", ron: "Approved", classification: "Civil", aircard: [], approaches: [], approachTypes: [] };
+  const a = { code: "KOKC", name: "Will Rogers", city: "Oklahoma City, OK", state: "OK", lat: 35.39, lon: -97.6, land: "Approved", fuel: "Approved", ron: "Approved", classification: "Civil", aircard: [], approaches: [], approachTypes: [] };
+  // the trip starts Friday Nov 6; leg 2, to the weekday-only FBO, is set for Saturday Nov 7
+  const stops = [{ field: a, ron: false }, { field: f, ron: false, dep: "2026-11-07T09:00" }];
+  const legs = trip.tripLegs(o, [a, f], config);
+  const schedule = trip.scheduleTrip({ origin: o, stops, legs: legs.legs, tripDate: "2026-11-06" });
+  assert.equal(schedule[0].etaLocal.date, "2026-11-06");
+  assert.equal(schedule[1].etaLocal.date, "2026-11-07");
+  const html = crewCardHtml({ origin: o, stops, legs, schedule, cost: trip.tripPerDiem([], new Date(2026, 10, 6)), tripDate: new Date(2026, 10, 6), route: "x", stateTaxes: {}, dataNotes: [] });
+  assert.match(html, /arrive Sat, Nov 7/);
+  assert.match(html, /FBO hours<\/th><td>Closed that day/, "Saturday is not a weekday: the stop section says closed");
+});
+
+test("time zones: the split states are decided correctly for the fields on the list", async () => {
+  const { fieldTimeZone } = await import("../../assets/js/planner/sun.js");
+  const tz = (st, lat, lon) => fieldTimeZone(st, lat, lon);
+  assert.equal(tz("ND", 48.4158, -101.358), "America/Chicago", "Minot AFB");
+  assert.equal(tz("ND", 46.7727, -100.7457), "America/Chicago", "Bismarck");
+  assert.equal(tz("ND", 46.797, -102.802), "America/Denver", "Dickinson");
+  assert.equal(tz("ND", 48.178, -103.642), "America/Chicago", "Williston");
+  assert.equal(tz("KY", 38.1741, -85.7365), "America/New_York", "Louisville");
+  assert.equal(tz("KY", 37.686, -85.926), "America/New_York", "Elizabethtown");
+  assert.equal(tz("KY", 38.0365, -84.6059), "America/New_York", "Lexington");
+  assert.equal(tz("KY", 36.6686, -87.4962), "America/Chicago", "Fort Campbell");
+  assert.equal(tz("KY", 36.9645, -86.4197), "America/Chicago", "Bowling Green");
+  assert.equal(tz("KY", 37.0333, -85.9533), "America/Chicago", "Glasgow");
+  // the other split states the list uses
+  assert.equal(tz("KS", 37.93, -100.72), "America/Chicago", "Garden City");
+  assert.equal(tz("SD", 44.05, -103.06), "America/Denver", "Rapid City");
+  assert.equal(tz("TN", 35.04, -85.2), "America/New_York", "Chattanooga");
+  assert.equal(tz("TN", 36.12, -86.68), "America/Chicago", "Nashville");
+  assert.equal(tz("FL", 30.35, -87.32), "America/Chicago", "Pensacola");
+  assert.equal(tz("FL", 30.07, -85.57), "America/Chicago", "Tyndall");
+  assert.equal(tz("TX", 31.81, -106.38), "America/Denver", "El Paso");
+});
+
+test("crew card: the alternate warning is printed on the leg", async () => {
+  const { crewCardHtml } = await import("../../assets/js/planner/crew-card.js");
+  const trip = await import("../../assets/js/planner/trip.js");
+  const o = { icao: "KEND", lat: 36.3392, lon: -97.9166, tz: "America/Chicago" };
+  const f = { code: "KPNC", name: "Ponca City", city: "Ponca City, OK", state: "OK", lat: 36.73, lon: -97.1, land: "Approved", fuel: "Approved", ron: "Approved", classification: "Civil", aircard: [], approaches: [], approachTypes: [] };
+  const stops = [{ field: f, ron: false }];
+  const legs = trip.tripLegs(o, [f], config);
+  const schedule = trip.scheduleTrip({ origin: o, stops, legs: legs.legs, tripDate: "2026-11-07" });
+  const base = { origin: o, stops, legs, schedule, cost: trip.tripPerDiem([], new Date(2026, 10, 7)), tripDate: new Date(2026, 10, 7), route: "x", stateTaxes: {}, dataNotes: [] };
+  const low = crewCardHtml({ ...base, forecastAt: (code) => (code === "KPNC" ? { ceil: 9, vis: 25, lice: 0, hice: 0, thun: 0 } : { ceil: 255, vis: 100 }) });
+  assert.match(low, /Alternate may be required \(forecast ceiling 900 ft and visibility 2.5 SM at KPNC\)/);
+  const fine = crewCardHtml({ ...base, forecastAt: () => ({ ceil: 255, vis: 100 }) });
+  assert.doesNotMatch(fine, /Alternate may be required/);
+});
+
+test("untrusted text: tooltips are escaped and only web links are used", async () => {
+  const { airspaceTooltip } = await import("../../assets/js/planner/airspace.js");
+  const { esc, safeUrl } = await import("../../assets/js/planner/html.js");
+  const evil = `<img src=x onerror=alert(1)>`;
+  for (const p of [{ type: "TFR", name: evil, kind: evil, title: evil }, { type: "MOA", name: evil, bottom: evil, top: evil }, { type: "VR", name: evil, altitudes: evil }]) {
+    const html = airspaceTooltip(p);
+    assert.doesNotMatch(html, /<img/, `${p.type} tooltip`);
+    assert.match(html, /&lt;img/);
+  }
+  assert.equal(safeUrl("https://example.com/a?b=1"), "https://example.com/a?b=1");
+  assert.equal(safeUrl("http://example.com"), "http://example.com");
+  assert.equal(safeUrl("javascript:alert(1)"), "");
+  assert.equal(safeUrl("  JaVaScRiPt:alert(1)"), "");
+  assert.equal(safeUrl("data:text/html,<script>"), "");
+  assert.equal(safeUrl(undefined), "");
+  assert.equal(esc(`"><script>`), "&quot;&gt;&lt;script&gt;");
 });

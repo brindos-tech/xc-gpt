@@ -8,7 +8,7 @@ import { formatFlightTime } from "../format.js";
 import { esc } from "../planner/html.js";
 import { matchesSearch } from "../planner/fields.js";
 import { greatCircleNm } from "../geo.js";
-import { ceilingSeries, legIsInstrument, worstSample, summarize, timelineSvg, alternateCheck } from "../planner/ceiling-timeline.js";
+import { ceilingSeries, legIsInstrument, worstSample, summarize, timelineSvg, alternateCheck, alternateReason } from "../planner/ceiling-timeline.js";
 
 const money = (n) => `$${Math.round(n).toLocaleString("en-US")}`;
 
@@ -167,7 +167,10 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
     const patch = {};
     if (i >= s.trip.length) patch.tripReturnDep = value;
     else patch.trip = s.trip.map((x, k) => (k === i ? { ...x, dep: value || undefined } : { ...x }));
-    if (i === 0 && /^\d{4}-\d{2}-\d{2}T/.test(value)) patch.tripDate = value.slice(0, 10);
+    if (i === 0 && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+      patch.tripDate = value.slice(0, 10);
+      patch.wxDay = patch.tripDate; // look at the weather for the day you just set
+    }
     store.setState(patch);
   }
 
@@ -234,7 +237,7 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
   function legHtml(leg, state, info, { stop, count } = {}) {
     const gas = info.overRange ? `<div class="fp-flag warn">⚠ Tight on gas (${config.aircraft.legRangeNm}+ nm)</div>` : "";
     const alt = forecastAt ? alternateCheck(forecastAt, leg.to, leg.eta) : null;
-    const altFlag = alt ? `<div class="fp-flag warn">⚠ Alternate may be required (forecast ceiling ${esc(ceilingText(alt.f.ceil))} at ${esc(leg.to)})</div>` : "";
+    const altFlag = alt ? `<div class="fp-flag warn">⚠ Alternate may be required (${esc(alternateReason(alt))} at ${esc(leg.to)})</div>` : "";
     const flags = gas + altFlag + legFlags(leg).map((x) => `<div class="fp-flag ${x.level}">⚠ ${esc(x.text)}</div>`).join("");
     const takeoff = `${leg.depLocal.date}T${leg.depLocal.time}`;
     const shift = clockShift(leg.fromTz, leg.dep, leg.toTz, leg.eta);

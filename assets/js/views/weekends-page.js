@@ -2,7 +2,7 @@
 // plus two backups, mixed across sports, concerts and other big events (see
 // weekends.js). Uses the base and range from the rail; the header search narrows
 // the events considered.
-import { esc } from "../planner/html.js";
+import { esc, safeUrl } from "../planner/html.js";
 import { loadEventsData } from "../events/data.js";
 import { greatCircleNm, flightMinutes } from "../geo.js";
 import { addDays, decodeEntities, formatFlightTime, parseDate, toDateKey } from "../format.js";
@@ -86,7 +86,8 @@ export function createWeekendsPage({ root, store, config, loadJson, today }) {
   function pickHtml(c, week, primary) {
     const title = decodeEntities(c.event.title);
     const more = c.more.length ? `<span class="muted small"> · +${c.more.length} more there</span>` : "";
-    const link = c.event.url ? `<a href="${esc(c.event.url)}" target="_blank" rel="noopener noreferrer">${esc(title)} ↗</a>` : esc(title);
+    const eventUrl = safeUrl(c.event.url);
+    const link = eventUrl ? `<a href="${esc(eventUrl)}" target="_blank" rel="noopener noreferrer">${esc(title)} ↗</a>` : esc(title);
     return `<div class="${primary ? "wk-primary" : "wk-backup"}">
       <div class="wk-line">${primary ? `<span class="badge best-match">Best match</span>` : ""}${badge(c.group)}<b class="wk-title">${link}</b></div>
       <div class="wk-place"><a class="wk-city" href="#/v=events&amp;from=${toDateKey(week.friday)}&amp;to=${toDateKey(addDays(week.friday, 2))}&amp;place=${encodeURIComponent(c.place.id)}" data-wk-open="${esc(c.place.id)}" data-wk-week="${toDateKey(week.friday)}" title="See ${esc(c.place.name)} on the events map">${esc(c.place.name)}${c.place.state ? `, ${esc(c.place.state)}` : ""}</a> <span class="wk-fly">${esc(formatFlightTime(c.place.flightMinutes))} · ${Math.round(c.place.distanceNm)} nm</span> <span class="muted small">${esc(eventWhen(c.event, week))}</span>${more}</div>

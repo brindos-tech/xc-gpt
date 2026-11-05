@@ -53,7 +53,8 @@ export function buildTfr(wfs, list) {
 async function main() {
   const [wfs, list] = await Promise.all([fetchJsonWithRetry(WFS, {}, { retries: 3, baseDelayMs: 3000 }), fetchJsonWithRetry(LIST, {}, { retries: 3, baseDelayMs: 3000 }).catch(() => [])]);
   const features = buildTfr(wfs, list);
-  if (!features.length && (wfs.features || []).length) throw new Error("TFR feed had shapes but none were usable");
+  // there are always TFRs somewhere in the country: an empty answer means the feed is broken, so keep the last published file
+  if (!features.length) throw new Error(`TFR feed gave no usable TFRs (${(wfs.features || []).length} shapes); not publishing`);
   await mkdir(path.dirname(OUT), { recursive: true });
   await writeFile(OUT, JSON.stringify({ builtAt: new Date().toISOString(), source: "FAA TFR (tfr.faa.gov)", type: "FeatureCollection", features }));
   console.log(`Wrote ${features.length} TFR shapes.`);

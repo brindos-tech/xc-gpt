@@ -29,10 +29,15 @@ export function createWxData(loadJson) {
     if (!dayPromises.has(date)) {
       dayPromises.set(
         date,
-        loadJson(`generated/wx/${date}.json`).then((d) => {
-          days.set(date, d);
-          return d;
-        })
+        loadJson(`generated/wx/${date}.json`)
+          .then((d) => {
+            days.set(date, d);
+            return d;
+          })
+          .catch((err) => {
+            dayPromises.delete(date); // a failed day is tried again next time it is needed
+            throw err;
+          })
       );
     }
     return dayPromises.get(date);
