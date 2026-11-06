@@ -649,6 +649,12 @@ test("NOTAMs: only show-stoppers are kept, and the crew card line says what it k
   assert.equal(n.showStopper("!PNC 11/004 PNC AVGAS NOT AVBL"), "Fuel unavailable");
   assert.equal(n.showStopper("!PNC 11/005 PNC TWY B CLSD"), null, "taxiway closures are not show-stoppers");
   assert.equal(n.showStopper("!PNC 11/006 PNC RWY 17 EDGE LGT U/S"), null);
+  // taxiway closures that merely mention a runway, and weight-limit closures, are not show-stoppers
+  assert.equal(n.showStopper("TWY N RUNUP PAD FOR RWY 27 CLSD"), null);
+  assert.equal(n.showStopper("TWY A BTN TWY C AND APCH END RWY 35 CLSD"), null);
+  assert.equal(n.showStopper("RWY 09/27 CLSD TO ACFT OVER 12500 LBS"), null);
+  assert.equal(n.showStopper("RWY 09/27 CLSD EXC TAX BTN TWY B3 AND TWY B7"), "Runway closed");
+  assert.equal(n.showStopper("RWY 4 AND 22 CLSD"), "Runway closed");
   assert.equal(n.showStopper("!PNC 11/007 PNC OBST CRANE 150FT AGL"), null);
   // dates and items
   assert.equal(n.parseNotamDate("2611011200").toISOString(), "2026-11-01T12:00:00.000Z");

@@ -8,8 +8,13 @@ export function showStopper(text) {
   const t = String(text || "").toUpperCase().replace(/\s+/g, " ");
   if (!t) return null;
   if (/\bAD AP CLSD\b|\bAIRPORT (CLSD|CLOSED)\b|\bAD CLSD\b|\bAERODROME (CLSD|CLOSED)\b/.test(t)) return "Airport closed";
-  // "RWY 17/35 CLSD", "RWY 17L CLSD", "RWY 17/35 CLSD EXC ..." — but not "TWY ... CLSD" or "RWY ... EDGE LGT U/S"
-  if (/\bRWY\s+[0-9]{1,2}[LRC]?(\/[0-9]{1,2}[LRC]?)?(\s*(AND|,)\s*[0-9]{1,2}[LRC]?(\/[0-9]{1,2}[LRC]?)?)*\s+(CLSD|CLOSED)\b/.test(t) || /\bRUNWAY\s+\S+\s+(CLSD|CLOSED)\b/.test(t)) return "Runway closed";
+  // The NOTAM must be ABOUT a runway ("RWY 17/35 CLSD", "RWY 09/27 CLSD EXC TAX ..."), so "TWY A BTN TWY C AND APCH END RWY 35 CLSD"
+  // and "TWY N RUNUP PAD FOR RWY 27 CLSD" (taxiways) do not count, nor does a weight limit ("CLSD TO ACFT OVER 12500 LBS").
+  const subject = t.replace(/^!\S+\s+\d{1,2}\/\d{1,5}\s+\S+\s+/, "");
+  const closed = "(CLSD|CLOSED)";
+  const rwy = "[0-9]{1,2}[LRC]?(\\/[0-9]{1,2}[LRC]?)?";
+  const aboutRunway = new RegExp(`^(RWY|RUNWAY)\\s+${rwy}(\\s*(AND|,)\\s*${rwy})*\\s+${closed}\\b`).test(subject);
+  if (aboutRunway && !/\b(CLSD|CLOSED) TO (ACFT|AIRCRAFT)\b[^.]{0,30}\b(OVER|EXCEEDING|HEAVIER|WINGSPAN|WEIGHT|MORE THAN)\b/.test(subject)) return "Runway closed";
   if (/\b(FUEL|AVGAS|100LL|JET ?A1?|JET FUEL)\b[^.]{0,40}\b(NOT AVBL|UNAVBL|NOT AVAILABLE|UNAVAILABLE|NA)\b|\bNO (FUEL|AVGAS|JET)/.test(t)) return "Fuel unavailable";
   return null;
 }
