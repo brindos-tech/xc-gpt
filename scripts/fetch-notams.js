@@ -117,8 +117,10 @@ async function notamsAt(location, token, limiter) {
   if (res.status === 404) return []; // no NOTAMs there
   if (process.argv.includes("--probe")) console.log(`  per-field ${location}: HTTP ${res.status}, ${res.headers.get("content-type")}`);
   if (!res.ok) throw Object.assign(new Error(`NOTAMs for ${location}: HTTP ${res.status}`), { status: res.status });
+  const text = await res.text();
+  if (process.argv.includes("--probe")) console.log(`  per-field ${location} body (${text.length} chars): ${JSON.stringify(text.slice(0, 900))}`);
   const out = [];
-  for await (const n of notamsFromChunks([await res.text()])) out.push(n);
+  for await (const n of notamsFromChunks([text])) out.push(n);
   return out;
 }
 
@@ -131,6 +133,19 @@ async function fieldIndex() {
 }
 
 const codeFor = fieldCodeFor;
+
+/** Say what the start of the initial load looks like (public NOTAM text, no secrets) when nothing could be parsed. */
+function describeHead(head, parsed) {
+  if (parsed > 0 || !head) return;
+  const count = (re) => (head.match(re) || []).length;
+  console.log(`  first 3 MB: ${head.length} chars; '</aixm:member>' x${count(/<\/aixm:member>/g)}, '<event:NOTAM' x${count(/<event:NOTAM[\s>]/g)}, 'textNOTAM' x${count(/textNOTAM/g)}, '<hasMember' x${count(/<hasMember/g)}`);
+  const root = head.search(/<[A-Za-z0-9:]*FeatureCollection[^>]*>/);
+  const after = root >= 0 ? head.indexOf(">", head.indexOf("numberReturned", root)) + 1 || root : 0;
+  console.log(`  start of file: ${JSON.stringify(head.slice(0, 160))}`);
+  console.log(`  after the root tag: ${JSON.stringify(head.slice(after, after + 1800))}`);
+  const textNotam = head.search(/<event:textNOTAM/);
+  if (textNotam >= 0) console.log(`  around the first NOTAM: ${JSON.stringify(head.slice(Math.max(0, textNotam - 200), textNotam + 1500))}`);
+}
 
 async function probe(id, secret) {
   const auth = await getToken(id, secret);
@@ -146,6 +161,11 @@ async function probe(id, secret) {
     const samples = [];
     const types = {};
     const stop = watchProgress("probe", stream, () => total);
+    let head = "";
+    stream.on("data", (c) => {
+      if (head.length < 3e6) head += c.toString("utf-8");
+      globalThis.__head = head;
+    });
     const watchdog = setTimeout(() => {
       console.log("probe: no more data after 90 s; stopping the download");
       stream.destroy();
@@ -171,11 +191,13 @@ async function probe(id, secret) {
       }
     }
     stop();
+    describeHead(head, total);
     if (cutShort) console.log("probe stopped reading after 90 s (the numbers below cover only what arrived)");
     console.log(`initial load OK (${(bytes / 1e6).toFixed(1)} MB compressed): ${total} NOTAMs, types ${JSON.stringify(types)}; ${ours} are at our ${codes.length} fields`);
     console.log(`show-stoppers at our fields: ${JSON.stringify(kinds)}`);
     for (const s of samples) console.log(`  ${s}`);
   } catch (err) {
+    describeHead(globalThis.__head || "", 0);
     console.log(`initial load failed (${err.message}); would fall back to per-field requests`);
     const one = await notamsAt("KOKC", auth.token, async () => {});
     console.log(`per-field request for KOKC: ${one.length} NOTAMs parsed`);
