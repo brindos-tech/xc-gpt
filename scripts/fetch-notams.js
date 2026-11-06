@@ -34,17 +34,29 @@ const UA = "xc-gpt-notam-fetch";
 class FatalError extends Error {}
 
 async function getToken(id, secret) {
-  const res = await fetch(AUTH_URL, {
-    method: "POST",
-    headers: { authorization: `Basic ${Buffer.from(`${id}:${secret}`).toString("base64")}`, "content-type": "application/x-www-form-urlencoded", "user-agent": UA },
-    body: "grant_type=client_credentials",
-    signal: AbortSignal.timeout(30000),
-  });
-  if (res.status === 401 || res.status === 403) throw new FatalError(`the NMS auth service refused the client id/secret (HTTP ${res.status}) at ${redact(AUTH_URL)}`);
-  if (!res.ok) throw new Error(`auth failed: HTTP ${res.status} at ${redact(AUTH_URL)}`);
-  const body = await res.json();
-  if (!body.access_token) throw new Error("auth answered without an access token");
-  return { token: body.access_token, expiresIn: Number(body.expires_in) || 0, status: body.status };
+  // Two standard ways to send a client id/secret: HTTP Basic (what the onboarding examples use), then in the form body.
+  const attempts = [
+    { headers: { authorization: `Basic ${Buffer.from(`${id}:${secret}`).toString("base64")}` }, body: "grant_type=client_credentials" },
+    { headers: {}, body: new URLSearchParams({ grant_type: "client_credentials", client_id: id, client_secret: secret }).toString() },
+  ];
+  let refused = 0;
+  for (const a of attempts) {
+    const res = await fetch(AUTH_URL, {
+      method: "POST",
+      headers: { ...a.headers, "content-type": "application/x-www-form-urlencoded", "user-agent": UA },
+      body: a.body,
+      signal: AbortSignal.timeout(30000),
+    });
+    if (res.status === 401 || res.status === 403) {
+      refused = res.status;
+      continue;
+    }
+    if (!res.ok) throw new Error(`auth failed: HTTP ${res.status} at ${redact(AUTH_URL)}`);
+    const body = await res.json();
+    if (!body.access_token) throw new Error("auth answered without an access token");
+    return { token: body.access_token, expiresIn: Number(body.expires_in) || 0, status: body.status };
+  }
+  throw new FatalError(`the NMS auth service refused the client id/secret (HTTP ${refused}) at ${redact(AUTH_URL)} (id is ${id.length} characters, secret ${secret.length})`);
 }
 
 const authHeaders = (token, extra = {}) => ({ authorization: `Bearer ${token}`, "user-agent": UA, ...extra });
@@ -121,8 +133,8 @@ async function probe(id, secret) {
 }
 
 async function main() {
-  const id = process.env.FAA_NMS_CLIENT_ID;
-  const secret = process.env.FAA_NMS_CLIENT_SECRET;
+  const id = (process.env.FAA_NMS_CLIENT_ID || "").trim();
+  const secret = (process.env.FAA_NMS_CLIENT_SECRET || "").trim();
   if (!id || !secret) {
     console.log("FAA_NMS_CLIENT_ID / FAA_NMS_CLIENT_SECRET are not set: skipping NOTAMs.");
     return;
