@@ -146,7 +146,19 @@ async function probe(id, secret) {
     const samples = [];
     const types = {};
     const stop = watchProgress("probe", stream, () => total);
+    const watchdog = setTimeout(() => {
+      console.log("probe: no more data after 90 s; stopping the download");
+      stream.destroy();
+    }, 95000);
+    watchdog.unref();
+    const deadline = Date.now() + 90000; // a probe must always end with a readable log
+    let cutShort = false;
     for await (const n of notamsFromChunks(stream)) {
+      if (Date.now() > deadline) {
+        cutShort = true;
+        stream.destroy();
+        break;
+      }
       total++;
       types[n.type || "?"] = (types[n.type || "?"] || 0) + 1;
       const code = codeFor(n, byLocation);
@@ -159,6 +171,7 @@ async function probe(id, secret) {
       }
     }
     stop();
+    if (cutShort) console.log("probe stopped reading after 90 s (the numbers below cover only what arrived)");
     console.log(`initial load OK (${(bytes / 1e6).toFixed(1)} MB compressed): ${total} NOTAMs, types ${JSON.stringify(types)}; ${ours} are at our ${codes.length} fields`);
     console.log(`show-stoppers at our fields: ${JSON.stringify(kinds)}`);
     for (const s of samples) console.log(`  ${s}`);
