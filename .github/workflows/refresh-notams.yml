@@ -1,17 +1,29 @@
 name: Refresh NOTAMs
 
-# Every 6 hours: show-stopper NOTAMs (airport/runway closed, fuel unavailable)
-# from the FAA NOTAM API (scripts/fetch-notams.js), for the crew card.
-# Needs the repository secrets FAA_NOTAM_CLIENT_ID and FAA_NOTAM_CLIENT_SECRET
-# (the FAA API portal's client id and secret); without them it does nothing.
+# Once a day (plus a retry later the same day): show-stopper NOTAMs (airport/runway closed, fuel unavailable) from the NOTAM Management
+# Service API (scripts/fetch-notams.js), for the crew card.
+# The service allows ONE bulk pull per 24 hours, so the script reads the last published file and refuses to pull
+# again within 23 hours (the retry run below is a no-op unless the morning run failed). Run with force=true only
+# if you accept that it counts against the day's one pull.
+# Needs the repository secrets FAA_NMS_CLIENT_ID and FAA_NMS_CLIENT_SECRET (the KEY and SECRET from the
+# onboarding spreadsheet); without them it does nothing. Optional repository VARIABLES FAA_NMS_BASE and
+# FAA_NMS_AUTH_URL point it at the staging host while testing (default: the production host).
+# Nothing is fetched or published on schedule until the repository variable FAA_NMS_LIVE is set to "true", so a
+# staging login can be tested ("probe") without its data reaching the live site. Switch to production = delete
+# FAA_NMS_BASE and FAA_NMS_AUTH_URL, then set FAA_NMS_LIVE=true.
 # Published into the `wx-data` branch next to the forecast and TFRs.
 on:
   schedule:
-    - cron: "41 */6 * * *"
+    - cron: "23 9 * * *"
+    - cron: "23 15 * * *" # retry if the morning run failed; does nothing when there is already a fresh file
   workflow_dispatch:
     inputs:
       probe:
-        description: "Print the API response shape for KOKC instead of publishing"
+        description: "Check the connection and print what comes back (no secrets) instead of publishing"
+        type: boolean
+        default: false
+      force:
+        description: "Bulk-pull even if the last one was under 23 hours ago (counts against the service's one-per-day limit)"
         type: boolean
         default: false
 
@@ -25,6 +37,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-24.04
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
 
@@ -32,22 +45,37 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Probe the API
+      - name: Check the NMS connection
         if: ${{ inputs.probe }}
         env:
-          FAA_NOTAM_CLIENT_ID: ${{ secrets.FAA_NOTAM_CLIENT_ID }}
-          FAA_NOTAM_CLIENT_SECRET: ${{ secrets.FAA_NOTAM_CLIENT_SECRET }}
+          FAA_NMS_CLIENT_ID: ${{ secrets.FAA_NMS_CLIENT_ID }}
+          FAA_NMS_CLIENT_SECRET: ${{ secrets.FAA_NMS_CLIENT_SECRET }}
+          FAA_NMS_BASE: ${{ vars.FAA_NMS_BASE }}
+          FAA_NMS_AUTH_URL: ${{ vars.FAA_NMS_AUTH_URL }}
         run: node scripts/fetch-notams.js --probe
 
+      - name: Get the last published NOTAM file
+        if: ${{ !inputs.probe && vars.FAA_NMS_LIVE == 'true' }}
+        run: |
+          mkdir -p data/generated/wx
+          if git fetch --depth=1 origin wx-data 2>/dev/null && git show FETCH_HEAD:wx/notams.json > data/generated/wx/notams.previous.json 2>/dev/null; then
+            echo "previous file built at: $(node -e "console.log(JSON.parse(require('fs').readFileSync('data/generated/wx/notams.previous.json','utf8')).builtAt)")"
+          else
+            rm -f data/generated/wx/notams.previous.json
+            echo "no previous NOTAM file"
+          fi
+
       - name: Fetch NOTAMs
-        if: ${{ !inputs.probe }}
+        if: ${{ !inputs.probe && vars.FAA_NMS_LIVE == 'true' }}
         env:
-          FAA_NOTAM_CLIENT_ID: ${{ secrets.FAA_NOTAM_CLIENT_ID }}
-          FAA_NOTAM_CLIENT_SECRET: ${{ secrets.FAA_NOTAM_CLIENT_SECRET }}
-        run: node scripts/fetch-notams.js
+          FAA_NMS_CLIENT_ID: ${{ secrets.FAA_NMS_CLIENT_ID }}
+          FAA_NMS_CLIENT_SECRET: ${{ secrets.FAA_NMS_CLIENT_SECRET }}
+          FAA_NMS_BASE: ${{ vars.FAA_NMS_BASE }}
+          FAA_NMS_AUTH_URL: ${{ vars.FAA_NMS_AUTH_URL }}
+        run: node scripts/fetch-notams.js ${{ inputs.force && '--force' || '' }}
 
       - name: Publish to wx-data
-        if: ${{ !inputs.probe }}
+        if: ${{ !inputs.probe && vars.FAA_NMS_LIVE == 'true' }}
         run: |
           set -e
           if [ ! -f data/generated/wx/notams.json ]; then echo "no NOTAM file (no credentials?), nothing to publish"; exit 0; fi
