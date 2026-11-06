@@ -5,6 +5,9 @@ name: Refresh NOTAMs
 # Needs the repository secrets FAA_NMS_CLIENT_ID and FAA_NMS_CLIENT_SECRET (the KEY and SECRET from the
 # onboarding spreadsheet); without them it does nothing. Optional repository VARIABLES FAA_NMS_BASE and
 # FAA_NMS_AUTH_URL point it at the staging host while testing (default: the production host).
+# Nothing is fetched or published on schedule until the repository variable FAA_NMS_LIVE is set to "true", so a
+# staging login can be tested ("probe") without its data reaching the live site. Switch to production = delete
+# FAA_NMS_BASE and FAA_NMS_AUTH_URL, then set FAA_NMS_LIVE=true.
 # Published into the `wx-data` branch next to the forecast and TFRs.
 on:
   schedule:
@@ -44,7 +47,7 @@ jobs:
         run: node scripts/fetch-notams.js --probe
 
       - name: Fetch NOTAMs
-        if: ${{ !inputs.probe }}
+        if: ${{ !inputs.probe && vars.FAA_NMS_LIVE == 'true' }}
         env:
           FAA_NMS_CLIENT_ID: ${{ secrets.FAA_NMS_CLIENT_ID }}
           FAA_NMS_CLIENT_SECRET: ${{ secrets.FAA_NMS_CLIENT_SECRET }}
@@ -53,7 +56,7 @@ jobs:
         run: node scripts/fetch-notams.js
 
       - name: Publish to wx-data
-        if: ${{ !inputs.probe }}
+        if: ${{ !inputs.probe && vars.FAA_NMS_LIVE == 'true' }}
         run: |
           set -e
           if [ ! -f data/generated/wx/notams.json ]; then echo "no NOTAM file (no credentials?), nothing to publish"; exit 0; fi
