@@ -88,6 +88,15 @@ async function download(url, token) {
   throw new Error("initial load download: too many redirects");
 }
 
+/** Log how far a long download has got every few seconds, so a stall is visible in the run log. */
+function watchProgress(label, stream, counter) {
+  let bytes = 0;
+  stream.on("data", (c) => (bytes += c.length));
+  const timer = setInterval(() => console.log(`  ${label}: ${(bytes / 1e6).toFixed(1)} MB unpacked, ${counter()} NOTAMs`), 10000);
+  timer.unref();
+  return () => clearInterval(timer);
+}
+
 /** The initial-load file for all domestic NOTAMs as a stream of text chunks. */
 async function initialLoad(token) {
   const res = await fetch(`${API}/notams/il/DOMESTIC`, { headers: authHeaders(token), redirect: "manual", signal: AbortSignal.timeout(60000) });
@@ -97,6 +106,7 @@ async function initialLoad(token) {
   else throw Object.assign(new Error(`initial load: HTTP ${res.status}`), { status: res.status });
   if (!url) throw new Error("initial load answered without a download link");
   const file = await download(url, token);
+  console.log(`  download started: ${file.headers.get("content-type")}, ${file.headers.get("content-length") || "unknown"} bytes`);
   return { stream: Readable.fromWeb(file.body).pipe(createGunzip()), bytes: Number(file.headers.get("content-length")) || 0 };
 }
 
@@ -135,6 +145,7 @@ async function probe(id, secret) {
     const kinds = {};
     const samples = [];
     const types = {};
+    const stop = watchProgress("probe", stream, () => total);
     for await (const n of notamsFromChunks(stream)) {
       total++;
       types[n.type || "?"] = (types[n.type || "?"] || 0) + 1;
@@ -147,6 +158,7 @@ async function probe(id, secret) {
         if (samples.length < 5) samples.push(`${code} ${hit.number} ${hit.kind}: ${hit.text.slice(0, 110)} [${hit.start} → ${hit.end}]`);
       }
     }
+    stop();
     console.log(`initial load OK (${(bytes / 1e6).toFixed(1)} MB compressed): ${total} NOTAMs, types ${JSON.stringify(types)}; ${ours} are at our ${codes.length} fields`);
     console.log(`show-stoppers at our fields: ${JSON.stringify(kinds)}`);
     for (const s of samples) console.log(`  ${s}`);
@@ -182,9 +194,14 @@ async function main() {
   };
   try {
     const { stream } = await initialLoad(auth.token);
-    for await (const n of notamsFromChunks(stream)) {
-      seen++;
-      keep([n]);
+    const stop = watchProgress("initial load", stream, () => seen);
+    try {
+      for await (const n of notamsFromChunks(stream)) {
+        seen++;
+        keep([n]);
+      }
+    } finally {
+      stop();
     }
     if (seen < 1000) throw new Error(`initial load had only ${seen} NOTAMs; not trusting it`);
     for (const c of codes) checked.add(c); // every active NOTAM was read: a field with none is clear
