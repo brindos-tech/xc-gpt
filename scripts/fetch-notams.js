@@ -22,7 +22,7 @@ import { createGunzip } from "node:zlib";
 import { Readable } from "node:stream";
 import path from "node:path";
 import { createRateLimiter, mapConcurrent, redact } from "./lib/http.js";
-import { notamsFromChunks, buildLocationIndex, fieldCodeFor } from "./lib/nms-aixm.js";
+import { notamsFromChunks, notamsFromAnswer, buildLocationIndex, fieldCodeFor } from "./lib/nms-aixm.js";
 import { keepShowStoppers } from "../assets/js/planner/notams.js";
 
 const OUT = path.resolve("data/generated/wx/notams.json");
@@ -70,7 +70,7 @@ async function download(url, token) {
     const target = new URL(url, `${BASE}/`);
     const headers = { "user-agent": UA };
     if (target.origin === new URL(BASE).origin) headers.authorization = `Bearer ${token}`;
-    const res = await fetch(target, { headers, redirect: "manual", signal: AbortSignal.timeout(10 * 60000) });
+    const res = await fetch(target, { headers, redirect: "manual", signal: AbortSignal.timeout(30 * 60000) });
     if (res.status >= 300 && res.status < 400 && res.headers.get("location")) {
       url = new URL(res.headers.get("location"), target).href;
       continue;
@@ -119,9 +119,7 @@ async function notamsAt(location, token, limiter) {
   if (!res.ok) throw Object.assign(new Error(`NOTAMs for ${location}: HTTP ${res.status}`), { status: res.status });
   const text = await res.text();
   if (process.argv.includes("--probe")) console.log(`  per-field ${location} body (${text.length} chars): ${JSON.stringify(text.slice(0, 900))}`);
-  const out = [];
-  for await (const n of notamsFromChunks([text])) out.push(n);
-  return out;
+  return notamsFromAnswer(text);
 }
 
 async function fieldIndex() {

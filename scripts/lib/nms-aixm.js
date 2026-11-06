@@ -26,7 +26,7 @@ export function parseNotamMember(xml) {
     number: num || [tag(body, "number")].filter(Boolean).join(""),
     location: tag(body, "location"),
     icao: tag(xml, "icaoLocation"),
-    text: tag(body, "text").replace(/\s+/g, " "),
+    text: tag(body, "text").replace(/\s+/g, " ").replace(/^!\S+\s+\d{1,2}\/\d{1,5}\s+\S+\s+/, ""),
     start: tag(body, "effectiveStart"),
     end: tag(body, "effectiveEnd"),
     schedule: tag(body, "schedule"),
@@ -35,20 +35,41 @@ export function parseNotamMember(xml) {
   };
 }
 
-/** Every NOTAM in a (possibly huge) stream of text chunks, one at a time. */
+/**
+ * Every NOTAM in a (possibly huge) stream of text chunks, one at a time. Each NOTAM travels in its own
+ * <AIXMBasicMessage> (inside <aixm:member> in the sample file, <wfs:member> in the live one), so that is the cut point.
+ */
 export async function* notamsFromChunks(chunks) {
-  const CLOSE = "</aixm:member>";
+  const CLOSE = "</AIXMBasicMessage>";
   let buf = "";
   for await (const chunk of chunks) {
-    buf += typeof chunk === "string" ? chunk : chunk.toString("utf-8");
+    const text = typeof chunk === "string" ? chunk : chunk.toString("utf-8");
+    // only the new text (plus a possible half-seen closing tag) needs scanning
+    const from = Math.max(0, buf.length - CLOSE.length);
+    buf += text;
     let at;
-    while ((at = buf.indexOf(CLOSE)) >= 0) {
+    let scan = from;
+    while ((at = buf.indexOf(CLOSE, scan)) >= 0) {
       const n = parseNotamMember(buf.slice(0, at + CLOSE.length));
       buf = buf.slice(at + CLOSE.length);
+      scan = 0;
       if (n) yield n;
     }
-    if (buf.length > 5e7) buf = buf.slice(-1e6); // never grow without bound on a stream with no members in it
+    if (buf.length > 5e7) buf = buf.slice(-1e6); // never grow without bound on a stream with no messages in it
   }
+}
+
+/** The /notams?location= answer: JSON {data:{aixm:["<AIXMBasicMessage…", …]}} (or plain AIXM text) -> NOTAMs. */
+export async function notamsFromAnswer(body) {
+  let parts = [body];
+  if (/^\s*[{[]/.test(body)) {
+    const json = JSON.parse(body);
+    const aixm = json?.data?.aixm ?? json?.aixm ?? [];
+    parts = Array.isArray(aixm) ? aixm : [aixm];
+  }
+  const out = [];
+  for (const part of parts) for await (const n of notamsFromChunks([String(part)])) out.push(n);
+  return out;
 }
 
 /**

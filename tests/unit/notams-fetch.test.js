@@ -83,7 +83,8 @@ test("NMS fetch: token, initial load via the signed link, only our closures are 
 
 test("NMS fetch: a relative download link on the NMS host (as the staging service sends) is followed with the token", async () => {
   const filler = Array.from({ length: 1200 }, (_, i) => member(i + 1, `X${i}`, "OBST CRANE 100FT", `!XXX 11/${i} X${i} OBST CRANE 100FT`)).join("\n");
-  const xml = `<x>${filler}${member(3001, "PNC", "AD AP CLSD", "!PNC 11/3001 PNC AD AP CLSD")}</x>`;
+  const wfs = (m) => m.replace(/aixm:member/g, "wfs:member"); // the live file's wrapper tag
+  const xml = `<x>${wfs(filler)}${wfs(member(3001, "PNC", "!PNC 11/3001 PNC AD AP CLSD", "!PNC 11/3001 PNC AD AP CLSD"))}</x>`;
   const dir = fakeData();
   try {
     await withNms(
@@ -112,7 +113,10 @@ test("NMS fetch: without initial-load access it asks field by field", async () =
       (req, res) => {
         if (req.url === "/v1/auth/token") return res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ access_token: "T", expires_in: "1799" }));
         if (req.url.startsWith("/nmsapi/v1/notams/il/")) return res.writeHead(403).end("no");
-        if (req.url === "/nmsapi/v1/notams?location=KOKC") return res.writeHead(200).end(`<x>${member(5, "OKC", "AD AP CLSD", "!OKC 11/5 OKC AD AP CLSD")}</x>`);
+        if (req.url === "/nmsapi/v1/notams?location=KOKC") {
+          const one = member(5, "OKC", "!OKC 11/5 OKC AD AP CLSD", "!OKC 11/5 OKC AD AP CLSD").replace(/<\/?aixm:member>/g, "");
+          return res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ status: "Success", data: { aixm: [`<?xml version="1.0"?>${one}`] } }));
+        }
         if (req.url.startsWith("/nmsapi/v1/notams?location=")) return res.writeHead(404).end(); // nothing there
         res.writeHead(404).end();
       },
