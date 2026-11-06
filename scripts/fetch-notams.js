@@ -194,7 +194,10 @@ async function main() {
       const code = codeFor(n, byLocation);
       if (!code) continue;
       const [hit] = keepShowStoppers([n]);
-      if (hit) (fields[code] ||= []).push({ id: hit.id, number: hit.number, text: hit.text, start: hit.start, end: hit.end, kind: hit.kind });
+      if (!hit) continue;
+      // the service can list one closure under two numbers: keep one per field, text and period
+      if (fields[code]?.some((o) => o.text === hit.text && o.start === hit.start && o.end === hit.end)) continue;
+      (fields[code] ||= []).push({ id: hit.id, number: hit.number, text: hit.text, start: hit.start, end: hit.end, kind: hit.kind });
     }
   };
   // one bulk pull; if it fails the run fails and the previous file stays in place (no field-by-field loop: rate limits)

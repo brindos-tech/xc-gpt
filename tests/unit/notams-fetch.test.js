@@ -43,7 +43,7 @@ const env = (base) => ({ ...process.env, FAA_NMS_CLIENT_ID: "my-client-id", FAA_
 test("NMS fetch: token, initial load via the signed link, only our closures are kept", async () => {
   // 1,200 NOTAMs of no interest, plus a closed runway at KOKC (FAA id OKC) and an unrelated airport's closure
   const filler = Array.from({ length: 1200 }, (_, i) => member(i + 1, `X${i}`, "OBST CRANE 100FT", `!XXX 11/${i} X${i} OBST CRANE 100FT`)).join("\n");
-  const xml = `<soap:Envelope><soap:Body><ns3:FeatureCollection>${filler}${member(2001, "OKC", "RWY 17R/35L CLSD", "!OKC 11/2001 OKC RWY 17R/35L CLSD", "")}${member(2002, "ZZZ", "AD AP CLSD", "!ZZZ 11/2002 ZZZ AD AP CLSD")}</ns3:FeatureCollection></soap:Body></soap:Envelope>`;
+  const xml = `<soap:Envelope><soap:Body><ns3:FeatureCollection>${filler}${member(2001, "OKC", "RWY 17R/35L CLSD", "!OKC 11/2001 OKC RWY 17R/35L CLSD", "")}${member(2003, "OKC", "RWY 17R/35L CLSD", "!OKC 11/2003 OKC RWY 17R/35L CLSD", "")}${member(2002, "ZZZ", "AD AP CLSD", "!ZZZ 11/2002 ZZZ AD AP CLSD")}</ns3:FeatureCollection></soap:Body></soap:Envelope>`;
   const dir = fakeData();
   const storageSeen = [];
   const storage = createServer((req, res) => {
@@ -62,6 +62,7 @@ test("NMS fetch: token, initial load via the signed link, only our closures are 
         const { stdout } = await run("node", [SCRIPT], { cwd: dir, env: env(base) });
         const out = JSON.parse(readFileSync(path.join(dir, "data/generated/wx/notams.json"), "utf-8"));
         assert.deepEqual(Object.keys(out.fields), ["KOKC"], "only our field's closure");
+        assert.equal(out.fields.KOKC.length, 1, "the same closure listed twice is kept once");
         assert.equal(out.fields.KOKC[0].kind, "Runway closed");
         assert.equal(out.fields.KOKC[0].number, "11/2001");
         assert.deepEqual(out.checked, ["KEND", "KOKC", "KPNC"], "every field was read, so those with none are clear");
