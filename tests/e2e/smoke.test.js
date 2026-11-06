@@ -618,6 +618,48 @@ test("event feeds: hostile titles, notes and links are shown as text and never r
   }
 });
 
+test("flight plan: the same field can be visited twice (A to B to C, back to B, then home)", async () => {
+  const { page, context, errors } = await openPage();
+  try {
+    await page.evaluate(() => (window.print = () => {}));
+    for (const code of ["KPNC", "KOKC"]) {
+      await page.fill("#tripSearch", code);
+      await page.press("#tripSearch", "Enter");
+      await page.waitForFunction((c) => [...document.querySelectorAll("#tripBody [data-trip-arr]")].some((i) => i.value === c), code);
+    }
+    // the stop just added cannot be added again straight away (a leg to itself), but KPNC can come back
+    await page.fill("#tripSearch", "KOKC");
+    assert.equal(await page.locator("#tripSuggest li").count(), 0, "no leg from a field to itself");
+    await page.fill("#tripSearch", "KPNC");
+    await page.waitForSelector("#tripSuggest li");
+    await page.press("#tripSearch", "Enter");
+    await page.waitForFunction(() => document.querySelectorAll("#tripBody .trip-stop:not(.trip-ret)").length === 3);
+    assert.deepEqual(await page.locator("#tripBody [data-trip-arr]").evaluateAll((els) => els.map((e) => e.value)), ["KPNC", "KOKC", "KPNC"]);
+    assert.match(await page.textContent("#tripBody"), /KEND KPNC KOKC KPNC KEND/);
+    await page.waitForFunction(() => /trip=KPNC%2CKOKC%2CKPNC/.test(location.hash));
+    // the crew card carries every visit, each with its own arrival day
+    await page.click('#tripBody [data-trip="print"]');
+    const card = await page.textContent("#crewCard");
+    assert.match(card, /1\. KPNC/);
+    assert.match(card, /2\. KOKC/);
+    assert.match(card, /3\. KPNC/);
+    // from the field's own sheet: "Add again" appends another visit (not straight after the same field)
+    await page.locator('#plannerMap [data-field="KOKC"]').dispatchEvent("click");
+    await page.waitForSelector("#fieldPanel.open");
+    await page.click('[data-trip-add="KOKC"]');
+    await page.waitForFunction(() => document.querySelectorAll("#tripBody .trip-stop:not(.trip-ret)").length === 4);
+    await page.click('[data-trip-add="KOKC"]');
+    await page.waitForTimeout(300);
+    assert.equal(await page.locator("#tripBody .trip-stop:not(.trip-ret)").count(), 4, "not twice in a row");
+    // the sheet's toggle takes every visit to the field out
+    await page.click('[data-trip-toggle="KOKC"]');
+    await page.waitForFunction(() => document.querySelectorAll("#tripBody .trip-stop:not(.trip-ret)").length === 2);
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
 test("launch robustness: bad links, a missing forecast, hidden stops, the weather day and Reset filters", async () => {
   // a garbled link opens the default view instead of breaking the page
   const bad = await openPage(undefined, { plan: false, hash: "#/v=planner&origin=randolph&r=abc&from=garbage&day=2026-02-30&trip=KPNC@202613450000" });

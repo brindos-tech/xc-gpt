@@ -1,7 +1,7 @@
 // The "Trip" section of the planner rail: stops, legs, totals, per diem
 // estimate, copy-route and print-crew-card buttons. Rendered from state on
 // every planner render; all buttons are delegated from the one container.
-import { tripLegs, routeString, tripPerDiem, scheduleTrip, legFlags } from "../planner/trip.js";
+import { tripLegs, routeString, tripPerDiem, scheduleTrip, legFlags, neighbourCodes } from "../planner/trip.js";
 import { zoneAbbr, clock, zulu, tzLabel, clockShift } from "../planner/sun.js";
 import { CAT_NAMES, CAT_COLORS, flightCategory, ceilingText } from "../planner/wx-model.js";
 import { formatFlightTime } from "../format.js";
@@ -22,12 +22,18 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
   const addBox = suggest.parentElement;
   const addLabel = document.getElementById("tripAddLabel");
 
-  /** Fields matching the box, best first: exact code, code prefix, then nearest to the base. Already-chosen stops are left out. */
-  function suggestions(q) {
+  /** The fields a stop at position `i` must not be (its neighbours); a field may appear more than once in a plan. */
+  const avoidFor = (i) => {
+    const st = store.getState();
+    return neighbourCodes(st.trip, i, st.tripReturn, getOrigin().icao);
+  };
+
+  /** Fields matching the box, best first: exact code, code prefix, then nearest to the base. `avoid` leaves out the neighbouring stops. */
+  function suggestions(q, avoid = new Set()) {
     const query = q.trim().toLowerCase();
     if (!query) return [];
     const origin = getOrigin();
-    const chosen = new Set(store.getState().trip.map((x) => x.code));
+    const chosen = avoid;
     const rank = (f) => (f.code.toLowerCase() === query || f.faaId?.toLowerCase() === query ? 0 : f.code.toLowerCase().startsWith(query) ? 1 : f.name.toLowerCase().startsWith(query) ? 2 : 3);
     return [...fieldsByCode.values()]
       .filter((f) => f.hasPosition && !chosen.has(f.code) && matchesSearch(f, q))
@@ -43,12 +49,12 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
   let openLegs = new Set();
   let openTimelines = new Set();
 
-  function showSuggestions(input, pick) {
+  function showSuggestions(input, pick, avoid) {
     current = input;
     onPick = pick;
     // the list sits under whichever input is being typed in
     (input.closest(".trip-combo") || addBox).appendChild(suggest);
-    shown = suggestions(input.value);
+    shown = suggestions(input.value, avoid);
     active = shown.length ? 0 : -1;
     suggest.hidden = !shown.length;
     input.setAttribute("aria-expanded", String(shown.length > 0));
@@ -93,18 +99,18 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
     }
   }
 
-  const addStop = (code) => store.setState((s) => (s.trip.some((x) => x.code === code) ? {} : { trip: [...s.trip, { code, ron: false }] }));
-  const changeStop = (i, code) => store.setState((s) => (s.trip[i] && !s.trip.some((x, k) => k !== i && x.code === code) ? { trip: s.trip.map((x, k) => (k === i ? { ...x, code } : { ...x })) } : {}));
+  const addStop = (code) => store.setState((s) => (neighbourCodes(s.trip, s.trip.length, s.tripReturn, getOrigin().icao).has(code) ? {} : { trip: [...s.trip, { code, ron: false }] }));
+  const changeStop = (i, code) => store.setState((s) => (s.trip[i] && !neighbourCodes(s.trip, i, s.tripReturn, getOrigin().icao).has(code) ? { trip: s.trip.map((x, k) => (k === i ? { ...x, code } : { ...x })) } : {}));
 
-  search.addEventListener("input", () => showSuggestions(search, addStop));
+  search.addEventListener("input", () => showSuggestions(search, addStop, avoidFor(store.getState().trip.length)));
   search.addEventListener("keydown", (e) => comboKeys(e, search, addStop));
-  search.addEventListener("focus", () => search.value && showSuggestions(search, addStop));
+  search.addEventListener("focus", () => search.value && showSuggestions(search, addStop, avoidFor(store.getState().trip.length)));
   search.addEventListener("blur", () => setTimeout(() => current === search && hideSuggestions(), 120));
 
   // arrival fields inside the legs (delegated: they are re-rendered with the plan)
   const arrPick = (input) => (code) => changeStop(Number(input.dataset.i), code);
   body.addEventListener("focusin", (e) => e.target.matches?.("[data-trip-arr]") && e.target.select());
-  body.addEventListener("input", (e) => e.target.matches?.("[data-trip-arr]") && showSuggestions(e.target, arrPick(e.target)));
+  body.addEventListener("input", (e) => e.target.matches?.("[data-trip-arr]") && showSuggestions(e.target, arrPick(e.target), avoidFor(Number(e.target.dataset.i))));
   body.addEventListener("keydown", (e) => e.target.matches?.("[data-trip-arr]") && comboKeys(e, e.target, arrPick(e.target)));
   body.addEventListener("focusout", (e) => {
     const input = e.target;

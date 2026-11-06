@@ -789,3 +789,31 @@ test("untrusted text: tooltips are escaped and only web links are used", async (
   assert.equal(safeUrl(undefined), "");
   assert.equal(esc(`"><script>`), "&quot;&gt;&lt;script&gt;");
 });
+
+test("a field can be visited more than once: A to B to C, back to B, then home", async () => {
+  const trip = await import("../../assets/js/planner/trip.js");
+  const o = { icao: "KEND", lat: 36.3392, lon: -97.9166, tz: "America/Chicago" };
+  const mk = (code, lat, lon) => ({ code, lat, lon, state: "OK" });
+  const B = mk("KPNC", 36.73, -97.1);
+  const C = mk("KOKC", 35.39, -97.6);
+  // the plan: base -> B -> C -> B -> base
+  const legs = trip.tripLegs(o, [B, C, B], config, true);
+  assert.deepEqual(legs.legs.map((l) => `${l.from}>${l.to}`), ["KEND>KPNC", "KPNC>KOKC", "KOKC>KPNC", "KPNC>KEND"]);
+  assert.equal(trip.routeString(o, [B, C, B], true), "KEND KPNC KOKC KPNC KEND");
+  assert.ok(Math.abs(legs.legs[1].nm - legs.legs[2].nm) < 1e-6, "out and back are the same distance");
+  // link round trip keeps both visits
+  const link = trip.encodeTrip([{ code: "KPNC" }, { code: "KOKC" }, { code: "KPNC" }]);
+  assert.equal(link, "KPNC,KOKC,KPNC");
+  assert.deepEqual(trip.decodeTrip(link).map((x) => x.code), ["KPNC", "KOKC", "KPNC"]);
+  // what a stop may not be: its neighbours (a leg from a field to itself is nothing)
+  const stops = [{ code: "KPNC" }, { code: "KOKC" }];
+  const has = (i, code, round = true) => trip.neighbourCodes(stops, i, round, "KEND").has(code);
+  assert.equal(has(2, "KOKC"), true, "a new last stop cannot repeat the previous one");
+  assert.equal(has(2, "KPNC"), false, "but can go back to an earlier field");
+  assert.equal(has(2, "KEND"), true, "or be the base when the plan returns to the base anyway");
+  assert.equal(has(2, "KEND", false), false, "one-way: the base is fine");
+  assert.equal(has(0, "KEND"), true, "the first stop cannot be the base");
+  assert.equal(has(0, "KOKC"), true, "nor the stop after it");
+  assert.equal(has(1, "KPNC"), true, "editing stop 2: not the stop before");
+  assert.equal(has(1, "KEND"), true, "last stop, returning home: not the base");
+});

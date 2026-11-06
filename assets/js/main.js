@@ -71,7 +71,7 @@ async function boot() {
 
   const fieldsByCode = new Map(fields.map((f) => [f.code, f]));
   const filterRail = createFilterRail({ store, config });
-  const fieldPanel = createFieldPanel({ store });
+  const fieldPanel = createFieldPanel({ store, getOriginIcao: () => originsById.get(store.getState().originId)?.icao });
 
   // show-stopper NOTAMs (airport/runway closed...), refreshed by CI; the card says so when they are not available
   let notamsFile = null;

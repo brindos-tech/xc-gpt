@@ -11,6 +11,7 @@ import { esc } from "./html.js";
 import { toDateKey } from "../format.js";
 import { sunTimes, fieldTimeZone, clock, zoneAbbr, minutesOfDay } from "./sun.js";
 import { hoursForDay, fmtMin } from "./hours.js";
+import { neighbourCodes } from "./trip.js";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -176,7 +177,7 @@ export function fieldHtml(f, ctx) {
   return `
     <h3>${esc(f.code)} · ${esc(f.name)}</h3>
     <div class="dp-dist">${esc(f.city)} · ${Math.round(distanceNm)} nm from ${esc(origin.icao)} · ${formatFlightTime(mins)}</div>
-    <button type="button" class="chip trip-add ${ctx.inTrip ? "active" : ""}" data-trip-toggle="${esc(f.code)}">${ctx.inTrip ? "In trip — remove" : "Add to trip"}</button>
+    <button type="button" class="chip trip-add ${ctx.inTrip ? "active" : ""}" data-trip-toggle="${esc(f.code)}">${ctx.inTrip ? "In trip — remove" : "Add to trip"}</button>${ctx.inTrip ? ` <button type="button" class="chip trip-add" data-trip-add="${esc(f.code)}" title="Visit it again later in the plan">Add again</button>` : ""}
     <div class="fp-badges">
       <span class="badge">${esc(f.classification)}</span>
       ${f.approvalList && f.approvalList !== "None" ? `<span class="badge best-match">${esc(f.approvalList)}</span>` : ""}
@@ -233,7 +234,7 @@ export function airspaceHtml(p) {
     }`;
 }
 
-export function createFieldPanel({ store }) {
+export function createFieldPanel({ store, getOriginIcao = () => "" }) {
   const panel = document.getElementById("fieldPanel");
   const content = document.getElementById("fieldContent");
   const scroller = document.getElementById("fieldScroll");
@@ -253,9 +254,17 @@ export function createFieldPanel({ store }) {
 
   closeBtn.addEventListener("click", close);
   content.addEventListener("click", (e) => {
+    const again = e.target.closest("[data-trip-add]");
+    if (again) {
+      // another visit to a field already in the plan (A to B to C, back to B...): at the end, unless that would be a leg to itself
+      const code = again.dataset.tripAdd;
+      store.setState((s) => (neighbourCodes(s.trip, s.trip.length, s.tripReturn, getOriginIcao()).has(code) ? {} : { trip: [...s.trip, { code, ron: false }] }));
+      return;
+    }
     const btn = e.target.closest("[data-trip-toggle]");
     if (!btn) return;
     const code = btn.dataset.tripToggle;
+    // not in the plan: add it; in the plan: take every visit to it out
     store.setState((s) => ({ trip: s.trip.some((x) => x.code === code) ? s.trip.filter((x) => x.code !== code) : [...s.trip, { code, ron: false }] }));
   });
   backdrop.addEventListener("click", close);
