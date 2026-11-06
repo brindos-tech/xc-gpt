@@ -34,6 +34,18 @@ export const encodeDep = (dep) => (dep ? compact(dep) : "");
 export const decodeDep = (c) => (/^\d{12}$/.test(c || "") && isValidDep(expand(c)) ? expand(c) : "");
 
 /**
+ * Codes a stop at position `i` must not be: its neighbours, because a leg from a field to itself is nothing. A field can
+ * appear any number of times otherwise (A to B to C, back to B, then home). `i === trip.length` means "a new last stop".
+ * @param {{code:string}[]} trip the stops
+ * @param {boolean} roundTrip whether the last leg returns to the base
+ */
+export function neighbourCodes(trip, i, roundTrip, baseCode) {
+  const prev = i === 0 ? baseCode : trip[i - 1]?.code;
+  const next = i < trip.length - 1 ? trip[i + 1]?.code : roundTrip ? baseCode : null;
+  return new Set([prev, next].filter(Boolean));
+}
+
+/**
  * Legs: base -> stop 1 -> … -> last stop (-> base when `roundTrip`).
  * @param {{lat:number, lon:number, icao:string}} origin
  * @param {object[]} stops fields in order (need code, lat, lon)
