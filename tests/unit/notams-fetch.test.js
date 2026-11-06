@@ -106,27 +106,56 @@ test("NMS fetch: a relative download link on the NMS host (as the staging servic
   }
 });
 
-test("NMS fetch: without initial-load access it asks field by field", async () => {
+test("NMS fetch: no bulk pull within 23 hours of the last one, and none field by field when the bulk pull fails", async () => {
+  const dir = fakeData();
+  try {
+    mkdirSync(path.join(dir, "data/generated/wx"), { recursive: true });
+    writeFileSync(path.join(dir, "data/generated/wx/notams.previous.json"), JSON.stringify({ builtAt: new Date(Date.now() - 3 * 3600000).toISOString(), fields: {} }));
+    await withNms(
+      (req, res) => {
+        if (req.url === "/v1/auth/token") return res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ access_token: "T", expires_in: "1799" }));
+        res.writeHead(500).end("should not be asked");
+      },
+      async (base, seen) => {
+        const { stdout } = await run("node", [SCRIPT], { cwd: dir, env: env(base) });
+        assert.match(stdout, /one bulk pull per 24 hours/);
+        assert.equal(seen.length, 0, "not even the login");
+      }
+    );
+    // an old file, but the bulk pull is refused: the run fails and asks for no individual fields
+    writeFileSync(path.join(dir, "data/generated/wx/notams.previous.json"), JSON.stringify({ builtAt: new Date(Date.now() - 30 * 3600000).toISOString(), fields: {} }));
+    await withNms(
+      (req, res) => {
+        if (req.url === "/v1/auth/token") return res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ access_token: "T", expires_in: "1799" }));
+        res.writeHead(403).end("no");
+      },
+      async (base, seen) => {
+        await assert.rejects(run("node", [SCRIPT], { cwd: dir, env: env(base) }));
+        assert.ok(!seen.some((s) => s.url.includes("location=")), "never loops over fields");
+      }
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("NMS probe: one single-field request, no bulk pull", async () => {
   const dir = fakeData();
   try {
     await withNms(
       (req, res) => {
         if (req.url === "/v1/auth/token") return res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ access_token: "T", expires_in: "1799" }));
-        if (req.url.startsWith("/nmsapi/v1/notams/il/")) return res.writeHead(403).end("no");
+        if (req.url === "/nmsapi/v1/ping") return res.writeHead(200).end("ok");
         if (req.url === "/nmsapi/v1/notams?location=KOKC") {
-          const one = member(5, "OKC", "!OKC 11/5 OKC AD AP CLSD", "!OKC 11/5 OKC AD AP CLSD").replace(/<\/?aixm:member>/g, "");
-          return res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ status: "Success", data: { aixm: [`<?xml version="1.0"?>${one}`] } }));
+          const one = member(5, "OKC", "RWY 17R/35L CLSD", "!OKC 11/5 OKC RWY 17R/35L CLSD").replace(/<\/?aixm:member>/g, "");
+          return res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ status: "Success", data: { aixm: [one] } }));
         }
-        if (req.url.startsWith("/nmsapi/v1/notams?location=")) return res.writeHead(404).end(); // nothing there
         res.writeHead(404).end();
       },
       async (base, seen) => {
-        await run("node", [SCRIPT], { cwd: dir, env: env(base) });
-        const out = JSON.parse(readFileSync(path.join(dir, "data/generated/wx/notams.json"), "utf-8"));
-        assert.deepEqual(Object.keys(out.fields), ["KOKC"]);
-        assert.equal(out.fields.KOKC[0].kind, "Airport closed");
-        assert.deepEqual(out.checked, ["KEND", "KOKC", "KPNC"]);
-        assert.equal(seen.find((s) => s.url.includes("location=KOKC")).format, "AIXM", "asks for AIXM");
+        const { stdout } = await run("node", [SCRIPT, "--probe"], { cwd: dir, env: env(base) });
+        assert.match(stdout, /1 show-stoppers/);
+        assert.ok(!seen.some((s) => s.url.includes("/il/")), "no initial load");
       }
     );
   } finally {

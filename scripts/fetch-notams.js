@@ -7,6 +7,10 @@
 // closures that belong to our fields. If the initial load is not available to the account, fall back to asking
 // for each field's NOTAMs one by one.
 //
+// Service limits (from the onboarding email): ONE bulk pull (initial load) per 24 hours at most, and one data pull
+// per 3 minutes. So: this script does at most one bulk pull a day (it refuses when the last published file is under
+// 23 hours old, unless run with --force) and never asks field by field in a loop.
+//
 // Secrets (repository secrets; never printed): FAA_NMS_CLIENT_ID, FAA_NMS_CLIENT_SECRET.
 // Optional (repository variables): FAA_NMS_BASE (default https://api-nms.aim.faa.gov) and FAA_NMS_AUTH_URL
 // (default <base>/v1/auth/token). Use the staging host from the onboarding sheet while testing.
@@ -15,7 +19,8 @@
 // Written to data/generated/wx/notams.json (published on the wx-data branch, read by the crew card).
 //
 //   node scripts/fetch-notams.js            full run
-//   node scripts/fetch-notams.js --probe    check the connection and show what comes back; write nothing
+//   node scripts/fetch-notams.js --probe    check the connection with ONE single-field request (no bulk pull); write nothing
+//   node scripts/fetch-notams.js --force    bulk pull even if the last one was under 23 hours ago (counts against the daily limit)
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { createGunzip } from "node:zlib";
@@ -26,6 +31,8 @@ import { notamsFromChunks, notamsFromAnswer, buildLocationIndex, fieldCodeFor } 
 import { keepShowStoppers } from "../assets/js/planner/notams.js";
 
 const OUT = path.resolve("data/generated/wx/notams.json");
+const PREVIOUS = path.resolve(process.env.NOTAMS_PREVIOUS || "data/generated/wx/notams.previous.json"); // the last published file, fetched by the workflow
+const MIN_HOURS_BETWEEN_BULK = 23;
 const BASE = (process.env.FAA_NMS_BASE || "https://api-nms.aim.faa.gov").replace(/\/+$/, "");
 const AUTH_URL = process.env.FAA_NMS_AUTH_URL || `${BASE}/v1/auth/token`;
 const API = `${BASE}/nmsapi/v1`;
@@ -151,56 +158,13 @@ async function probe(id, secret) {
   const ping = await fetch(`${API}/ping`, { headers: authHeaders(auth.token), signal: AbortSignal.timeout(30000) });
   console.log(`ping: HTTP ${ping.status}`);
   const { codes, byLocation } = await fieldIndex();
-  try {
-    const { stream, bytes } = await initialLoad(auth.token);
-    let total = 0;
-    let ours = 0;
-    const kinds = {};
-    const samples = [];
-    const types = {};
-    const stop = watchProgress("probe", stream, () => total);
-    let head = "";
-    stream.on("data", (c) => {
-      if (head.length < 3e6) head += c.toString("utf-8");
-      globalThis.__head = head;
-    });
-    const watchdog = setTimeout(() => {
-      console.log("probe: no more data after 90 s; stopping the download");
-      stream.destroy();
-    }, 95000);
-    watchdog.unref();
-    const deadline = Date.now() + 90000; // a probe must always end with a readable log
-    let cutShort = false;
-    for await (const n of notamsFromChunks(stream)) {
-      if (Date.now() > deadline) {
-        cutShort = true;
-        stream.destroy();
-        break;
-      }
-      total++;
-      types[n.type || "?"] = (types[n.type || "?"] || 0) + 1;
-      const code = codeFor(n, byLocation);
-      if (!code) continue;
-      ours++;
-      const [hit] = keepShowStoppers([n]);
-      if (hit) {
-        kinds[hit.kind] = (kinds[hit.kind] || 0) + 1;
-        if (samples.length < 5) samples.push(`${code} ${hit.number} ${hit.kind}: ${hit.text.slice(0, 110)} [${hit.start} → ${hit.end}]`);
-      }
-    }
-    stop();
-    describeHead(head, total);
-    if (cutShort) console.log("probe stopped reading after 90 s (the numbers below cover only what arrived)");
-    console.log(`initial load OK (${(bytes / 1e6).toFixed(1)} MB compressed): ${total} NOTAMs, types ${JSON.stringify(types)}; ${ours} are at our ${codes.length} fields`);
-    console.log(`show-stoppers at our fields: ${JSON.stringify(kinds)}`);
-    for (const s of samples) console.log(`  ${s}`);
-  } catch (err) {
-    describeHead(globalThis.__head || "", 0);
-    console.log(`initial load failed (${err.message}); would fall back to per-field requests`);
-    const one = await notamsAt("KOKC", auth.token, async () => {});
-    console.log(`per-field request for KOKC: ${one.length} NOTAMs parsed`);
-    for (const n of one.slice(0, 3)) console.log(`  ${n.number} ${n.location}: ${n.text.slice(0, 100)}`);
-  }
+  // one single-field request stands in for the bulk load, which the service allows only once a day
+  const here = await notamsAt("KOKC", auth.token, async () => {});
+  const stoppers = keepShowStoppers(here);
+  console.log(`single-field request for KOKC: ${here.length} NOTAMs parsed, ${stoppers.length} show-stoppers; ${codes.length} fields in our list (${byLocation.size} location ids)`);
+  for (const n of here.slice(0, 3)) console.log(`  ${n.number} ${n.location}: ${n.text.slice(0, 100)}`);
+  for (const n of stoppers.slice(0, 3)) console.log(`  show-stopper ${n.number} ${n.kind}: ${n.text.slice(0, 100)}`);
+  console.log("bulk load not tried by the probe (limit: one per 24 hours).");
 }
 
 async function main() {
@@ -212,6 +176,14 @@ async function main() {
   }
   if (process.argv.includes("--probe")) return probe(id, secret);
 
+  if (!process.argv.includes("--force")) {
+    const last = await readFile(PREVIOUS, "utf-8").then((t) => JSON.parse(t), () => null);
+    const ageH = last?.builtAt ? (Date.now() - Date.parse(last.builtAt)) / 3600000 : Infinity;
+    if (ageH < MIN_HOURS_BETWEEN_BULK) {
+      console.log(`last NOTAM load was ${ageH.toFixed(1)} hours ago; the service allows one bulk pull per 24 hours, so not asking again (use --force to override).`);
+      return;
+    }
+  }
   const { codes, byLocation } = await fieldIndex();
   const auth = await getToken(id, secret);
   const fields = {};
@@ -225,36 +197,20 @@ async function main() {
       if (hit) (fields[code] ||= []).push({ id: hit.id, number: hit.number, text: hit.text, start: hit.start, end: hit.end, kind: hit.kind });
     }
   };
+  // one bulk pull; if it fails the run fails and the previous file stays in place (no field-by-field loop: rate limits)
+  const { stream } = await initialLoad(auth.token);
+  const stop = watchProgress("initial load", stream, () => seen);
   try {
-    const { stream } = await initialLoad(auth.token);
-    const stop = watchProgress("initial load", stream, () => seen);
-    try {
-      for await (const n of notamsFromChunks(stream)) {
-        seen++;
-        keep([n]);
-      }
-    } finally {
-      stop();
+    for await (const n of notamsFromChunks(stream)) {
+      seen++;
+      keep([n]);
     }
-    if (seen < 1000) throw new Error(`initial load had only ${seen} NOTAMs; not trusting it`);
-    for (const c of codes) checked.add(c); // every active NOTAM was read: a field with none is clear
-    console.log(`initial load: ${seen} NOTAMs read`);
-  } catch (err) {
-    if (err instanceof FatalError) throw err;
-    console.log(`initial load not used (${err.message}); asking field by field`);
-    const limiter = createRateLimiter(4);
-    const failed = [];
-    await mapConcurrent(codes, 3, async (code) => {
-      try {
-        keep(await notamsAt(code, auth.token, limiter));
-        checked.add(code);
-      } catch {
-        failed.push(code);
-      }
-    });
-    console.log(`${checked.size} fields checked, ${failed.length} failed`);
-    if (checked.size < codes.length * 0.5) throw new Error("too many fields failed; keeping the previous file");
+  } finally {
+    stop();
   }
+  if (seen < 1000) throw new Error(`initial load had only ${seen} NOTAMs; not trusting it, keeping the previous file`);
+  for (const c of codes) checked.add(c); // every active NOTAM was read: a field with none is clear
+  console.log(`initial load: ${seen} NOTAMs read`);
   console.log(`${Object.keys(fields).length} fields have show-stopper NOTAMs`);
   await mkdir(path.dirname(OUT), { recursive: true });
   // "source" says what this is without calling it FAA data (the service terms forbid characterising redistributed data that way)
