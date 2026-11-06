@@ -653,10 +653,12 @@ test("NOTAMs: only show-stoppers are kept, and the crew card line says what it k
   // dates and items
   assert.equal(n.parseNotamDate("2611011200").toISOString(), "2026-11-01T12:00:00.000Z");
   assert.equal(n.parseNotamDate("PERM"), null);
-  const item = { properties: { coreNOTAMData: { notam: { id: "NOTAM_1", number: "11/123", icaoLocation: "KOKC", text: "RWY 17R/35L CLSD", effectiveStart: "2026-11-01T12:00:00Z", effectiveEnd: "2026-11-15T23:59:00Z", type: "N" } } } };
-  const got = n.extractNotam(item);
-  assert.deepEqual([got.location, got.text, got.start, got.type], ["KOKC", "RWY 17R/35L CLSD", "2026-11-01T12:00:00.000Z", "N"]);
-  assert.equal(n.keepShowStoppers([got, { ...got, type: "C" }, { ...got, text: "OBST CRANE" }]).length, 1, "cancels and non-closures are dropped");
+  // dates as NMS sends them (YYYYMMDDHHMM) and the older ones
+  assert.equal(n.parseNotamDate("202508210234").toISOString(), "2025-08-21T02:34:00.000Z");
+  const closed = { location: "OKC", text: "RWY 17R/35L CLSD", start: "202611011200", end: "202611152359", type: "N", number: "11/123" };
+  const got = n.keepShowStoppers([closed, { ...closed, type: "C" }, { ...closed, text: "OBST CRANE" }]);
+  assert.equal(got.length, 1, "cancels and non-closures are dropped");
+  assert.deepEqual([got[0].kind, got[0].start, got[0].end], ["Runway closed", "2026-11-01T12:00:00.000Z", "2026-11-15T23:59:00.000Z"]);
   // what the card prints: closures overlapping the stay (arrival -> next takeoff), including ones that begin later in it
   const mk = (kind, text, start, end) => ({ kind, text, number: "11/1", start, end });
   const file = {
@@ -816,4 +818,33 @@ test("a field can be visited more than once: A to B to C, back to B, then home",
   assert.equal(has(0, "KOKC"), true, "nor the stop after it");
   assert.equal(has(1, "KPNC"), true, "editing stop 2: not the stop before");
   assert.equal(has(1, "KEND"), true, "last stop, returning home: not the base");
+});
+
+test("NMS AIXM: NOTAMs are read from the initial-load stream and matched to our fields", async () => {
+  const { parseNotamMember, notamsFromChunks, buildLocationIndex, fieldCodeFor } = await import("../../scripts/lib/nms-aixm.js");
+  const member = ({ number, year = 2026, type = "N", location, start, end, text, simple, icao = "", schedule = "" }) =>
+    `<aixm:member><AIXMBasicMessage gml:id="NMS_ID_${number}"><hasMember><event:Event gml:id="Event_1"><gml:identifier codeSpace="urn:uuid:">x</gml:identifier><event:timeSlice><event:EventTimeSlice gml:id="T"><event:textNOTAM><event:NOTAM gml:id="NOTAM_1"><event:number>${number}</event:number><event:year>${year}</event:year><event:type>${type}</event:type><event:issued>2026-11-01T02:34:00.000Z</event:issued><event:location>${location}</event:location><event:effectiveStart>${start}</event:effectiveStart><event:effectiveEnd>${end}</event:effectiveEnd>${schedule ? `<event:schedule>${schedule}</event:schedule>` : ""}<event:text>${text}</event:text><event:translation><event:NOTAMTranslation gml:id="NT1"><event:type>LOCAL_FORMAT</event:type><event:simpleText>${simple}</event:simpleText></event:NOTAMTranslation></event:translation></event:NOTAM></event:textNOTAM><event:extension><fnse:EventExtension gml:id="e"><fnse:classification>DOM</fnse:classification><fnse:accountId>OKC</fnse:accountId>${icao ? `<fnse:icaoLocation>${icao}</fnse:icaoLocation>` : ""}</fnse:EventExtension></event:extension></event:EventTimeSlice></event:timeSlice></event:Event></hasMember></AIXMBasicMessage></aixm:member>`;
+  const xml = [
+    member({ number: 430, location: "8WC", start: "202508210234", end: "202510012359", text: "RWY 20 RWY END ID LGT U/S", simple: "!STL 08/430 8WC RWY 20 RWY END ID LGT U/S 2508210234-2510012359" }),
+    member({ number: 101, location: "OKC", start: "202611071200", end: "202611082359", text: "RWY 17R/35L CLSD", simple: "!OKC 11/101 OKC RWY 17R/35L CLSD 2611071200-2611082359" }),
+    member({ number: 7, location: "PNC", icao: "KPNC", start: "202611050000", end: "PERM", text: "AD AP CLSD &amp; ARPT NOT AVBL", simple: "!PNC 11/007 PNC AD AP CLSD &amp; ARPT NOT AVBL 2611050000-PERM" }),
+    member({ number: 221, location: "ZBW", icao: "KZBW", start: "202505011100", end: "202511020001", schedule: "Daily:1100-0001~DLY 1100-0001", text: "AIRSPACE UAS WI AN AREA", simple: "!BDR 04/221 ZBW AIRSPACE UAS WI AN AREA" }),
+  ].join("\n");
+  const one = parseNotamMember(xml.split("</aixm:member>")[1] + "</aixm:member>");
+  assert.deepEqual([one.number, one.location, one.start, one.end, one.type, one.classification], ["11/101", "OKC", "202611071200", "202611082359", "N", "DOM"]);
+  assert.equal(one.text, "RWY 17R/35L CLSD");
+  // read as a stream cut at arbitrary points
+  const chunks = [];
+  for (let i = 0; i < xml.length; i += 313) chunks.push(xml.slice(i, i + 313));
+  const all = [];
+  for await (const x of notamsFromChunks(chunks)) all.push(x);
+  assert.equal(all.length, 4);
+  assert.equal(all[2].text, "AD AP CLSD & ARPT NOT AVBL", "entities are decoded");
+  assert.equal(all[2].end, "PERM");
+  assert.equal(all[3].schedule, "Daily:1100-0001~DLY 1100-0001");
+  // matched to our fields by FAA id or ICAO id; others (an ARTCC, an airport we do not use) are left alone
+  const index = buildLocationIndex(["KOKC", "KPNC", "K79J", "1R8"], { KOKC: { faaId: "OKC" }, KPNC: { faaId: "PNC" } });
+  assert.deepEqual(all.map((x) => fieldCodeFor(x, index)), [null, "KOKC", "KPNC", null]);
+  const { keepShowStoppers } = await import("../../assets/js/planner/notams.js");
+  assert.deepEqual(keepShowStoppers(all).map((x) => `${x.number} ${x.kind}`), ["11/101 Runway closed", "11/007 Airport closed"]);
 });

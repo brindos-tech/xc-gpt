@@ -1,9 +1,10 @@
 name: Refresh NOTAMs
 
-# Every 6 hours: show-stopper NOTAMs (airport/runway closed, fuel unavailable)
-# from the FAA NOTAM API (scripts/fetch-notams.js), for the crew card.
-# Needs the repository secrets FAA_NOTAM_CLIENT_ID and FAA_NOTAM_CLIENT_SECRET
-# (the FAA API portal's client id and secret); without them it does nothing.
+# Every 6 hours: show-stopper NOTAMs (airport/runway closed, fuel unavailable) from the NOTAM Management
+# Service API (scripts/fetch-notams.js), for the crew card.
+# Needs the repository secrets FAA_NMS_CLIENT_ID and FAA_NMS_CLIENT_SECRET (the KEY and SECRET from the
+# onboarding spreadsheet); without them it does nothing. Optional repository VARIABLES FAA_NMS_BASE and
+# FAA_NMS_AUTH_URL point it at the staging host while testing (default: the production host).
 # Published into the `wx-data` branch next to the forecast and TFRs.
 on:
   schedule:
@@ -11,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       probe:
-        description: "Print the API response shape for KOKC instead of publishing"
+        description: "Check the connection and print what comes back (no secrets) instead of publishing"
         type: boolean
         default: false
 
@@ -32,18 +33,22 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Probe the API
+      - name: Check the NMS connection
         if: ${{ inputs.probe }}
         env:
-          FAA_NOTAM_CLIENT_ID: ${{ secrets.FAA_NOTAM_CLIENT_ID }}
-          FAA_NOTAM_CLIENT_SECRET: ${{ secrets.FAA_NOTAM_CLIENT_SECRET }}
+          FAA_NMS_CLIENT_ID: ${{ secrets.FAA_NMS_CLIENT_ID }}
+          FAA_NMS_CLIENT_SECRET: ${{ secrets.FAA_NMS_CLIENT_SECRET }}
+          FAA_NMS_BASE: ${{ vars.FAA_NMS_BASE }}
+          FAA_NMS_AUTH_URL: ${{ vars.FAA_NMS_AUTH_URL }}
         run: node scripts/fetch-notams.js --probe
 
       - name: Fetch NOTAMs
         if: ${{ !inputs.probe }}
         env:
-          FAA_NOTAM_CLIENT_ID: ${{ secrets.FAA_NOTAM_CLIENT_ID }}
-          FAA_NOTAM_CLIENT_SECRET: ${{ secrets.FAA_NOTAM_CLIENT_SECRET }}
+          FAA_NMS_CLIENT_ID: ${{ secrets.FAA_NMS_CLIENT_ID }}
+          FAA_NMS_CLIENT_SECRET: ${{ secrets.FAA_NMS_CLIENT_SECRET }}
+          FAA_NMS_BASE: ${{ vars.FAA_NMS_BASE }}
+          FAA_NMS_AUTH_URL: ${{ vars.FAA_NMS_AUTH_URL }}
         run: node scripts/fetch-notams.js
 
       - name: Publish to wx-data
