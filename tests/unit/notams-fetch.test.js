@@ -45,12 +45,17 @@ test("NMS fetch: token, initial load via the signed link, only our closures are 
   const filler = Array.from({ length: 1200 }, (_, i) => member(i + 1, `X${i}`, "OBST CRANE 100FT", `!XXX 11/${i} X${i} OBST CRANE 100FT`)).join("\n");
   const xml = `<soap:Envelope><soap:Body><ns3:FeatureCollection>${filler}${member(2001, "OKC", "RWY 17R/35L CLSD", "!OKC 11/2001 OKC RWY 17R/35L CLSD", "")}${member(2002, "ZZZ", "AD AP CLSD", "!ZZZ 11/2002 ZZZ AD AP CLSD")}</ns3:FeatureCollection></soap:Body></soap:Envelope>`;
   const dir = fakeData();
+  const storageSeen = [];
+  const storage = createServer((req, res) => {
+    storageSeen.push({ url: req.url, auth: req.headers.authorization || "" });
+    res.writeHead(200).end(gzipSync(xml));
+  });
+  await new Promise((r) => storage.listen(0, "127.0.0.1", r));
   try {
     await withNms(
-      (req, res, port) => {
+      (req, res) => {
         if (req.url === "/v1/auth/token") return res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ access_token: "TOKEN123", expires_in: "1799", status: "approved" }));
-        if (req.url === "/nmsapi/v1/notams/il/DOMESTIC") return res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ status: "Success", data: { url: `http://127.0.0.1:${port}/signed/file.gz?sig=abc` } }));
-        if (req.url.startsWith("/signed/file.gz")) return res.writeHead(200).end(gzipSync(xml));
+        if (req.url === "/nmsapi/v1/notams/il/DOMESTIC") return res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ status: "Success", data: { url: `http://127.0.0.1:${storage.address().port}/signed/file.gz?sig=abc` } }));
         res.writeHead(404).end();
       },
       async (base, seen) => {
@@ -65,9 +70,34 @@ test("NMS fetch: token, initial load via the signed link, only our closures are 
         const auth = seen.find((s) => s.url === "/v1/auth/token");
         assert.equal(auth.auth, `Basic ${Buffer.from("my-client-id:my-secret-value").toString("base64")}`);
         assert.equal(seen.find((s) => s.url === "/nmsapi/v1/notams/il/DOMESTIC").auth, "Bearer TOKEN123");
-        assert.equal(seen.find((s) => s.url.startsWith("/signed/")).auth, "", "the signed link gets no Authorization header");
+        assert.equal(storageSeen[0].auth, "", "the signed link gets no Authorization header");
         // nothing secret in the log
         assert.ok(!stdout.includes("TOKEN123") && !stdout.includes("my-secret-value") && !stdout.includes("sig=abc"));
+      }
+    );
+  } finally {
+    storage.close();
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("NMS fetch: a relative download link on the NMS host (as the staging service sends) is followed with the token", async () => {
+  const filler = Array.from({ length: 1200 }, (_, i) => member(i + 1, `X${i}`, "OBST CRANE 100FT", `!XXX 11/${i} X${i} OBST CRANE 100FT`)).join("\n");
+  const xml = `<x>${filler}${member(3001, "PNC", "AD AP CLSD", "!PNC 11/3001 PNC AD AP CLSD")}</x>`;
+  const dir = fakeData();
+  try {
+    await withNms(
+      (req, res) => {
+        if (req.url === "/v1/auth/token") return res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ access_token: "T2", expires_in: "1799" }));
+        if (req.url === "/nmsapi/v1/notams/il/DOMESTIC") return res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ data: { url: "/nmsapi/v1/content/abc123" } }));
+        if (req.url === "/nmsapi/v1/content/abc123") return res.writeHead(200, { "content-type": "application/gzip" }).end(gzipSync(xml));
+        res.writeHead(404).end();
+      },
+      async (base, seen) => {
+        await run("node", [SCRIPT], { cwd: dir, env: env(base) });
+        const out = JSON.parse(readFileSync(path.join(dir, "data/generated/wx/notams.json"), "utf-8"));
+        assert.deepEqual(Object.keys(out.fields), ["KPNC"]);
+        assert.equal(seen.find((s) => s.url === "/nmsapi/v1/content/abc123").auth, "Bearer T2");
       }
     );
   } finally {

@@ -61,6 +61,33 @@ async function getToken(id, secret) {
 
 const authHeaders = (token, extra = {}) => ({ authorization: `Bearer ${token}`, "user-agent": UA, ...extra });
 
+/**
+ * Follow a download link by hand: it may be relative to the NMS host (/nmsapi/v1/content/...) and may redirect on to a
+ * signed storage link. The bearer token goes only to the NMS host; a signed link is fetched without it.
+ */
+async function download(url, token) {
+  for (let hop = 0; hop < 5; hop++) {
+    const target = new URL(url, `${BASE}/`);
+    const headers = { "user-agent": UA };
+    if (target.origin === new URL(BASE).origin) headers.authorization = `Bearer ${token}`;
+    const res = await fetch(target, { headers, redirect: "manual", signal: AbortSignal.timeout(10 * 60000) });
+    if (res.status >= 300 && res.status < 400 && res.headers.get("location")) {
+      url = new URL(res.headers.get("location"), target).href;
+      continue;
+    }
+    if (!res.ok) throw new Error(`initial load download: HTTP ${res.status}`);
+    // the body may be JSON naming the real link, or the gzip itself
+    if ((res.headers.get("content-type") || "").includes("json")) {
+      const link = (await res.json())?.data?.url;
+      if (!link) throw new Error("download answered with JSON but no link");
+      url = link;
+      continue;
+    }
+    return res;
+  }
+  throw new Error("initial load download: too many redirects");
+}
+
 /** The initial-load file for all domestic NOTAMs as a stream of text chunks. */
 async function initialLoad(token) {
   const res = await fetch(`${API}/notams/il/DOMESTIC`, { headers: authHeaders(token), redirect: "manual", signal: AbortSignal.timeout(60000) });
@@ -69,9 +96,7 @@ async function initialLoad(token) {
   else if (res.ok) url = (await res.json())?.data?.url;
   else throw Object.assign(new Error(`initial load: HTTP ${res.status}`), { status: res.status });
   if (!url) throw new Error("initial load answered without a download link");
-  // the link is already signed: no Authorization header goes along (and nothing of it is logged)
-  const file = await fetch(url, { headers: { "user-agent": UA }, signal: AbortSignal.timeout(10 * 60000) });
-  if (!file.ok) throw new Error(`initial load download: HTTP ${file.status}`);
+  const file = await download(url, token);
   return { stream: Readable.fromWeb(file.body).pipe(createGunzip()), bytes: Number(file.headers.get("content-length")) || 0 };
 }
 
@@ -80,6 +105,7 @@ async function notamsAt(location, token, limiter) {
   await limiter();
   const res = await fetch(`${API}/notams?location=${encodeURIComponent(location)}`, { headers: authHeaders(token, { nmsResponseFormat: "AIXM" }), signal: AbortSignal.timeout(60000) });
   if (res.status === 404) return []; // no NOTAMs there
+  if (process.argv.includes("--probe")) console.log(`  per-field ${location}: HTTP ${res.status}, ${res.headers.get("content-type")}`);
   if (!res.ok) throw Object.assign(new Error(`NOTAMs for ${location}: HTTP ${res.status}`), { status: res.status });
   const out = [];
   for await (const n of notamsFromChunks([await res.text()])) out.push(n);
