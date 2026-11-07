@@ -1,17 +1,17 @@
 {
-  "buildId": "build-1793974732835",
-  "buildAt": "2026-11-06T14:18:52.835Z",
-  "eventCount": 28058,
+  "buildId": "build-1794056578206",
+  "buildAt": "2026-11-07T13:02:58.206Z",
+  "eventCount": 27863,
   "sources": {
     "ticketmaster": {
       "status": "ok",
-      "lastSuccess": "2026-11-06T14:18:52.836Z",
-      "droppedForUnknownPlace": 104
+      "lastSuccess": "2026-11-07T13:02:58.206Z",
+      "droppedForUnknownPlace": 107
     },
     "seatgeek": {
       "status": "ok",
-      "lastSuccess": "2026-11-06T14:18:52.836Z",
-      "events": 18448
+      "lastSuccess": "2026-11-07T13:02:58.206Z",
+      "events": 18331
     },
     "spotify": {
       "status": "ok",
@@ -20,16 +20,16 @@
     },
     "recurring": {
       "status": "ok",
-      "lastSuccess": "2026-11-06T14:18:52.836Z"
+      "lastSuccess": "2026-11-07T13:02:58.206Z"
     }
   },
   "pr": {
-    "tagged": 224,
+    "tagged": 220,
     "fromCuratedList": 29
   },
   "dedupe": {
-    "merges": 24914,
-    "addOnListingsDropped": 340
+    "merges": 24809,
+    "addOnListingsDropped": 335
   },
   "linkHealth": {
     "https://selectaseat.com/blippi": {
