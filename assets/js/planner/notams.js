@@ -2,8 +2,9 @@
 // is usable (airport or runway closed, fuel unavailable). The text is picked
 // out of the NOTAM distribution feed by scripts/fetch-notams.js; this module is
 // the shared pure part (classification, dates, what to print).
+import { isStale, ageHours, ageText } from "./data-age.js";
 
-/** What kind of show-stopper this NOTAM text is, or null when it is not one (taxiway, lighting, approach and similar are left out on purpose). */
+/** What kind of show-stopper this NOTAM text is ("Airport closed", "Runway closed", "Runway restricted", "Fuel unavailable"), or null when it is not one (taxiway, lighting, approach and similar are left out on purpose). */
 export function showStopper(text) {
   const t = String(text || "").toUpperCase().replace(/\s+/g, " ");
   if (!t) return null;
@@ -14,7 +15,14 @@ export function showStopper(text) {
   const closed = "(CLSD|CLOSED)";
   const rwy = "[0-9]{1,2}[LRC]?(\\/[0-9]{1,2}[LRC]?)?";
   const aboutRunway = new RegExp(`^(RWY|RUNWAY)\\s+${rwy}(\\s*(AND|,)\\s*${rwy})*\\s+${closed}\\b`).test(subject);
-  if (aboutRunway && !/\b(CLSD|CLOSED) TO (ACFT|AIRCRAFT)\b[^.]{0,30}\b(OVER|EXCEEDING|HEAVIER|WINGSPAN|WEIGHT|MORE THAN)\b/.test(subject)) return "Runway closed";
+  const weightLimit = /\b(CLSD|CLOSED) TO (ACFT|AIRCRAFT)\b[^.]{0,30}\b(OVER|EXCEEDING|HEAVIER|WINGSPAN|WEIGHT|MORE THAN)\b/.test(subject);
+  if (aboutRunway && !weightLimit) {
+    // Closed outright ("CLSD", "CLSD EXC TAX/XNG") vs. closed only to some traffic ("CLSD TO LDG", "CLSD TO TGL", "CLSD TO AIR CARRIER DEP")
+    // or only at certain hours ("CLSD DLY 0530-1130", "CLSD WED 1600-1700"). The text is printed either way.
+    const toSome = /\b(CLSD|CLOSED) TO\b/.test(subject);
+    const someHours = /\b(CLSD|CLOSED)\s+((DLY|DAILY|MON|TUE|WED|THU|FRI|SAT|SUN)\b\s*)+(\d{4}\s*-\s*\d{4}|SS\s*-\s*SR|SR\s*-\s*SS)/.test(subject);
+    return toSome || someHours ? "Runway restricted" : "Runway closed";
+  }
   if (/\b(FUEL|AVGAS|100LL|JET ?A1?|JET FUEL)\b[^.]{0,40}\b(NOT AVBL|UNAVBL|NOT AVAILABLE|UNAVAILABLE|NA)\b|\bNO (FUEL|AVGAS|JET)/.test(t)) return "Fuel unavailable";
   return null;
 }
@@ -55,13 +63,18 @@ const fmtDate = (d) => d.toISOString().slice(5, 16).replace("T", " ") + "Z";
  * @param {Date} from arrival
  * @param {Date} to   the next takeoff (equal to `from` when there is none)
  */
-export function notamLines(code, file, from, to = from, esc = (x) => x) {
+export function notamLines(code, file, from, to = from, esc = (x) => x, now = new Date()) {
   if (!file) return `<span class="cc-muted">NOTAM data not loaded — check NOTAMs before you go</span>`;
   const stamp = new Date(file.builtAt).toISOString().slice(0, 16).replace("T", " ") + "Z";
   if (!file.checked?.includes(code)) return `<span class="cc-muted">not checked — check NOTAMs before you go</span>`;
   const stay = to > from ? `${fmtDate(from)} – ${fmtDate(to)}` : fmtDate(from);
+  // a file that has stopped refreshing must not read as "all clear"
+  const old = isStale("notams", file.builtAt, now) ? `NOTAM data is ${ageText(ageHours(file.builtAt, now))} old` : "";
   const list = (file.fields?.[code] || []).filter((n) => overlapsWindow(n, from, to)).sort((a, b) => String(a.start).localeCompare(String(b.start)));
-  if (!list.length) return `None found for your stay, ${stay} (as of ${stamp}) <span class="cc-muted">— closures only; check NOTAMs before you go</span>`;
+  if (!list.length) {
+    if (old) return `<b>${old}</b> (as of ${stamp}): none found for your stay, ${stay}, but it may be out of date <span class="cc-muted">— check NOTAMs before you go</span>`;
+    return `None found for your stay, ${stay} (as of ${stamp}) <span class="cc-muted">— closures only; check NOTAMs before you go</span>`;
+  }
   const when = (n) => {
     const start = n.start ? new Date(n.start) : null;
     const end = n.end ? `until ${fmt(n.end)}` : "until further notice";
@@ -69,6 +82,7 @@ export function notamLines(code, file, from, to = from, esc = (x) => x) {
     return `in force at arrival, ${end}`;
   };
   return (
+    (old ? `<b>${old}</b> — these closures may have changed<br>` : "") +
     list.map((n) => `<b>${esc(n.kind)}</b>: ${esc(n.text.length > 220 ? `${n.text.slice(0, 220)}…` : n.text)}<br><span class="cc-muted">${esc(n.number || "")}</span> ${when(n)}`).join("<br>") +
     `<br><span class="cc-muted">stay ${stay} · as of ${stamp}</span>`
   );

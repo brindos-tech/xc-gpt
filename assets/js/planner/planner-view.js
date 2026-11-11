@@ -229,6 +229,8 @@ export function createPlannerView({ config, origin, loadJson, onFieldClick, onAi
       rangeCircle.setRadius(nm * 1852);
       applyWanted();
     },
+    /** When an airspace file was built (ISO), or null if it is not loaded or has no stamp. Only the TFR file has one. */
+    dataBuiltAt: (kind) => files[kind]?.data?.builtAt ?? null,
     getAirspace: (id) => featuresById.get(id) || null,
     // an airspace id from a shared link needs its file loaded before it can be shown
     ensureAirspaceData: (id) => (id?.startsWith("TFR:") ? loadFile("tfr") : id?.startsWith("MOA:") || /^[RWA]:/.test(id || "") ? loadFile("sua") : id ? loadFile("mtr") : Promise.resolve()),

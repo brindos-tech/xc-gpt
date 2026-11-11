@@ -8,8 +8,11 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
-<!-- crossorigin so the service worker gets a readable (cacheable) response, not an opaque one -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin="anonymous" />
+<!-- What the page may load. Leaflet is served from this site (assets/vendor/leaflet), so scripts come from here only.
+     Inline styles are allowed because the markup and Leaflet set style attributes. Map tiles and the radar are images;
+     data comes from this site and the published wx-data branch. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://mesonet.agron.iastate.edu; connect-src 'self' https://raw.githubusercontent.com https://xc-gpt-comments.fly.dev; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css">
 <link rel="stylesheet" href="assets/css/tokens.css">
 <link rel="stylesheet" href="assets/css/base.css">
 <link rel="stylesheet" href="assets/css/layout.css">
@@ -39,6 +42,12 @@
     <button data-view="events">Events</button>
     <button data-view="weekends">Weekend Recs</button>
   </nav>
+
+  <!-- Empty (zero height) unless a data file has stopped refreshing or the date has rolled over; see main.js -->
+  <div class="stale-banner" id="staleBanner" role="status" aria-live="polite">
+    <span id="staleText"></span>
+    <button type="button" id="staleReload">Reload</button>
+  </div>
 
   <div class="app-body">
 
@@ -237,7 +246,7 @@
   </div>
 </dialog>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous"></script>
+<script src="assets/vendor/leaflet/leaflet.js"></script>
 <script type="module" src="assets/js/main.js"></script>
 </body>
 </html>

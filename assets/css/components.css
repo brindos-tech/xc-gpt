@@ -625,3 +625,31 @@ input.trip-to:focus-visible, select.trip-from:focus-visible, .trip-take input:fo
   .wv-map { height: 210px; }
   .map-legend.planner-legend { bottom: 44px; }
 }
+
+/* -------- stale-data banner: always in the layout (an empty row), shown only when it has text -------- */
+.stale-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 0;
+  overflow: hidden;
+  padding: 0 18px;
+  background: #3a2e12;
+  color: var(--text);
+  border-bottom: 0 solid var(--gold);
+  font-size: 0.85em;
+}
+.stale-banner.show { height: auto; min-height: 34px; padding: 6px 18px; border-bottom-width: 1px; }
+.stale-banner #staleText { flex: 1; min-width: 0; }
+.stale-banner button {
+  flex: none;
+  background: transparent;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  padding: 3px 12px;
+  font: inherit;
+  cursor: pointer;
+}
+.stale-banner:not(.show) button { visibility: hidden; }
+@media print { .stale-banner { display: none !important; } }
