@@ -16,7 +16,8 @@ test("stamps every local asset ref, module import and the data version", () => {
     for (const [, ref] of html.matchAll(/(?:href|src)="(assets\/[^"]+\.(?:css|js)[^"]*)"/g)) {
       assert.match(ref, /\?v=abc12345$/, ref);
     }
-    assert.match(html, /cdnjs\.cloudflare\.com\/ajax\/libs\/leaflet\/1\.9\.4\/leaflet\.min\.js"/, "CDN refs untouched");
+    assert.match(html, /assets\/vendor\/leaflet\/leaflet\.js\?v=abc12345"/, "Leaflet is a local, stamped asset");
+    assert.doesNotMatch(html, /cdnjs|unpkg|jsdelivr/, "no script or style comes from a CDN");
 
     const jsDir = path.join(dir, "assets", "js");
     const files = readdirSync(jsDir, { recursive: true }).filter((f) => f.endsWith(".js"));

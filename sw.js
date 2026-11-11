@@ -3,15 +3,15 @@
 //
 // - Page and data: network first, so a connected visit always sees the
 //   current deploy; the cached copy is only the fallback.
-// - Versioned assets (?v=<sha>, see scripts/stamp-version.js) and the
-//   pinned Leaflet CDN files: cache first — a given URL never changes.
+// - Versioned assets (?v=<sha>, see scripts/stamp-version.js), Leaflet
+//   included: cache first — a given URL never changes.
 // - Map tiles are never cached: OpenStreetMap's tile policy discourages
 //   bulk caching, and offline the app is still usable without the basemap.
 //
 // Lives at the site root (not under assets/) because a worker can only
 // control pages at or below its own path.
 
-const CACHE = "xc-gpt-v1";
+const CACHE = "xc-gpt-v2"; // v2: Leaflet is served from this site now; drops the old cdnjs copies
 
 self.addEventListener("install", () => self.skipWaiting());
 
@@ -26,10 +26,6 @@ self.addEventListener("activate", (event) => {
 
 function isTile(url) {
   return /tile\.openstreetmap\.org$/.test(url.hostname);
-}
-
-function isPinnedCdn(url) {
-  return url.hostname === "cdnjs.cloudflare.com";
 }
 
 // One cached copy per path: storing a new ?v= drops the previous deploy's
@@ -71,10 +67,6 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (isTile(url)) return;
 
-  if (isPinnedCdn(url)) {
-    event.respondWith(cacheFirst(request));
-    return;
-  }
   if (url.origin !== self.location.origin) return;
 
   if (request.mode === "navigate" || url.pathname.includes("/data/")) {

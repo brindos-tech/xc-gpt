@@ -285,5 +285,5 @@ export function createWxController({ store, map, loadJson, today, onChange }) {
     }
   }
 
-  return { render, fieldRing, fieldRows, forecastAt, get ready() { return ready; } };
+  return { render, fieldRing, fieldRows, forecastAt, get ready() { return ready; }, /** When the forecast files were built (ISO), or null before they load. */ get builtAt() { return wxData.index?.generatedAt ?? null; } };
 }

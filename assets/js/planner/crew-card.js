@@ -76,7 +76,7 @@ function stopHtml(s, i, ctx) {
       })()}
       ${line("Runways", runwaysHtml(f))}
       ${rightTrafficText(f) ? line("Traffic pattern", `<b class="cc-hi">Right traffic: runway ${esc(rightTrafficText(f))}</b>`) : ""}
-      ${ctx.notamsWanted ? line("Closures (NOTAM)", notamLines(f.code, ctx.notams, ctx.schedule?.[i]?.eta || new Date(), ctx.schedule?.[i + 1]?.dep || ctx.schedule?.[i]?.eta || new Date(), esc)) : ""}
+      ${ctx.notamsWanted ? line("Closures (NOTAM)", notamLines(f.code, ctx.notams, ctx.schedule?.[i]?.eta || new Date(), ctx.schedule?.[i + 1]?.dep || ctx.schedule?.[i]?.eta || new Date(), esc, ctx.now)) : ""}
       ${line("Approaches", esc(types.join(", ")))}
       ${sh ? line(`Sun (${sh.abbr || "local"})`, esc(sh.sunText)) : ""}
       ${sh ? line("FBO hours", esc(sh.hoursText || "not listed") + (f.attendance ? ` <span class="cc-muted">(${esc(f.attendance)})</span>` : "") + sh.flags.map((x) => `<br>⚠ ${esc(x.text)}`).join("")) : ""}

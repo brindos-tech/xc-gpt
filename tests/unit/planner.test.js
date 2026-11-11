@@ -642,6 +642,7 @@ test("runways: every one at least 4,000 x 75 ft is kept for the crew card", asyn
 
 test("NOTAMs: only show-stoppers are kept, and the crew card line says what it knows", async () => {
   const n = await import("../../assets/js/planner/notams.js");
+  const SOON = new Date("2026-11-03T13:00:00Z"); // an hour after the fixture file was built: fresh
   assert.equal(n.showStopper("!OKC 11/123 OKC RWY 17R/35L CLSD 2611011200-2611152359"), "Runway closed");
   assert.equal(n.showStopper("!PNC 11/001 PNC AD AP CLSD"), "Airport closed");
   assert.equal(n.showStopper("!PNC 11/002 PNC RWY 17 CLSD EXC EMERG"), "Runway closed");
@@ -655,6 +656,14 @@ test("NOTAMs: only show-stoppers are kept, and the crew card line says what it k
   assert.equal(n.showStopper("RWY 09/27 CLSD TO ACFT OVER 12500 LBS"), null);
   assert.equal(n.showStopper("RWY 09/27 CLSD EXC TAX BTN TWY B3 AND TWY B7"), "Runway closed");
   assert.equal(n.showStopper("RWY 4 AND 22 CLSD"), "Runway closed");
+  // closed only to some traffic or only at some hours: "restricted", not "closed" (real examples from the published file)
+  for (const t of ["RWY 12R CLSD TO AIR CARRIER DEP", "RWY 14L/32R CLSD TO TGL MON WED FRI 1330-1730", "RWY 04R/22L CLSD TO STUDENT EXC 1HR PPR 704-982-5123", "RWY 30L CLSD TO TKOF", "RWY 24 CLSD TO DEPARTING ACFT AT TWY D4", "RWY 12R CLSD TO LDG", "RWY 10/28 CLSD DLY 0530-1130", "RWY 10L/28R CLSD WED 1600-1700", "RWY 18/36 CLSD MON TUE WED SAT 0600-1100", "RWY 05L/23R CLSD DLY 2359-2000"]) {
+    assert.equal(n.showStopper(t), "Runway restricted", t);
+  }
+  // ...while closed-except-something stays closed, even when the exception has days and hours
+  for (const t of ["RWY 17/35 CLSD EXC TAX", "RWY 08/26 CLSD EXC AIR CARRIERS TUE THU FRI 0530-1145", "RWY 06/24 CLSD EXC XNG DLY SS-SR", "RWY 18/36 CLSD EXC SKED AIR CARRIERS DLY 0400-0600", "RWY 01/19 CLSD EXC MIL ACFT LGT OUT TRG OPS DLY SS-SR", "RWY 03/21 CLSD"]) {
+    assert.equal(n.showStopper(t), "Runway closed", t);
+  }
   assert.equal(n.showStopper("!PNC 11/007 PNC OBST CRANE 150FT AGL"), null);
   // dates and items
   assert.equal(n.parseNotamDate("2611011200").toISOString(), "2026-11-01T12:00:00.000Z");
@@ -681,15 +690,15 @@ test("NOTAMs: only show-stoppers are kept, and the crew card line says what it k
   };
   const arrive = new Date("2026-11-07T15:00:00Z");
   const leave = new Date("2026-11-09T15:00:00Z"); // a RON: two days
-  assert.match(n.notamLines("KOKC", file, arrive, leave), /<b>Runway closed<\/b>: RWY 17R\/35L CLSD.*in force at arrival, until 11-15 23:59Z/);
-  const tul = n.notamLines("KTUL", file, arrive, leave);
+  assert.match(n.notamLines("KOKC", file, arrive, leave, (x) => x, SOON), /<b>Runway closed<\/b>: RWY 17R\/35L CLSD.*in force at arrival, until 11-15 23:59Z/);
+  const tul = n.notamLines("KTUL", file, arrive, leave, (x) => x, SOON);
   assert.match(tul, /Airport closed<\/b>: AD AP CLSD/);
   assert.match(tul, /begins 11-08 14:00Z — during your stay/, "a closure that starts later in the stay is called out");
   assert.doesNotMatch(tul, /RWY 18|RWY 36/, "closures over before arrival or after departure are left out");
-  assert.match(n.notamLines("KPNC", file, arrive, leave), /None found for your stay, 11-07 15:00Z – 11-09 15:00Z \(as of 2026-11-03 12:00Z\)/);
-  assert.match(n.notamLines("KXYZ", file, arrive, leave), /not checked/);
-  assert.match(n.notamLines("KOKC", null, arrive, leave), /not loaded/);
-  assert.match(n.notamLines("KOKC", file, new Date("2026-12-01T00:00:00Z")), /None found/, "expired closures are not printed");
+  assert.match(n.notamLines("KPNC", file, arrive, leave, (x) => x, SOON), /None found for your stay, 11-07 15:00Z – 11-09 15:00Z \(as of 2026-11-03 12:00Z\)/);
+  assert.match(n.notamLines("KXYZ", file, arrive, leave, (x) => x, SOON), /not checked/);
+  assert.match(n.notamLines("KOKC", null, arrive, leave, (x) => x, SOON), /not loaded/);
+  assert.match(n.notamLines("KOKC", file, new Date("2026-12-01T00:00:00Z"), new Date("2026-12-01T00:00:00Z"), (x) => x, SOON), /None found/, "expired closures are not printed");
   assert.equal(n.overlapsWindow({ start: null, end: null }, arrive, leave), true, "no dates: in force until further notice");
 });
 
@@ -824,6 +833,29 @@ test("a field can be visited more than once: A to B to C, back to B, then home",
   assert.equal(has(0, "KOKC"), true, "nor the stop after it");
   assert.equal(has(1, "KPNC"), true, "editing stop 2: not the stop before");
   assert.equal(has(1, "KEND"), true, "last stop, returning home: not the base");
+});
+
+test("crew card NOTAM lines: a stale file is called stale, never read as all-clear", async () => {
+  const n = await import("../../assets/js/planner/notams.js");
+  const now = new Date("2026-11-11T12:00:00Z");
+  const from = new Date("2026-11-12T15:00:00Z");
+  const file = (builtAt) => ({ builtAt, checked: ["KOKC", "KPNC"], fields: { KOKC: [{ kind: "Runway closed", text: "RWY 17R/35L CLSD", number: "11/123", start: "2026-11-01T00:00:00.000Z", end: "2026-12-01T00:00:00.000Z" }] } });
+  const fresh = file("2026-11-11T06:00:00Z");
+  const stale = file("2026-11-09T06:00:00Z"); // 54 hours old
+  // fresh: as before
+  assert.match(n.notamLines("KPNC", fresh, from, from, (x) => x, now), /^None found for your stay/);
+  assert.doesNotMatch(n.notamLines("KOKC", fresh, from, from, (x) => x, now), /NOTAM data is/);
+  // stale: no bare "None found", and a warning above any closures
+  const clear = n.notamLines("KPNC", stale, from, from, (x) => x, now);
+  assert.match(clear, /NOTAM data is 2 days old/);
+  assert.match(clear, /may be out of date/);
+  assert.doesNotMatch(clear, /^None found/);
+  const closed = n.notamLines("KOKC", stale, from, from, (x) => x, now);
+  assert.match(closed, /^<b>NOTAM data is 2 days old<\/b> — these closures may have changed<br>/);
+  assert.match(closed, /Runway closed/);
+  // no file / not checked still say so
+  assert.match(n.notamLines("KPNC", null, from, from, (x) => x, now), /not loaded/);
+  assert.match(n.notamLines("KXYZ", fresh, from, from, (x) => x, now), /not checked/);
 });
 
 test("NMS AIXM: NOTAMs are read from the initial-load stream and matched to our fields", async () => {

@@ -1,6 +1,6 @@
 .app {
   display: grid;
-  grid-template-rows: var(--header-height) var(--tabbar-height) 1fr;
+  grid-template-rows: var(--header-height) var(--tabbar-height) auto 1fr;
   height: 100vh;
   height: 100dvh;
 }
@@ -186,7 +186,7 @@
 /* ================= responsive ================= */
 @media (max-width: 860px) {
   html, body { overflow: auto; }
-  .app { height: auto; min-height: 100dvh; grid-template-rows: auto auto 1fr; }
+  .app { height: auto; min-height: 100dvh; grid-template-rows: auto auto auto 1fr; }
   .app-header { flex-wrap: wrap; height: auto; padding: 10px 14px; }
   .header-search { order: 3; max-width: none; flex-basis: 100%; }
   /* the freshness text gives way so the help button stays on the same line */

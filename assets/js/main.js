@@ -1,6 +1,7 @@
 import { createStore } from "./store.js";
 import { initUrlState } from "./url-state.js";
 import { formatUpdatedAgo, parseDate } from "./format.js";
+import { staleSources, staleMessage } from "./planner/data-age.js";
 import { createFilterRail } from "./views/filter-rail.js";
 import { initWelcome } from "./views/welcome.js";
 import { createPlannerView } from "./planner/planner-view.js";
@@ -77,7 +78,10 @@ async function boot() {
   let notamsFile = null;
   (config.notamsUrl ? fetch(config.notamsUrl, { cache: "no-cache" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))) : Promise.reject(new Error("no url")))
     .catch(() => loadJson("generated/wx/notams.json"))
-    .then((d) => (notamsFile = d))
+    .then((d) => {
+      notamsFile = d;
+      checkFreshness();
+    })
     .catch(() => null);
 
   /** Fill the print-only crew card for the current trip and open the print dialog. */
@@ -149,6 +153,26 @@ async function boot() {
   });
   const wx = createWxController({ store, map: planner.map, loadJson, today, onChange: () => render() });
   $("plannerLegend").innerHTML = planner.legendHtml();
+
+  // ---- stale-data banner: a data file that has stopped refreshing, or a date that has rolled over ----
+  // Forecast, TFR and NOTAM files are rebuilt by scheduled workflows; if one stops, the last file would otherwise keep
+  // looking current. Rechecked every minute and whenever the tab comes back (a laptop can sleep for hours).
+  const loadedDay = new Date().toDateString();
+  const staleBanner = $("staleBanner");
+  function checkFreshness() {
+    const at = new Date();
+    const stale = staleSources({ forecast: wx.builtAt, tfr: planner.dataBuiltAt("tfr"), notams: notamsFile?.builtAt }, at);
+    const messages = [];
+    if (at.toDateString() !== loadedDay) messages.push("It is a new day since this page loaded: reload to update the dates and the forecast.");
+    if (stale.length) messages.push(staleMessage(stale));
+    $("staleText").textContent = messages.join(" ");
+    staleBanner.classList.toggle("show", messages.length > 0);
+  }
+  $("staleReload").addEventListener("click", () => location.reload());
+  setInterval(checkFreshness, 60000);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) checkFreshness();
+  });
 
   // ---- events (lazy) ----
   let eventsPage = null;
@@ -299,6 +323,7 @@ async function boot() {
     syncPage(state.view);
     filterRail.syncFromState(state);
     renderFreshness(state.view);
+    checkFreshness(); // the forecast and TFR files arrive after boot and re-render the page
 
     // one-way DOM->store binding on the search input, so typing doesn't
     // fight the cursor

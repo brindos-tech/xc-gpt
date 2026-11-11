@@ -6,8 +6,6 @@
 //
 // Env:
 //   CHROMIUM_PATH  use this Chromium binary instead of Playwright's own
-//   LEAFLET_DIR    serve Leaflet from this local dist/ dir instead of
-//                  cdnjs (for sandboxes without CDN access)
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
@@ -56,15 +54,11 @@ async function openPage(viewport = { width: 1280, height: 900 }, opts = {}) {
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", (err) => errors.push(err.message));
+  // the Content-Security-Policy in index.html must not block anything the page really loads
+  page.on("console", (m) => /Content Security Policy|Refused to (load|connect|apply|execute)/i.test(m.text()) && errors.push(`CSP: ${m.text()}`));
 
   // Map tiles are irrelevant here and must not make the test network-bound.
   await page.route(/tile\.openstreetmap\.org|mesonet\.agron\.iastate\.edu|raw\.githubusercontent\.com/, (route) => route.abort());
-  if (process.env.LEAFLET_DIR) {
-    await page.route(/cdnjs\.cloudflare\.com\/ajax\/libs\/leaflet\/1\.9\.4\//, (route) => {
-      const name = new URL(route.request().url()).pathname.split("/").pop().replace(".min", "");
-      route.fulfill({ path: path.join(process.env.LEAFLET_DIR, name), headers: { "access-control-allow-origin": "*" } });
-    });
-  }
 
   await opts.setup?.(page);
   await page.goto(site.url + (opts.hash || ""));
@@ -223,14 +217,6 @@ test("data is fetched with the deploy version, not a per-load timestamp", async 
   page.on("request", (r) => r.url().includes("/data/") && dataUrls.push(r.url()));
   try {
     await page.route(/tile\.openstreetmap\.org|mesonet\.agron\.iastate\.edu|raw\.githubusercontent\.com/, (route) => route.abort());
-    if (process.env.LEAFLET_DIR) {
-      await page.route(/cdnjs\.cloudflare\.com/, (route) =>
-        route.fulfill({
-          path: path.join(process.env.LEAFLET_DIR, new URL(route.request().url()).pathname.split("/").pop().replace(".min", "")),
-          headers: { "access-control-allow-origin": "*" },
-        })
-      );
-    }
     await page.goto(site.url);
     await page.waitForFunction(() => document.getElementById("freshnessText")?.textContent.includes("loading") === false);
     assert.ok(dataUrls.length >= 4);
@@ -366,6 +352,76 @@ test("TFRs are on by default, drawn, clickable, and open a sheet linking to the 
     assert.match(text, /Test City, OK/);
     assert.equal(await page.locator('#fieldContent a[href*="tfr.faa.gov"]').count(), 2);
     assert.equal(await page.isHidden("#fieldComments"), true, "no comments on a TFR");
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+const hoursAgo = (h) => new Date(Date.now() - h * 3600000).toISOString();
+
+test("data age: nothing is shown while every file is fresh", async () => {
+  const { page, context, errors } = await openPage();
+  try {
+    await page.waitForFunction(() => document.querySelector("#wxTimeLabel") && !/no data/.test(document.querySelector("#wxTimeLabel").textContent));
+    await page.waitForSelector("#plannerMap path.leaflet-interactive", { timeout: 20000 }); // the TFR is drawn, so its file is in
+    assert.equal(await page.locator("#staleBanner.show").count(), 0);
+    assert.equal(await page.evaluate(() => document.getElementById("staleBanner").getBoundingClientRect().height), 0, "an empty banner takes no room");
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("data age: the banner names what stopped refreshing, and the crew card never calls stale NOTAMs all-clear", async () => {
+  const { page, context, errors } = await openPage(undefined, {
+    setup: async (p) => {
+      await p.route(/generated\/wx\/notams\.json/, (route) =>
+        route.fulfill({ json: { builtAt: hoursAgo(54), checked: ["KOKC", "KPNC"], fields: { KOKC: [{ kind: "Runway closed", text: "RWY 17R/35L CLSD", number: "11/123", start: hoursAgo(24), end: new Date(Date.now() + 30 * 864e5).toISOString() }] } } })
+      );
+      await p.route(/generated\/wx\/index\.json/, async (route) => {
+        const res = await route.fetch();
+        await route.fulfill({ response: res, json: { ...(await res.json()), generatedAt: hoursAgo(26) } });
+      });
+      await p.route(/generated\/wx\/tfr\.json/, async (route) => {
+        const res = await route.fetch();
+        await route.fulfill({ response: res, json: { ...(await res.json()), builtAt: hoursAgo(6) } });
+      });
+    },
+  });
+  try {
+    await page.waitForSelector("#staleBanner.show", { timeout: 20000 });
+    // all three files are in before the sentence is complete
+    await page.waitForFunction(() => /NOTAMs is 2 days old/.test(document.getElementById("staleText").textContent) && /Forecast is 26 hours old/.test(document.getElementById("staleText").textContent) && /TFRs are 6 hours old/.test(document.getElementById("staleText").textContent), null, { timeout: 20000 });
+    assert.match(await page.textContent("#staleText"), /a data refresh may have failed/);
+    assert.equal(await page.isVisible("#staleReload"), true);
+
+    // the crew card
+    await page.evaluate(() => (window.print = () => {}));
+    await page.locator('#plannerMap [data-field="KOKC"]').dispatchEvent("click");
+    await page.waitForSelector("#fieldPanel.open");
+    await page.click('[data-trip-toggle="KOKC"]');
+    await page.waitForSelector("#tripBody .trip-stop");
+    await page.click('#tripBody [data-trip="print"]');
+    const card = await page.textContent("#crewCard");
+    assert.match(card, /NOTAM data is 2 days old/);
+    assert.match(card, /these closures may have changed/, "KOKC's closure carries the warning");
+    assert.match(card, /Runway closed: RWY 17R\/35L CLSD/, "...and is still printed");
+    assert.doesNotMatch(card, /None found for your stay/, "a stale file never reads as all-clear");
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("data age: a tab left open past midnight asks for a reload", async () => {
+  const { page, context, errors } = await openPage(undefined, { setup: (p) => p.clock.install({ time: new Date() }) });
+  try {
+    await page.waitForFunction(() => document.querySelector("#wxTimeLabel") && !/no data/.test(document.querySelector("#wxTimeLabel").textContent));
+    assert.equal(await page.locator("#staleBanner.show").count(), 0);
+    await page.clock.fastForward("26:00:00"); // the one-minute check fires
+    await page.waitForSelector("#staleBanner.show");
+    assert.match(await page.textContent("#staleText"), /new day since this page loaded/);
     assert.deepEqual(errors, []);
   } finally {
     await context.close();
@@ -918,7 +974,8 @@ test("weekend recs tab: a pick and two backups per weekend, a mix of kinds, and 
 
     // the header search narrows what is considered
     await page.fill("#globalSearch", "rodeo");
-    await page.waitForFunction(() => /rodeo/i.test(document.querySelector("#weekendsPage .wk-primary .wk-title")?.textContent || ""), null, { timeout: 8000 });
+    // (any pick, not the first: the nearest weekend's top match can be a rodeo-ish event whose title lacks the word)
+    await page.waitForFunction(() => [...document.querySelectorAll("#weekendsPage .wk-primary .wk-title")].some((t) => /rodeo/i.test(t.textContent)), null, { timeout: 8000 });
     await page.fill("#globalSearch", "");
 
     // the orange city is the link to the events map: no separate "see on the events map" line
