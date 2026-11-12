@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "private": true,
   "type": "module",
-  "description": "XC GPT — rolling situational-awareness engine for weekend cross-country flight planning. Static site (index.html + ES modules); Node scripts here only run in CI to regenerate data/generated/*.json.",
+  "description": "OffStation (formerly XC GPT) — rolling situational-awareness engine for weekend cross-country flight planning. Static site (index.html + ES modules); Node scripts here only run in CI to regenerate data/generated/*.json.",
   "engines": {
     "node": ">=20"
   },

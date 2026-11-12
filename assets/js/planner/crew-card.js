@@ -118,5 +118,5 @@ export function crewCardHtml(ctx) {
     </tbody></table>
     ${ctx.cost.nights ? `<p class="cc-cost">${ctx.cost.nights} night${ctx.cost.nights === 1 ? "" : "s"}: lodging ${money(ctx.cost.lodging)} + M&amp;IE ${money(ctx.cost.meals)} = <b>${money(ctx.cost.total)}</b> <span class="cc-muted">(GSA rates, estimate — actual per diem per JTR/DTS)</span></p>` : ""}
     ${ctx.stops.map((s, i) => stopHtml(s, i, ctx)).join("")}
-    <p class="cc-foot">Planning reference only — verify hours, fuel, PPR and approvals in FLIP, the current Nav Info List and ForeFlight, and check NOTAMs/TFRs and weather before you go.${ctx.dataNotes?.length ? `<br>${ctx.dataNotes.map(esc).join(" · ")}` : ""}<br>Printed ${esc(new Date().toLocaleString("en-US"))} from the XC GPT Nav Planner.</p>`;
+    <p class="cc-foot">Planning reference only — verify hours, fuel, PPR and approvals in FLIP, the current Nav Info List and ForeFlight, and check NOTAMs/TFRs and weather before you go.${ctx.dataNotes?.length ? `<br>${ctx.dataNotes.map(esc).join(" · ")}` : ""}<br>Printed ${esc(new Date().toLocaleString("en-US"))} from OffStation.</p>`;
 }

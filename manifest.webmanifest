@@ -1,6 +1,6 @@
 {
-  "name": "XC GPT",
-  "short_name": "XC GPT",
+  "name": "OffStation",
+  "short_name": "OffStation",
   "description": "Weekend cross-country planning: events, places and weather within range of your departure base.",
   "start_url": "./",
   "scope": "./",
