@@ -717,7 +717,25 @@ test("crew card: elevation, who controls the field, and right-traffic runways ar
   assert.match(controlInfo({ tower: "ATCT-A/C" }).text, /approach control \(A\/C\)/);
   assert.match(controlInfo({ tower: "NON-ATCT", artcc: zfw }).text, /No tower · center control \(ZFW FORT WORTH Center\)/);
   assert.equal(controlInfo({ tower: "NON-ATCT", artcc: zfw }).flagged, true);
-  assert.deepEqual(controlInfo({ tower: "ATCT" }), { text: "Tower only, no approach control at the field", flagged: false });
+  // a plain tower must not be called "no approach control": a separate facility serves it (the KAPA case)
+  assert.deepEqual(controlInfo({ tower: "ATCT" }), { text: "Tower at the field · approach control is a separate facility (not in our data)", flagged: false });
+  const apa = { tower: "ATCT", artcc: { id: "ZDV", name: "" }, approach: { call: "DENVER", id: "D01" } };
+  assert.deepEqual(controlInfo(apa), { text: "Tower + Denver Approach (D01) · ZDV Denver Center", flagged: true });
+  assert.equal(controlInfo({ tower: "ATCT-TRACON", approach: { call: "DALLAS-FT WORTH", id: "D10" } }).text, "Tower + Dallas-Ft Worth Approach (D10)");
+  assert.match(controlInfo({ tower: "ATCT", approach: { call: "A", id: "A1" }, departure: { call: "B", id: "B1" } }).text, /^Tower \+ A Approach \(A1\), B Departure \(B1\)/);
+  assert.equal(controlInfo({ tower: "NON-ATCT", approach: { call: "X", id: "Y" } }).text, "No tower · center control", "no tower, no approach line");
+  // call signs read as words; acronyms stay; a center that gives approach service is named once, as a center
+  assert.equal(controlInfo({ tower: "ATCT", approach: { call: "LIBBY AAF GCA", id: "FHU" } }).text, "Tower + Libby AAF GCA Approach (FHU)");
+  assert.equal(controlInfo({ tower: "ATCT", approach: { call: "SOCAL", id: "SCT" } }).text, "Tower + SoCal Approach (SCT)");
+  assert.equal(controlInfo({ tower: "ATCT", approach: { call: "MC GUIRE", id: "WRI" } }).text, "Tower + McGuire Approach (WRI)");
+  assert.equal(controlInfo({ tower: "ATCT", approach: { call: "KANSAS CITY ARTCC", id: "ZKC" }, artcc: { id: "ZKC", name: "" } }).text, "Tower + Kansas City Center (ZKC)");
+  assert.equal(controlInfo({ tower: "ATCT", approach: { call: "DENVER", id: "D01" } }).text, "Tower + Denver Approach (D01)", "no center on file: no center tail");
+  const { approachOf } = await import("../../scripts/build-fields.js");
+  assert.deepEqual(approachOf({ PRIMARY_APCH_RADIO_CALL: "DENVER", APCH_P_PROVIDER: "D01", PRIMARY_DEP_RADIO_CALL: "DENVER", DEP_P_PROVIDER: "D01" }), { approach: { call: "DENVER", id: "D01" } });
+  assert.deepEqual(approachOf({ PRIMARY_APCH_RADIO_CALL: "A", APCH_P_PROVIDER: "A1", PRIMARY_DEP_RADIO_CALL: "B", DEP_P_PROVIDER: "B1" }).departure, { call: "B", id: "B1" });
+  assert.deepEqual(approachOf({ PRIMARY_APCH_RADIO_CALL: "", APCH_P_PROVIDER: "", PRIMARY_DEP_RADIO_CALL: "X", DEP_P_PROVIDER: "" }), { approach: { call: "X", id: "" } }, "departure only: it is the facility");
+  assert.equal(approachOf({ PRIMARY_APCH_RADIO_CALL: "", APCH_P_PROVIDER: "" }), null);
+  assert.equal(approachOf(undefined), null);
   assert.equal(rightTrafficText({ rightTraffic: ["17", "35L"] }), "17, 35L");
   assert.equal(rightTrafficText({}), "");
   // on the card

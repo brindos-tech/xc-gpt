@@ -10,7 +10,12 @@ on:
   schedule:
     - cron: "17 7 * * 1" # Mondays 07:17 UTC
     - cron: "17 7 * * 4" # Thursdays 07:17 UTC (AIRAC cycles take effect on Thursdays)
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      probe:
+        description: "Only print what the other NASR bundles hold about one airport (approach control); change nothing"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -29,15 +34,22 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Probe NASR bundles
+        if: ${{ inputs.probe }}
+        run: node scripts/probe-nasr.js
+
       - name: Field facts (NASR + per diem)
+        if: ${{ !inputs.probe }}
         env:
           GSA_API_KEY: ${{ secrets.GSA_API_KEY }}
         run: node scripts/build-fields.js
 
       - name: Airspace layers
+        if: ${{ !inputs.probe }}
         run: node scripts/fetch-airspace.js
 
       - name: Commit if changed
+        if: ${{ !inputs.probe }}
         run: |
           git config user.name "xc-gpt-bot"
           git config user.email "actions@users.noreply.github.com"

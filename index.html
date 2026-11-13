@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>XC GPT | Nav Planner</title>
+<title>XC Scanner | Cross-country awareness</title>
+<meta name="description" content="XC Scanner: off-station awareness for cross-country flying. Weather, NOTAMs, TFRs, fields and events within range of your base.">
 <meta name="theme-color" content="#0f1115">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml">
@@ -26,7 +27,7 @@
   <header class="app-header">
     <button class="rail-toggle-btn" id="railToggle" style="display:none;" aria-controls="filterRail" aria-expanded="false">☰ Filters</button>
     <button class="trip-toggle-btn" id="tripToggle" aria-controls="tripBar" aria-expanded="false">&#9992; Flight plan <span id="tripToggleCount"></span></button>
-    <h1>XC GPT <span class="accent">&#9992;</span></h1>
+    <h1>XC Scanner <span class="accent">&#9992;</span><span class="tagline">Off-station awareness for cross-country flying.</span></h1>
     <div class="header-search">
       <input type="text" id="globalSearch" placeholder="Search fields, FBOs&hellip;" autocomplete="off">
     </div>
@@ -166,7 +167,8 @@
 <dialog class="welcome" id="welcome" aria-labelledby="welcomeTitle">
   <div class="welcome-card">
     <header class="welcome-head">
-      <h2 id="welcomeTitle">Welcome to XC GPT <span class="accent">&#9992;</span></h2>
+      <h2 id="welcomeTitle">Welcome to XC Scanner <span class="accent">&#9992;</span></h2>
+      <p class="welcome-tagline">Off-station awareness for cross-country flying.</p>
       <p>Plan a T-6 cross-country in three steps. The pictures below are examples drawn from the app itself.</p>
     </header>
 
@@ -239,7 +241,7 @@
       </figure>
     </section>
 
-    <p class="welcome-note">Planning reference only. Confirm hours, fuel, PPR and approvals with FLIP, the current Nav Info List and base ops, and check NOTAMs, TFRs and a real weather briefing before you go. Bring this screen back any time with <b>? How to use</b> at the top.</p>
+    <p class="welcome-note">Planning reference only. XC Scanner is an independent tool, not an official USAF or FAA product. Confirm hours, fuel, PPR and approvals with FLIP, the current Nav Info List and base ops, and check NOTAMs, TFRs and a real weather briefing before you go. Bring this screen back any time with <b>? How to use</b> at the top.</p>
     <footer class="welcome-foot">
       <button type="button" class="welcome-go" id="welcomeGo">Got it, show me the map</button>
     </footer>

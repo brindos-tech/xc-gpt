@@ -1,4 +1,6 @@
-# XC GPT
+# XC Scanner
+
+*Formerly "XC GPT". The repository, its web address and some internal names (storage keys, cache name, bot name) still use the old name; renaming them would reset visitors' saved settings for no visible gain.*
 
 A nav planner for T-6 cross-country missions, with the events map that started the project as page 2. See [ARCHITECTURE.md](ARCHITECTURE.md) for the original design.
 

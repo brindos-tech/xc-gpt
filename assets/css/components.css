@@ -460,10 +460,12 @@ input.trip-to { text-transform: uppercase; }
 .trip-ctl { display: inline-flex; gap: 3px; }
 .trip-ctl button:disabled { opacity: 0.3; cursor: default; }
 input.trip-to:focus-visible, select.trip-from:focus-visible, .trip-take input:focus-visible { outline: 2px solid var(--accent); }
-.trip-ronmark { color: var(--gold); font-size: 0.72em; font-weight: 700; }
-.trip-more { margin-top: 3px; }
-.trip-more summary { cursor: pointer; font-size: 0.74em; color: var(--muted); }
-.trip-more-body { display: grid; gap: 3px; padding-top: 4px; }
+.trip-c-arr { position: relative; }
+/* the RON note hangs below the arrival box instead of making the cell taller (which pushed the box up out of line with its row) */
+.trip-ronmark { position: absolute; left: 0; top: 100%; margin-top: 1px; white-space: nowrap; color: var(--gold); font-size: 0.72em; font-weight: 700; }
+.trip-has-ron .trip-row { margin-bottom: 14px; }
+.trip-extra { display: grid; gap: 3px; padding-top: 4px; }
+.trip-wxrow .trip-move { margin-left: auto; }
 .trip-stop .fp-flag { margin-left: 24px; }
 .trip-move { display: flex; gap: 6px; }
 .tl-svg { max-width: 480px; }
@@ -653,3 +655,19 @@ input.trip-to:focus-visible, select.trip-from:focus-visible, .trip-take input:fo
 }
 .stale-banner:not(.show) button { visibility: hidden; }
 @media print { .stale-banner { display: none !important; } }
+
+.welcome-tagline { margin: 2px 0 6px; color: var(--accent); font-weight: 600; }
+
+/* the one button a crew wants at the end of the plan */
+.trip-actions .chip.chip-primary {
+  flex: 1 1 100%;
+  order: -1;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #14110d;
+  font-weight: 700;
+  font-size: 1em;
+  padding: 9px 14px;
+}
+.trip-actions .chip.chip-primary:hover { filter: brightness(1.1); color: #14110d; }
+.trip-actions .chip.chip-primary:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }

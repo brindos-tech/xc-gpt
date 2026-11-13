@@ -1,6 +1,6 @@
 {
-  "name": "XC GPT",
-  "short_name": "XC GPT",
+  "name": "XC Scanner",
+  "short_name": "XC Scanner",
   "description": "Weekend cross-country planning: events, places and weather within range of your departure base.",
   "start_url": "./",
   "scope": "./",

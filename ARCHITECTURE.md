@@ -1,4 +1,4 @@
-# XC GPT — Architecture Specification
+# XC Scanner (formerly XC GPT) — Architecture Specification
 
 **Version:** 2.0 (rolling awareness engine)
 **Author:** Architecture spec for implementation

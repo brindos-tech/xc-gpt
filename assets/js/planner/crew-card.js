@@ -33,16 +33,39 @@ export function runwaysHtml(f) {
 
 const ARTCC_NAMES = { ZAB: "Albuquerque", ZAU: "Chicago", ZBW: "Boston", ZDC: "Washington", ZDV: "Denver", ZFW: "Fort Worth", ZHU: "Houston", ZID: "Indianapolis", ZJX: "Jacksonville", ZKC: "Kansas City", ZLA: "Los Angeles", ZLC: "Salt Lake City", ZMA: "Miami", ZME: "Memphis", ZMP: "Minneapolis", ZNY: "New York", ZOA: "Oakland", ZOB: "Cleveland", ZSE: "Seattle", ZTL: "Atlanta" };
 
-/** Who you talk to at the field: tower, approach control (TRACON / RAPCON / RATCF / approach-control tower) and the overlying center. */
+const titleCase = (s) => String(s).toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase());
+
+// radio call signs come in capitals ("DENVER", "LIBBY AAF GCA", "KANSAS CITY ARTCC"); read them as words, keeping the acronyms
+const callName = (s) => titleCase(s).replace(/\b(Aaf|Gca|Afb|Nas|Mcas)\b/g, (m) => m.toUpperCase()).replace(/\bSocal\b/, "SoCal").replace(/\bMc Guire\b/, "McGuire");
+
+/** "Denver Approach (D01)" from the build's {call, id}; with a different departure facility, both. A center that gives approach service reads "Kansas City Center (ZKC)". "" when none is known. */
+export function approachText(f) {
+  const name = (x, word) => {
+    if (!x?.call) return x?.id || "";
+    const id = x.id ? ` (${x.id})` : "";
+    return /\s(ARTCC|CENTER)$/i.test(x.call) ? `${callName(x.call.replace(/\s+(ARTCC|CENTER)$/i, ""))} Center${id}` : `${callName(x.call)} ${word}${id}`;
+  };
+  const a = name(f.approach, "Approach");
+  if (!a) return "";
+  const d = f.departure ? name(f.departure, "Departure") : "";
+  return d ? `${a}, ${d}` : a;
+}
+
+/** Who you talk to at the field: tower, the approach control that serves it (TRACON / RAPCON / RATCF / approach-control tower) and the overlying center. */
 export function controlInfo(f) {
   const t = String(f.tower || "");
-  const approach = /TRACON|RAPCON|RATCF|TRACAB|A\/C/.test(t);
+  const ownApproach = /TRACON|RAPCON|RATCF|TRACAB|A\/C/.test(t);
+  const ap = approachText(f);
   const centerName = f.artcc?.name || ARTCC_NAMES[f.artcc?.id] || "";
   const center = f.artcc?.id ? `${f.artcc.id}${centerName ? ` ${centerName}` : ""} Center` : "";
+  // when the center itself gives the approach service it is already named, once
+  const tail = center && f.approach?.id !== f.artcc?.id ? ` · ${center}` : "";
   if (!t) return center ? { text: center, flagged: true } : null;
   if (/^NON/.test(t)) return { text: `No tower · ${center ? `center control (${center})` : "center control"}`, flagged: true };
-  if (approach) return { text: `Tower + approach control (${t.replace(/^ATCT-?/, "") || "approach"})${center ? ` · ${center}` : ""}`, flagged: true };
-  return { text: `Tower only, no approach control at the field${center ? ` · ${center}` : ""}`, flagged: false };
+  if (ap) return { text: `Tower + ${ap}${tail}`, flagged: true };
+  if (ownApproach) return { text: `Tower + approach control (${t.replace(/^ATCT-?/, "") || "approach"})${tail}`, flagged: true };
+  // a plain tower has no approach control of its own; a separate facility serves it, which this data does not name
+  return { text: `Tower at the field · approach control is a separate facility (not in our data)${tail}`, flagged: false };
 }
 
 /** Runway ends with right-hand traffic, e.g. "17, 35L"; "" when there are none. */
@@ -118,5 +141,5 @@ export function crewCardHtml(ctx) {
     </tbody></table>
     ${ctx.cost.nights ? `<p class="cc-cost">${ctx.cost.nights} night${ctx.cost.nights === 1 ? "" : "s"}: lodging ${money(ctx.cost.lodging)} + M&amp;IE ${money(ctx.cost.meals)} = <b>${money(ctx.cost.total)}</b> <span class="cc-muted">(GSA rates, estimate — actual per diem per JTR/DTS)</span></p>` : ""}
     ${ctx.stops.map((s, i) => stopHtml(s, i, ctx)).join("")}
-    <p class="cc-foot">Planning reference only — verify hours, fuel, PPR and approvals in FLIP, the current Nav Info List and ForeFlight, and check NOTAMs/TFRs and weather before you go.${ctx.dataNotes?.length ? `<br>${ctx.dataNotes.map(esc).join(" · ")}` : ""}<br>Printed ${esc(new Date().toLocaleString("en-US"))} from the XC GPT Nav Planner.</p>`;
+    <p class="cc-foot">Planning reference only — verify hours, fuel, PPR and approvals in FLIP, the current Nav Info List and ForeFlight, and check NOTAMs/TFRs and weather before you go.${ctx.dataNotes?.length ? `<br>${ctx.dataNotes.map(esc).join(" · ")}` : ""}<br>Printed ${esc(new Date().toLocaleString("en-US"))} from XC Scanner.</p>`;
 }
