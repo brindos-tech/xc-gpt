@@ -104,12 +104,13 @@ test("the site is called XC Scanner everywhere a person looks, with its tagline 
   try {
     assert.equal(await page.title(), "XC Scanner | Cross-country awareness");
     assert.match(await page.textContent(".app-header h1"), /^XC Scanner/);
-    assert.equal(await page.locator(".app-header h1 .tagline").isVisible(), true, "the tagline has room on a desktop header");
-    assert.equal((await page.textContent(".app-header h1 .tagline")).trim(), "Off-station awareness for cross-country flying.");
+    assert.equal(await page.locator(".app-header .tagline").isVisible(), true, "the tagline is under the name");
+    assert.equal((await page.textContent(".app-header .tagline")).trim(), "Off-station awareness for cross-country flying");
+    assert.equal(await page.getAttribute('meta[name="apple-mobile-web-app-title"]', "content"), "XC Scanner");
     assert.match(await page.getAttribute('meta[name="description"]', "content"), /^XC Scanner: off-station awareness for cross-country flying\./);
     const welcome = await page.textContent("#welcome");
     assert.match(welcome, /Welcome to XC Scanner/);
-    assert.match(welcome, /Off-station awareness for cross-country flying\./);
+    assert.match(welcome, /Off-station awareness for cross-country flying(?!\.)/, "the slogan has no full stop");
     assert.match(welcome, /independent tool, not an official USAF or FAA product/);
     // nothing a visitor can read still carries an older name
     const everything = await page.evaluate(() => document.documentElement.innerText + " " + document.title);
@@ -120,6 +121,21 @@ test("the site is called XC Scanner everywhere a person looks, with its tagline 
     assert.deepEqual(errors, []);
   } finally {
     await context.close();
+  }
+});
+
+test("the tagline is under the name on a phone too, and the header does not overflow", async () => {
+  for (const viewport of [{ width: 390, height: 844 }, { width: 1000, height: 800 }]) {
+    const { page, context, errors } = await openPage(viewport);
+    try {
+      assert.equal(await page.locator(".app-header .tagline").isVisible(), true, `${viewport.width}px`);
+      const box = await page.locator(".app-header .brand").boundingBox();
+      assert.ok(box.x >= 0 && box.x + box.width <= viewport.width, `the name and tagline fit at ${viewport.width}px`);
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, `no sideways scroll at ${viewport.width}px`);
+      assert.deepEqual(errors, []);
+    } finally {
+      await context.close();
+    }
   }
 });
 
@@ -432,6 +448,34 @@ test("data age: the banner names what stopped refreshing, and the crew card neve
     assert.match(card, /these closures may have changed/, "KOKC's closure carries the warning");
     assert.match(card, /Runway closed: RWY 17R\/35L CLSD/, "...and is still printed");
     assert.doesNotMatch(card, /None found for your stay/, "a stale file never reads as all-clear");
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("a newer deploy than the open page offers a reload; the same version says nothing", async () => {
+  let live = "e2etest1"; // what the server says the home page is
+  const { page, context, errors } = await openPage(undefined, {
+    setup: async (p) => {
+      await p.route(/\/xc-gpt\/(\?.*)?$/, async (route) => {
+        if (route.request().resourceType() !== "fetch") return route.continue(); // the page itself loads normally
+        const res = await route.fetch();
+        await route.fulfill({ response: res, body: (await res.text()).replace(/(assets\/js\/main\.js\?v=)[^"']+/, `$1${live}`) });
+      });
+    },
+  });
+  try {
+    await page.waitForFunction(() => document.querySelector("#wxTimeLabel") && !/no data/.test(document.querySelector("#wxTimeLabel").textContent));
+    const recheck = () => page.evaluate(() => document.dispatchEvent(new Event("visibilitychange"))); // what returning to the tab does
+    await recheck();
+    await page.waitForTimeout(600);
+    assert.equal(await page.locator("#staleBanner.show").count(), 0, "same version: no banner");
+    live = "a-newer-deploy";
+    await recheck();
+    await page.waitForSelector("#staleBanner.show");
+    assert.match(await page.textContent("#staleText"), /A new version of XC Scanner is available/);
+    assert.equal(await page.isVisible("#staleReload"), true);
     assert.deepEqual(errors, []);
   } finally {
     await context.close();

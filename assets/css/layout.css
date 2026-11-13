@@ -25,9 +25,10 @@
   gap: 8px;
 }
 .app-header h1 .accent { color: var(--accent); }
-/* the one-line description beside the name; the header is tight, so it shows only where there is room */
-.app-header h1 .tagline { display: none; font-size: 0.72em; font-weight: 400; color: var(--muted); margin-left: 6px; }
-@media (min-width: 1280px) { .app-header h1 .tagline { display: inline; } }
+/* the name with its one-line description under it, on every screen size */
+.app-header .brand { display: grid; gap: 1px; min-width: 0; }
+.app-header .tagline { margin: 0; font-size: 0.72em; line-height: 1.2; color: var(--muted); white-space: nowrap; }
+@media (max-width: 860px) { .app-header .tagline { white-space: normal; } }
 .app-header .freshness {
   font-size: 0.78em;
   color: var(--muted);

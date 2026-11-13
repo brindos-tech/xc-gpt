@@ -28,6 +28,11 @@ CODE_FIXES = {
     "K01R": "0R1",   # Atmore Municipal
     "KPBI": "KDJT",  # confirmed by the unit, Oct 2026
 }
+# FBOs renamed since the list was written. Applied on every import so a re-import keeps the fix; remove an entry once the
+# list carries the new name. The name the list used is kept as `fboListedAs`.
+FBO_RENAMES = {
+    "KAPA": "Jet Centers of Colorado",  # was Denver Jet Center (same phone); confirmed by the unit, Nov 2026
+}
 # Some FBO comments in the source were triple-encoded (UTF-8 read as
 # cp1252, three times over) before they reached the PDF.
 MOJIBAKE = re.compile(r"[ÃÂâ€šƒ¢Å“™¬ž\u0080-\u009f]{2,}")
@@ -107,6 +112,9 @@ def main():
         if f["code"] in CODE_FIXES:
             f["listedAs"] = f["code"]
             f["code"] = CODE_FIXES[f["code"]]
+        if f["code"] in FBO_RENAMES and f.get("fbo") != FBO_RENAMES[f["code"]]:
+            f["fboListedAs"] = f.get("fbo")
+            f["fbo"] = FBO_RENAMES[f["code"]]
     OUT.write_text(json.dumps({
         "source": pdf_path.name,
         "asOf": as_of,

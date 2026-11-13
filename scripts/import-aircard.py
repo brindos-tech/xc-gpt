@@ -25,6 +25,12 @@ NAVINFO = ROOT / "data" / "curated" / "navinfo.json"
 CONFIG = ROOT / "data" / "curated" / "config.json"
 OUT = ROOT / "data" / "curated" / "aircard.json"
 
+# Merchants renamed since the export was written (airport, name in the export) -> current name. Applied on every import;
+# remove an entry once the export carries the new name.
+MERCHANT_RENAMES = {
+    ("KAPA", "Denver Jet Center"): "Jet Centers of Colorado",  # same phone as the Nav Info List's FBO; confirmed by the unit, Nov 2026
+}
+
 # normalise the many spellings of the same product
 FUEL_FIXES = [
     (re.compile(r"^jet ?a-?1\b", re.I), "Jet A-1"),
@@ -70,7 +76,7 @@ def main():
                 continue
             seen.add(key)
             by.setdefault(icao, []).append({
-                "merchant": r["Merchant"].strip(),
+                "merchant": MERCHANT_RENAMES.get((icao, r["Merchant"].strip()), r["Merchant"].strip()),
                 "contract": r["Contract Status"] == "DLA Energy Contract",
                 "onSite": r["On-Site / Off-Site"] == "On-Site",
                 "type": r["Merchant Type"].strip() or None,
