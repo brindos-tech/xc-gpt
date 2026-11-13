@@ -159,10 +159,28 @@ async function boot() {
   // looking current. Rechecked every minute and whenever the tab comes back (a laptop can sleep for hours).
   const loadedDay = new Date().toDateString();
   const staleBanner = $("staleBanner");
+  // A newer deploy than this page: GitHub Pages lets the browser keep the home page for ~10 minutes, and scripts/data are
+  // versioned by the deploy, so an old home page keeps loading old code. Ask the server (bypassing the cache) which version
+  // the home page names and offer a reload when it is not ours. Unstamped (local dev) pages skip this.
+  let newVersion = false;
+  async function checkForNewVersion() {
+    if (BUILD_VERSION.startsWith("__") || newVersion) return;
+    try {
+      const res = await fetch(location.pathname, { cache: "no-store" });
+      const live = (await res.text()).match(/assets\/js\/main\.js\?v=([^"'&\s]+)/)?.[1];
+      if (res.ok && live && live !== BUILD_VERSION) {
+        newVersion = true;
+        checkFreshness();
+      }
+    } catch {
+      // offline: nothing to say
+    }
+  }
   function checkFreshness() {
     const at = new Date();
     const stale = staleSources({ forecast: wx.builtAt, tfr: planner.dataBuiltAt("tfr"), notams: notamsFile?.builtAt }, at);
     const messages = [];
+    if (newVersion) messages.push("A new version of XC Scanner is available.");
     if (at.toDateString() !== loadedDay) messages.push("It is a new day since this page loaded: reload to update the dates and the forecast.");
     if (stale.length) messages.push(staleMessage(stale));
     $("staleText").textContent = messages.join(" ");
@@ -170,8 +188,13 @@ async function boot() {
   }
   $("staleReload").addEventListener("click", () => location.reload());
   setInterval(checkFreshness, 60000);
+  setInterval(checkForNewVersion, 5 * 60000);
+  setTimeout(checkForNewVersion, 15000);
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) checkFreshness();
+    if (!document.hidden) {
+      checkFreshness();
+      checkForNewVersion();
+    }
   });
 
   // ---- events (lazy) ----

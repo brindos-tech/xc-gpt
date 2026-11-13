@@ -56,3 +56,12 @@ test("pr-venues.json entries are well-formed", () => {
     assert.ok(Array.isArray(v.aliases));
   }
 });
+
+test("KAPA's FBO carries its current name in the nav list and the AIR Card data", () => {
+  const f = read("data/curated/navinfo.json").fields.find((x) => x.code === "KAPA");
+  assert.equal(f.fbo, "Jet Centers of Colorado");
+  assert.equal(f.fboListedAs, "Denver Jet Center", "the name the published list used is kept");
+  assert.equal(f.fboPhone, "(303) 790-4321");
+  assert.ok(read("data/curated/aircard.json").airports.KAPA.some((m) => m.merchant === "Jet Centers of Colorado" && m.contract), "the AIR Card merchant is renamed too");
+  assert.ok(!JSON.stringify(read("data/curated/aircard.json").airports.KAPA).includes("Denver Jet Center"));
+});

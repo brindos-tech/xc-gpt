@@ -719,6 +719,7 @@ The site's credibility depends on never presenting a guess as a fact.
 - Cache-bust JSON with `?v=<meta.buildId>`; fetch `meta.json` first, then the rest in parallel.
 - `<meta http-equiv="Cache-Control">` won't help on Pages — rely on the query-string version.
 - Stale data banner: the forecast (18 h), TFR (3 h) and NOTAM (30 h) files are rebuilt by scheduled workflows. `planner/data-age.js` holds those limits; `main.js` shows a banner naming any file past its limit (and one asking for a reload when the date rolls over), and the crew card says when its NOTAM file is old instead of printing "None found". Change a limit there when a schedule changes.
+- New-version check: scripts, styles and data carry `?v=<deploy sha>`, but GitHub Pages lets browsers keep the home page for about 10 minutes. `main.js` fetches the home page uncached (15 s after load, every 5 minutes, and on returning to the tab) and, if it names a different `main.js?v=`, shows the banner with a Reload button. Unstamped local pages skip it.
 - Content-Security-Policy (a `<meta>` tag in `index.html`): scripts only from this site; Leaflet is vendored in `assets/vendor/leaflet`, so there is no CDN. A new image, API or tile host must be added to the policy; the browser tests fail on any violation.
 
 ---

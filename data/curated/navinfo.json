@@ -1029,14 +1029,15 @@
    "ron": "Approved",
    "classification": "P (without DoD\ntenant)",
    "approvalList": "AETC VTL",
-   "fbo": "Denver Jet Center",
+   "fbo": "Jet Centers of Colorado",
    "fboPhone": "(303) 790-4321",
    "suitability": [
     "T-6",
     "T-1"
    ],
    "distanceFromVanceNm": 381,
-   "notes": "No T-38 start capability, FBO near A4 taxiway. Q-Mtn terrain/2ft tall runway lights on runways in multiple locations 0 ft from edges."
+   "notes": "No T-38 start capability, FBO near A4 taxiway. Q-Mtn terrain/2ft tall runway lights on runways in multiple locations 0 ft from edges.",
+   "fboListedAs": "Denver Jet Center"
   },
   {
    "code": "KCFO",
