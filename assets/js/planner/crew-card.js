@@ -35,9 +35,16 @@ const ARTCC_NAMES = { ZAB: "Albuquerque", ZAU: "Chicago", ZBW: "Boston", ZDC: "W
 
 const titleCase = (s) => String(s).toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase());
 
-/** "Denver Approach (D01)" from the build's {call, id}; with a different departure facility, both. "" when none is known. */
+// radio call signs come in capitals ("DENVER", "LIBBY AAF GCA", "KANSAS CITY ARTCC"); read them as words, keeping the acronyms
+const callName = (s) => titleCase(s).replace(/\b(Aaf|Gca|Afb|Nas|Mcas)\b/g, (m) => m.toUpperCase()).replace(/\bSocal\b/, "SoCal").replace(/\bMc Guire\b/, "McGuire");
+
+/** "Denver Approach (D01)" from the build's {call, id}; with a different departure facility, both. A center that gives approach service reads "Kansas City Center (ZKC)". "" when none is known. */
 export function approachText(f) {
-  const name = (x, word) => (x?.call ? `${titleCase(x.call)} ${word}${x.id ? ` (${x.id})` : ""}` : x?.id || "");
+  const name = (x, word) => {
+    if (!x?.call) return x?.id || "";
+    const id = x.id ? ` (${x.id})` : "";
+    return /\s(ARTCC|CENTER)$/i.test(x.call) ? `${callName(x.call.replace(/\s+(ARTCC|CENTER)$/i, ""))} Center${id}` : `${callName(x.call)} ${word}${id}`;
+  };
   const a = name(f.approach, "Approach");
   if (!a) return "";
   const d = f.departure ? name(f.departure, "Departure") : "";
@@ -51,7 +58,8 @@ export function controlInfo(f) {
   const ap = approachText(f);
   const centerName = f.artcc?.name || ARTCC_NAMES[f.artcc?.id] || "";
   const center = f.artcc?.id ? `${f.artcc.id}${centerName ? ` ${centerName}` : ""} Center` : "";
-  const tail = center ? ` · ${center}` : "";
+  // when the center itself gives the approach service it is already named, once
+  const tail = center && f.approach?.id !== f.artcc?.id ? ` · ${center}` : "";
   if (!t) return center ? { text: center, flagged: true } : null;
   if (/^NON/.test(t)) return { text: `No tower · ${center ? `center control (${center})` : "center control"}`, flagged: true };
   if (ap) return { text: `Tower + ${ap}${tail}`, flagged: true };
