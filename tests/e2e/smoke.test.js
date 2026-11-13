@@ -479,7 +479,6 @@ test("trip builder: add stops from the sheet, legs and per diem, route string, c
     await page.locator('#plannerMap [data-field="KPNC"]').dispatchEvent("click");
     await page.click('[data-trip-toggle="KPNC"]');
     await page.waitForFunction(() => document.querySelectorAll("#tripBody .trip-stop:not(.trip-ret)").length === 2);
-    await page.locator("#tripBody .trip-more summary").nth(1).click(); // reordering lives under Details
     await page.click('#tripBody [data-trip="up"][data-i="1"]');
     await page.waitForFunction(() => /KEND KPNC KOKC KEND/.test(document.getElementById("tripBody").textContent));
 
@@ -639,7 +638,6 @@ test("flight plan: VFR says only VFR; marginal and instrument legs carry the cei
     await page.fill("#tripSearch", "KPNC");
     await page.press("#tripSearch", "Enter");
     await page.waitForSelector("#tripBody .trip-row");
-    await page.locator("#tripBody .trip-more summary").first().click();
     const chips = await page.locator("#tripBody .trip-wx").allTextContents();
     assert.ok(chips.length && chips.every((c) => c.trim() === "VFR"), `VFR chips are just VFR (${chips})`);
     assert.equal(await page.locator('[data-testid="ceiling-timeline"]').count(), 0);
@@ -647,7 +645,6 @@ test("flight plan: VFR says only VFR; marginal and instrument legs carry the cei
     await page.fill("#tripSearch", "KOKC");
     await page.press("#tripSearch", "Enter");
     await page.waitForFunction(() => document.querySelectorAll("#tripBody .trip-stop:not(.trip-ret)").length === 2);
-    await page.locator("#tripBody .trip-more summary").nth(1).click();
     assert.match(await page.textContent('#tripBody [data-trip="up"][data-i="1"]'), /Move up/);
     assert.match(await page.textContent('#tripBody [data-trip="down"][data-i="0"]'), /Move down/);
     // marginal VFR in the west (2,200 ft): its own tab with the ceiling in it
@@ -817,8 +814,30 @@ test("flight plan: pick the takeoff date and time of each leg", async () => {
     const target = new Date(Date.now() + 2 * 86400000);
     const day = `${target.getFullYear()}-${String(target.getMonth() + 1).padStart(2, "0")}-${String(target.getDate()).padStart(2, "0")}`;
     await inputs.nth(1).fill(`${day}T14:30`);
-    await page.locator("#tripBody .trip-more summary").nth(1).click(); // the reset lives under Details
     await page.waitForSelector('#tripBody [data-trip="reset-dep"]');
+    // leg 1 now ends in a RON: its note must not push the arrival box out of line with the rest of the row
+    await page.waitForSelector("#tripBody .trip-ronmark");
+    const mid = (sel) => page.locator(sel).first().evaluate((el) => { const r = el.getBoundingClientRect(); return r.top + r.height / 2; });
+    const arr = await mid('#tripBody [data-trip-arr][data-i="0"]');
+    const dep = await mid('#tripBody [data-trip-dep][data-i="0"]');
+    const from = await mid("#tripBody .trip-from");
+    assert.ok(Math.abs(arr - dep) < 3, `arrival box is level with the takeoff box (${arr} vs ${dep})`);
+    assert.ok(Math.abs(arr - from) < 3, `...and with the departure box (${arr} vs ${from})`);
+    assert.equal(await page.locator("#tripBody .trip-ronmark").first().isVisible(), true);
+    // there is no Details dropdown: what it held is on the leg, nothing is repeated
+    assert.equal(await page.locator("#tripBody .trip-more, #tripBody summary:text-is('Details')").count(), 0);
+    assert.equal(await page.locator("#tripBody .trip-extra .cm-link[data-trip='select']").first().isVisible(), true, "the field's name is on the leg");
+    assert.match(await page.textContent("#tripBody .trip-extra"), /\d{4}Z takeoff/);
+    assert.doesNotMatch(await page.textContent("#tripBody .trip-extra"), /lands \d{4}Z/, "the landing time is not repeated");
+    assert.equal(await page.locator('#tripBody [data-trip="up"]').first().isVisible(), true, "reordering is on the leg");
+    // the buttons: Print crew card stands out, and there is no Copy route
+    const printBox = await page.locator('#tripBody [data-trip="print"]').boundingBox();
+    const clearBox = await page.locator('#tripBody [data-trip="clear"]').boundingBox();
+    assert.ok(printBox.width > clearBox.width * 2, "print is the big button");
+
+    assert.equal(await page.locator('#tripBody [data-trip="copy"]').count(), 0);
+    assert.doesNotMatch(await page.textContent("#tripBody"), /Copy route/);
+    assert.equal(await page.locator("#tripBody .rail-hint").last().textContent().then((t) => /KEND/.test(t)), true, "the route string is still shown");
     assert.equal(await page.locator("#tripBody [data-trip-dep]").nth(1).inputValue(), `${day}T14:30`);
     await page.waitForFunction(() => /trip=KPNC%2CKOKC%40\d{12}|trip=KPNC,KOKC@\d{12}/.test(location.hash)); // the URL follows the state a moment later
     // the return leg now follows leg 2's landing

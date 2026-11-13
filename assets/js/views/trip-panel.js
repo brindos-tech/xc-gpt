@@ -1,5 +1,5 @@
 // The "Trip" section of the planner rail: stops, legs, totals, per diem
-// estimate, copy-route and print-crew-card buttons. Rendered from state on
+// estimate, the route and print-crew-card buttons. Rendered from state on
 // every planner render; all buttons are delegated from the one container.
 import { tripLegs, routeString, tripPerDiem, scheduleTrip, legFlags, neighbourCodes } from "../planner/trip.js";
 import { zoneAbbr, clock, zulu, tzLabel, clockShift } from "../planner/sun.js";
@@ -46,7 +46,6 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
   // field: `current` is the input it is serving and `onPick` what a choice does.
   let current = null;
   let onPick = null;
-  let openLegs = new Set();
   let openTimelines = new Set();
 
   function showSuggestions(input, pick, avoid) {
@@ -145,17 +144,6 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
       case "clear": return store.setState({ trip: [], tripReturnDep: "" });
       case "reset-dep": return setDeparture(i, "");
       case "print": return onPrint();
-      case "copy": {
-        const text = t.dataset.route;
-        try {
-          await navigator.clipboard.writeText(text);
-          t.textContent = "Copied ✓";
-        } catch {
-          window.prompt("Copy the route:", text);
-        }
-        setTimeout(() => (t.textContent = "Copy route"), 1500);
-        return;
-      }
       case "select": return store.setState({ selectedFieldId: t.dataset.code, selectedAirspaceId: null });
     }
   });
@@ -237,8 +225,8 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
 
   /**
    * One leg as a table row: departure, arrival, takeoff, flight time, landing
-   * time. Warnings and the ceiling timeline sit under the row; the rest
-   * (field name, forecast chips, clock change) is behind "Details".
+   * time. Warnings, the ceiling timeline, the field name, forecast chips and
+   * clock change sit under the row.
    */
   function legHtml(leg, state, info, { stop, count } = {}) {
     const gas = info.overRange ? `<div class="fp-flag warn">⚠ Tight on gas (${config.aircraft.legRangeNm}+ nm)</div>` : "";
@@ -259,14 +247,18 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
       : `<button type="button" data-trip="remove" data-i="${leg.i}" aria-label="Remove leg ${leg.i + 1} to ${esc(leg.to)}">×</button>`;
     const move = leg.isReturn ? "" : `<span class="trip-move"><button type="button" class="chip" data-trip="up" data-i="${leg.i}" aria-label="Move leg ${leg.i + 1} up" ${leg.i === 0 ? "disabled" : ""}>Move up</button> <button type="button" class="chip" data-trip="down" data-i="${leg.i}" aria-label="Move leg ${leg.i + 1} down" ${leg.i === count - 1 ? "disabled" : ""}>Move down</button></span>`;
     const chips = [wxChip(leg.from, leg.dep) && `<span class="muted">takeoff</span> ${wxChip(leg.from, leg.dep)}`, wxChip(leg.to, leg.eta) && `<span class="muted">landing</span> ${wxChip(leg.to, leg.eta)}`].filter(Boolean).join(" ");
+    // under the row, always visible: the field's name (opens its sheet), the takeoff in Zulu (the row shows local time and the
+    // landing), the clock change, the forecast chips and the reorder buttons. Nothing here repeats the row.
+    const nameLine = [
+      stop ? `<button type="button" class="cm-link" data-trip="select" data-code="${esc(stop.code)}">${esc(stop.field.name)}</button>${stop.field.fuel === "Not Approved" ? ` <span class="bad-text">no fuel</span>` : stop.field.fuel !== "Approved" ? ` <span class="warn-text">fuel: see comments</span>` : ""}` : "",
+      `<span class="muted">${esc(zulu(leg.dep).time)} takeoff${leg.explicit || leg.i === 0 ? "" : " · follows the previous leg"}</span>${leg.explicit && leg.i > 0 ? ` <button type="button" class="cm-link" data-trip="reset-dep" data-i="${leg.i}">set takeoff back to automatic</button>` : ""}`,
+    ].filter(Boolean).join(" · ");
     const details = [
-      stop ? `<div><button type="button" class="cm-link" data-trip="select" data-code="${esc(stop.code)}">${esc(stop.field.name)}</button>${stop.field.fuel === "Not Approved" ? ` <span class="bad-text">no fuel</span>` : stop.field.fuel !== "Approved" ? ` <span class="warn-text">fuel: see comments</span>` : ""}</div>` : "",
-      `<div class="muted">Takeoff ${esc(clock(leg.dep, leg.fromTz))} ${esc(zoneAbbr(leg.dep, leg.fromTz))} at ${esc(leg.from)} · ${esc(zulu(leg.dep).time)} · lands ${esc(zulu(leg.eta).time)}${leg.explicit || leg.i === 0 ? "" : " · follows the previous leg"}${leg.explicit && leg.i > 0 ? ` · <button type="button" class="cm-link" data-trip="reset-dep" data-i="${leg.i}">set takeoff back to automatic</button>` : ""}</div>`,
+      `<div class="trip-sub">${nameLine}</div>`,
       shift.text ? `<div class="fp-flag info">${esc(shift.text)}</div>` : "",
-      chips ? `<div class="trip-wxrow">${chips}</div>` : "",
-      move,
+      chips || move ? `<div class="trip-wxrow">${chips}${move}</div>` : "",
     ].join("");
-    return `<div class="trip-leg" data-leg="${leg.i}">
+    return `<div class="trip-leg${leg.ron ? " trip-has-ron" : ""}" data-leg="${leg.i}">
       <div class="trip-row">
         <span class="trip-legno">${leg.i + 1}</span>
         <div class="trip-c trip-c-dep"><span class="trip-cl">Departure</span>${from}</div>
@@ -278,7 +270,7 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
       </div>
       ${flags}
       ${timelineHtml(leg)}
-      <details class="trip-more" ${openLegs.has(leg.i) ? "open" : ""}><summary>Details</summary><div class="trip-more-body small">${details}</div></details>
+      <div class="trip-extra small">${details}</div>
     </div>`;
   }
 
@@ -292,7 +284,6 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
     const editing = document.activeElement?.matches?.("[data-trip-arr]") && body.contains(document.activeElement) && document.activeElement.value !== document.activeElement.dataset.code;
     if (editing) return c;
     openTimelines = new Set([...body.querySelectorAll(".trip-tl[open]")].map((d) => Number(d.closest("[data-leg]").dataset.leg)));
-    openLegs = new Set([...body.querySelectorAll(".trip-more[open]")].map((d) => Number(d.closest("[data-leg]").dataset.leg))); // Details stay open across re-renders
     addBox.appendChild(suggest); // keep the list out of the markup about to be replaced
     current = null;
     if (!stops.length) {
@@ -308,8 +299,7 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
       <div class="trip-total"><b>${Math.round(legs.totalNm)} nm</b> · <b>${formatFlightTime(legs.totalMins)}</b> flying · ${legs.legs.length} leg${legs.legs.length === 1 ? "" : "s"}</div>
       <div class="trip-cost small">${cost.nights ? `${cost.nights} night${cost.nights === 1 ? "" : "s"} · lodging ${money(cost.lodging)} + M&amp;IE ${money(cost.meals)} = <b>${money(cost.total)}</b> <span class="muted">(GSA estimate${cost.missing.length ? `; no rate for ${esc(cost.missing.join(", "))}` : ""})</span>` : `<span class="muted">No overnights (every leg flies the same day it lands), so no per diem counted.</span>`}</div>
       <div class="trip-actions">
-        <button type="button" class="chip" data-trip="copy" data-route="${esc(route)}">Copy route</button>
-        <button type="button" class="chip" data-trip="print">Print crew card</button>
+        <button type="button" class="chip chip-primary" data-trip="print">Print crew card</button>
         <button type="button" class="chip" data-trip="clear">Clear</button>
       </div>
       <div class="rail-hint">${esc(route)}</div>`;
