@@ -99,6 +99,30 @@ test("welcome screen: shown to first-time visitors, explains the pieces, remembe
   }
 });
 
+test("the site is called XC Scanner everywhere a person looks, with its tagline and an independence note", async () => {
+  const { page, context, errors } = await openPage(undefined, { welcome: true });
+  try {
+    assert.equal(await page.title(), "XC Scanner | Cross-country awareness");
+    assert.match(await page.textContent(".app-header h1"), /^XC Scanner/);
+    assert.equal(await page.locator(".app-header h1 .tagline").isVisible(), true, "the tagline has room on a desktop header");
+    assert.equal((await page.textContent(".app-header h1 .tagline")).trim(), "Off-station awareness for cross-country flying.");
+    assert.match(await page.getAttribute('meta[name="description"]', "content"), /^XC Scanner: off-station awareness for cross-country flying\./);
+    const welcome = await page.textContent("#welcome");
+    assert.match(welcome, /Welcome to XC Scanner/);
+    assert.match(welcome, /Off-station awareness for cross-country flying\./);
+    assert.match(welcome, /independent tool, not an official USAF or FAA product/);
+    // nothing a visitor can read still carries an older name
+    const everything = await page.evaluate(() => document.documentElement.innerText + " " + document.title);
+    assert.doesNotMatch(everything, /XC GPT|OffStation/i);
+    const manifest = await (await page.request.get(new URL("manifest.webmanifest", page.url()).href)).json();
+    assert.equal(manifest.name, "XC Scanner");
+    assert.equal(manifest.short_name, "XC Scanner");
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
 test("planner boots with field pins and throws nothing", async () => {
   const { page, context, errors } = await openPage();
   try {

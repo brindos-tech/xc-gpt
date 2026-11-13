@@ -653,3 +653,5 @@ input.trip-to:focus-visible, select.trip-from:focus-visible, .trip-take input:fo
 }
 .stale-banner:not(.show) button { visibility: hidden; }
 @media print { .stale-banner { display: none !important; } }
+
+.welcome-tagline { margin: 2px 0 6px; color: var(--accent); font-weight: 600; }
