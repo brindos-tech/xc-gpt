@@ -66,7 +66,9 @@ Extend `--probe` to make one delta call and print the first few messages, run it
 
 **Done when.** With a fake clock in the e2e tests, each source shows the banner past its threshold, and the crew card never prints "None found" from a stale file.
 
-### 3. Retire or lock down the comments server [from the 5 Nov scan]
+### 3. Lock down the comments server (kept, and back on the site) [from the 5 Nov scan]
+
+**Status:** the owner chose to keep it. The comment panel is back on field and airspace sheets, and the server accepts requests from xcscanner.com. Still to do: pin `superfly/flyctl-actions/setup-flyctl@master` in `deploy-comments.yml` to a commit SHA (it runs with `FLY_API_TOKEN`), and watch the admin log for spam. The text below is the original finding.
 
 **Problem.** `server/` is deployed to Fly with no access control on writes, and `.github/workflows/deploy-comments.yml` uses `superfly/flyctl-actions/setup-flyctl@master` while holding `FLY_API_TOKEN`. An unpinned action with a deploy token is a supply-chain risk.
 

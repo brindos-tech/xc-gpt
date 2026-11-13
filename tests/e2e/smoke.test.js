@@ -392,6 +392,7 @@ test("TFRs are on by default, drawn, clickable, and open a sheet linking to the 
     assert.match(text, /Test City, OK/);
     assert.equal(await page.locator('#fieldContent a[href*="tfr.faa.gov"]').count(), 2);
     assert.equal(await page.isHidden("#fieldComments"), true, "no comments on a TFR");
+    assert.equal(await page.isHidden("#fieldComments"), true, "no comments on a TFR");
     assert.deepEqual(errors, []);
   } finally {
     await context.close();
@@ -540,6 +541,112 @@ test("trip builder: add stops from the sheet, legs and per diem, route string, c
 
     await page.click('#tripBody [data-trip="clear"]');
     await page.waitForFunction(() => !document.querySelector("#tripBody .trip-stop"));
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
+const CORS = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type", "access-control-allow-methods": "GET, POST, OPTIONS" };
+
+test("comments: shown on a field, post one, it survives the sheet re-rendering; no comments on a TFR or when the API is down", async () => {
+  const store = [];
+  const { page, context, errors } = await openPage(undefined, {
+    setup: (p) =>
+      p.route(/xc-gpt-comments\.fly\.dev/, async (route) => {
+        const req = route.request();
+        if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: CORS });
+        if (req.method() === "POST") {
+          const body = req.postDataJSON();
+          assert.ok(body.elapsedMs >= 0 && body.subject === "field:KOKC");
+          const comment = { id: `c${store.length}`, createdAt: new Date().toISOString(), freeFood: "", crewCar: "", aircard: "", fees: "", planespotters: "", amenities: "", visited: "", ...body };
+          store.unshift(comment);
+          return route.fulfill({ status: 201, headers: CORS, json: { comment } });
+        }
+        const subject = new URL(req.url()).searchParams.get("subject");
+        return route.fulfill({ status: 200, headers: CORS, json: { comments: store.filter((c) => c.subject === subject) } });
+      }),
+  });
+  try {
+    assert.equal(await page.isHidden("#fieldComments"), true, "nothing until a sheet is open");
+    await page.locator('#plannerMap [data-field="KOKC"]').dispatchEvent("click");
+    await page.waitForSelector("#fieldPanel.open");
+    await page.waitForSelector("#fieldComments .cm-list");
+    assert.match(await page.textContent("#fieldComments h4"), /Comments · KOKC/);
+    assert.match(await page.textContent("#fieldComments"), /No comments yet/);
+
+    // open the form and write something, then let the sheet re-render underneath (weather day change)
+    await page.click('[data-cm-open="comment"]');
+    await page.fill('#fieldComments [name="notes"]', "Great FBO, free cookies");
+    await page.click("#fieldComments .cm-rating label:nth-of-type(4)");
+    await page.selectOption('#fieldComments [name="freeFood"]', "yes");
+    await page.fill('#fieldComments [name="fees"]', "$20 ramp");
+    await page.fill('#fieldComments [name="name"]', "Viper 21");
+    await page.click("#wxCollapse").catch(() => {});
+    const days = page.locator("[data-wx-day]:not([disabled])");
+    if ((await days.count()) > 1) await days.nth(1).click();
+    assert.equal(await page.inputValue('#fieldComments [name="notes"]'), "Great FBO, free cookies", "typing survives the sheet re-rendering");
+
+    await page.click("#fieldComments .cm-post");
+    await page.waitForSelector("#fieldComments .cm-item");
+    const text = await page.textContent("#fieldComments");
+    assert.match(text, /Great FBO, free cookies/);
+    assert.match(text, /Free food ✓/);
+    assert.match(text, /\$20 ramp/);
+    assert.match(text, /Viper 21/);
+    assert.match(text, /1 comment/);
+    assert.equal(store.length, 1);
+    assert.equal(store[0].rating, "4");
+    assert.equal(await page.evaluate(() => localStorage.getItem("xcgpt-name")), "Viper 21", "the name is remembered for next time");
+    assert.equal(await page.locator('#fieldComments [name="website"]').first().isVisible(), false, "the spam trap is invisible to people");
+
+    // closing the sheet hides the section; a TFR sheet has none
+    await page.click("#fieldClose");
+    await page.waitForSelector("#fieldPanel:not(.open)");
+    assert.equal(await page.isHidden("#fieldComments"), true);
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+
+  const down = await openPage(undefined, { setup: (p) => p.route(/xc-gpt-comments\.fly\.dev/, (route) => route.abort()) });
+  try {
+    await down.page.locator('#plannerMap [data-field="KOKC"]').dispatchEvent("click");
+    await down.page.waitForSelector("#fieldComments .cm-list");
+    await down.page.waitForFunction(() => /offline right now/.test(document.querySelector("#fieldComments .cm-list")?.textContent || ""));
+    assert.equal(await down.page.locator("#fieldComments [data-cm-retry]").isVisible(), true, "a Retry button, and the rest of the sheet works");
+    assert.match(await down.page.textContent("#fieldContent"), /KOKC/);
+  } finally {
+    await down.context.close();
+  }
+});
+
+test("comments: a problem report goes to the owner only and never appears in the public list", async () => {
+  const posts = [];
+  const { page, context, errors } = await openPage(undefined, {
+    setup: (p) =>
+      p.route(/xc-gpt-comments\.fly\.dev/, async (route) => {
+        const req = route.request();
+        if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: CORS });
+        if (req.method() === "POST") {
+          posts.push(req.postDataJSON());
+          return route.fulfill({ status: 201, headers: CORS, json: { comment: { id: "ok", kind: "report" } } });
+        }
+        return route.fulfill({ status: 200, headers: CORS, json: { comments: [] } });
+      }),
+  });
+  try {
+    await page.locator('#plannerMap [data-field="KOKC"]').dispatchEvent("click");
+    await page.waitForSelector("#fieldComments .cm-buttons");
+    await page.click('[data-cm-open="report"]');
+    assert.equal(await page.isVisible("#fieldComments .cm-report"), true);
+    await page.fill('#fieldComments .cm-report [name="notes"]', "The FBO phone number on this sheet is out of date.");
+    await page.click("#fieldComments .cm-report .cm-post");
+    await page.waitForFunction(() => /owner will see/.test(document.querySelector("#fieldComments .cm-thanks")?.textContent || ""));
+    assert.equal(posts.length, 1);
+    assert.equal(posts[0].kind, "report");
+    assert.equal(posts[0].subject, "field:KOKC");
+    assert.equal(await page.locator("#fieldComments .cm-item").count(), 0, "a report never appears in the public list");
     assert.deepEqual(errors, []);
   } finally {
     await context.close();
