@@ -60,6 +60,25 @@ export function artccOf(a) {
   return id ? { id, name: (a.RESP_ARTCC_NAME || "").replace(/\s+(ARTCC|CENTER)$/i, "").trim() } : null;
 }
 
+/**
+ * The approach / departure control that serves a tower, from its NASR ATC_BASE.csv row: {approach:{call,id}, departure?:{call,id}}
+ * ("DENVER", "D01" for Centennial), or null. A plain "ATCT" tower has none of its own; this is the separate facility that does.
+ */
+export function approachOf(row) {
+  if (!row) return null;
+  const one = (call, id) => {
+    const c = String(call || "").trim();
+    const i = String(id || "").trim();
+    return c || i ? { call: c, id: i } : null;
+  };
+  const approach = one(row.PRIMARY_APCH_RADIO_CALL, row.APCH_P_PROVIDER);
+  const departure = one(row.PRIMARY_DEP_RADIO_CALL, row.DEP_P_PROVIDER);
+  if (!approach && !departure) return null;
+  const out = { approach: approach || departure };
+  if (approach && departure && (approach.call !== departure.call || approach.id !== departure.id)) out.departure = departure;
+  return out;
+}
+
 export function attendanceText(rows) {
   return rows
     .sort((a, b) => Number(a.SKED_SEQ_NO) - Number(b.SKED_SEQ_NO))
@@ -93,6 +112,16 @@ async function main() {
   if (rwyEnds.length && !("RIGHT_HAND_TRAFFIC_PAT_FLAG" in rwyEnds[0])) console.log(`APT_RWY_END columns: ${Object.keys(rwyEnds[0]).join(", ")}`);
   if (base.length && !("RESP_ARTCC_ID" in base[0])) console.log(`APT_BASE has no RESP_ARTCC_ID; columns: ${Object.keys(base[0]).join(", ")}`);
   console.log(`NASR cycle ${cycle}: ${base.length} airports, ${rwys.length} runways`);
+
+  // which approach control serves each tower (a separate NASR bundle; without it the card just does not name one)
+  const atcByFaa = new Map();
+  try {
+    const atc = await downloadNasr("ATC");
+    for (const r of parseCsvObjects(readNasrCsv(atc.dir, "ATC_BASE.csv"))) if (r.SITE_TYPE_CODE === "A" && r.FACILITY_ID) atcByFaa.set(r.FACILITY_ID, r);
+    console.log(`ATC bundle ${atc.cycle}: ${atcByFaa.size} towers`);
+  } catch (err) {
+    console.log(`No ATC bundle (${err.message}): approach control will not be named`);
+  }
 
   const byIcao = new Map(base.filter((r) => r.ICAO_ID).map((r) => [r.ICAO_ID, r]));
   const byFaa = new Map(base.map((r) => [r.ARPT_ID, r]));
@@ -144,6 +173,7 @@ async function main() {
       runway: longestRunway(rwyBySite.get(a.SITE_NO) || []),
       runways: usableRunways(rwyBySite.get(a.SITE_NO) || []),
       artcc: artccOf(a),
+      ...(a.TWR_TYPE_CODE && !/^NON/.test(a.TWR_TYPE_CODE) ? approachOf(atcByFaa.get(a.ARPT_ID)) : {}),
       rightTraffic: rightTrafficEnds(endsBySite.get(a.SITE_NO) || []),
       ownership: a.OWNERSHIP_TYPE_CODE,
       perDiem: pd,

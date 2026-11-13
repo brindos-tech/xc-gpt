@@ -33,16 +33,31 @@ export function runwaysHtml(f) {
 
 const ARTCC_NAMES = { ZAB: "Albuquerque", ZAU: "Chicago", ZBW: "Boston", ZDC: "Washington", ZDV: "Denver", ZFW: "Fort Worth", ZHU: "Houston", ZID: "Indianapolis", ZJX: "Jacksonville", ZKC: "Kansas City", ZLA: "Los Angeles", ZLC: "Salt Lake City", ZMA: "Miami", ZME: "Memphis", ZMP: "Minneapolis", ZNY: "New York", ZOA: "Oakland", ZOB: "Cleveland", ZSE: "Seattle", ZTL: "Atlanta" };
 
-/** Who you talk to at the field: tower, approach control (TRACON / RAPCON / RATCF / approach-control tower) and the overlying center. */
+const titleCase = (s) => String(s).toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase());
+
+/** "Denver Approach (D01)" from the build's {call, id}; with a different departure facility, both. "" when none is known. */
+export function approachText(f) {
+  const name = (x, word) => (x?.call ? `${titleCase(x.call)} ${word}${x.id ? ` (${x.id})` : ""}` : x?.id || "");
+  const a = name(f.approach, "Approach");
+  if (!a) return "";
+  const d = f.departure ? name(f.departure, "Departure") : "";
+  return d ? `${a}, ${d}` : a;
+}
+
+/** Who you talk to at the field: tower, the approach control that serves it (TRACON / RAPCON / RATCF / approach-control tower) and the overlying center. */
 export function controlInfo(f) {
   const t = String(f.tower || "");
-  const approach = /TRACON|RAPCON|RATCF|TRACAB|A\/C/.test(t);
+  const ownApproach = /TRACON|RAPCON|RATCF|TRACAB|A\/C/.test(t);
+  const ap = approachText(f);
   const centerName = f.artcc?.name || ARTCC_NAMES[f.artcc?.id] || "";
   const center = f.artcc?.id ? `${f.artcc.id}${centerName ? ` ${centerName}` : ""} Center` : "";
+  const tail = center ? ` · ${center}` : "";
   if (!t) return center ? { text: center, flagged: true } : null;
   if (/^NON/.test(t)) return { text: `No tower · ${center ? `center control (${center})` : "center control"}`, flagged: true };
-  if (approach) return { text: `Tower + approach control (${t.replace(/^ATCT-?/, "") || "approach"})${center ? ` · ${center}` : ""}`, flagged: true };
-  return { text: `Tower only, no approach control at the field${center ? ` · ${center}` : ""}`, flagged: false };
+  if (ap) return { text: `Tower + ${ap}${tail}`, flagged: true };
+  if (ownApproach) return { text: `Tower + approach control (${t.replace(/^ATCT-?/, "") || "approach"})${tail}`, flagged: true };
+  // a plain tower has no approach control of its own; a separate facility serves it, which this data does not name
+  return { text: `Tower at the field · approach control is a separate facility (not in our data)${tail}`, flagged: false };
 }
 
 /** Runway ends with right-hand traffic, e.g. "17, 35L"; "" when there are none. */
