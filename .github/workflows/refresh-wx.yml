@@ -6,9 +6,8 @@ name: Refresh weather
 # 3-hourly forecast files would bloat history — it is force-published as a
 # single commit on the `wx-data` branch, which deploy-pages.yml folds into the
 # site at deploy time. A finished run triggers a deploy.
+# It is started by refresh-wx-schedule.yml (every 3 hours, only when the published forecast is old) or by hand; see there.
 on:
-  schedule:
-    - cron: "43 5,17 * * *"
   workflow_dispatch: {}
 
 permissions:

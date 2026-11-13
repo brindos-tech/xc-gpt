@@ -351,6 +351,8 @@ async function boot() {
     syncPage(state.view);
     filterRail.syncFromState(state);
     renderFreshness(state.view);
+    // the phone's "Base & range" button shows what is chosen now
+    $("railToggleVal").textContent = `${originsById.get(state.originId)?.icao || ""} · ${state.rangeNm} nm`;
     checkFreshness(); // the forecast and TFR files arrive after boot and re-render the page
 
     // one-way DOM->store binding on the search input, so typing doesn't

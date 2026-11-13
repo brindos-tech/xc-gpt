@@ -1,0 +1,41 @@
+name: Refresh weather (scheduler)
+
+# GitHub runs scheduled workflows on a best-effort basis and drops or delays many of them (the weather job was seen 4 to
+# 9 hours late, or missing). So this small job asks every 3 hours and starts the real build ("Refresh weather") only
+# when the published forecast is 9 hours old or more, which works out to about twice a day, after the 00Z and 12Z model
+# runs. It is separate on purpose: a finished "Refresh weather" run triggers a site deploy (see deploy-pages.yml), and a
+# run that merely found the forecast fresh must not.
+on:
+  schedule:
+    - cron: "43 */3 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start the weather build if the forecast is old
+        run: |
+          due=true
+          if git fetch --depth=1 origin wx-data 2>/dev/null; then
+            built="$(git show FETCH_HEAD:wx/index.json 2>/dev/null | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s).generatedAt||"")}catch{console.log("")}})')"
+            if [ -n "$built" ]; then
+              age=$(( $(date -u +%s) - $(date -u -d "$built" +%s) ))
+              echo "published forecast built $built (${age}s ago)"
+              if [ "$age" -lt 32400 ]; then due=false; fi
+            fi
+          fi
+          if [ "$due" = true ]; then
+            echo "forecast is due: starting Refresh weather"
+            gh workflow run refresh-wx.yml --ref "${{ github.event.repository.default_branch }}"
+          else
+            echo "forecast is fresh: nothing to do"
+          fi

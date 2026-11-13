@@ -266,6 +266,41 @@ test("data is fetched with the deploy version, not a per-load timestamp", async 
   }
 });
 
+test("mobile: a Base & range button shows the departure base and range and opens them; How to use fits the screen", async () => {
+  for (const width of [320, 360, 390, 414]) {
+    const { page, context, errors } = await openPage({ width, height: 800 }, { welcome: true });
+    try {
+      const card = await page.locator("#welcome .welcome-card").evaluate((el) => ({ scroll: el.scrollWidth, client: el.clientWidth }));
+      assert.ok(card.scroll <= card.client + 1, `the welcome card does not scroll sideways at ${width}px (${card.scroll} > ${card.client})`);
+      const right = await page.locator("#welcome .welcome-card").evaluate((el) => el.getBoundingClientRect().right);
+      assert.ok(right <= width, `the welcome card is inside the screen at ${width}px`);
+      assert.match(await page.textContent("#welcome"), /tap Base & range at the top/, "the welcome text says where the base and range are on a phone");
+      assert.deepEqual(errors, []);
+    } finally {
+      await context.close();
+    }
+  }
+  const { page, context, errors } = await openPage({ width: 390, height: 844 });
+  try {
+    assert.equal(await page.isVisible("#railToggle"), true);
+    assert.match(await page.textContent("#railToggle"), /Base & range/);
+    assert.match(await page.textContent("#railToggleVal"), /^KEND · \d+ nm$/, "it shows the base and the range");
+    await page.click("#railToggle");
+    await page.waitForSelector("#filterRail.open");
+    assert.equal(await page.isVisible("#originChips"), true, "the base chips are at the top of the sheet");
+    await page.click("#railClose");
+    await page.waitForSelector("#filterRail:not(.open)");
+    // choosing another base is reflected on the button
+    await page.click("#railToggle");
+    await page.waitForSelector("#filterRail.open");
+    await page.click('#originChips [data-origin="columbus"], #originChips button:has-text("Columbus")');
+    await page.waitForFunction(() => /^KCBM · /.test(document.getElementById("railToggleVal").textContent));
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+});
+
 test("mobile: filter sheet and field sheet both close", async () => {
   const { page, context, errors } = await openPage({ width: 390, height: 844 });
   try {

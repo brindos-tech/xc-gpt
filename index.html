@@ -27,7 +27,7 @@
 <div class="app" data-page="planner">
 
   <header class="app-header">
-    <button class="rail-toggle-btn" id="railToggle" style="display:none;" aria-controls="filterRail" aria-expanded="false">☰ Filters</button>
+    <button class="rail-toggle-btn" id="railToggle" style="display:none;" aria-controls="filterRail" aria-expanded="false"><span class="rt-ico" aria-hidden="true">☰</span><span class="rt-text"><small>Base &amp; range</small><b id="railToggleVal">&nbsp;</b></span></button>
     <button class="trip-toggle-btn" id="tripToggle" aria-controls="tripBar" aria-expanded="false">&#9992; Flight plan <span id="tripToggleCount"></span></button>
     <div class="brand">
       <h1>XC Scanner <span class="accent">&#9992;</span></h1>
@@ -181,7 +181,7 @@
     <section class="welcome-sec">
       <div class="welcome-text">
         <h3><span class="welcome-n">1</span> Departure base, range &amp; weather</h3>
-        <p>Pick your <b>departure base</b> and drag the <b>range</b> slider on the left: the map shows every approved field and the airspace within that distance.</p>
+        <p>Pick your <b>departure base</b> and drag the <b>range</b> slider (on a phone, tap <b>Base &amp; range</b> at the top; on a computer it is the panel on the left): the map shows every approved field and the airspace within that distance.</p>
         <p><b>Reading a pin:</b> its shape says towered, non-towered or military. The small corner dot is the crew approval: <b>green</b> means land, fuel and RON are all approved; <b>yellow</b> means see the comments on the list. Click a pin for its sheet.</p>
         <p class="welcome-big"><b>Live radar and forecast weather cover the whole continental US.</b> Open the <b>Weather</b> box (shown below), pick a day up to 7 days out, and slide through the hours in local time. Switch on <b>Flight category</b> (<span class="wc wc-mvfr">MVFR</span> <span class="wc wc-ifr">IFR</span> <span class="wc wc-lifr">LIFR</span>), <b>ceiling</b>, <b>icing</b>, <b>thunderstorms</b> or <b>forecast radar</b>.</p>
       </div>

@@ -5,7 +5,7 @@
 /** Past this many hours a source is "stale": its schedule would have refreshed it well before. */
 export const MAX_AGE_HOURS = {
   forecast: 18, // rebuilt twice a day (05:43 and 17:43 UTC)
-  tfr: 3, // rebuilt hourly
+  tfr: 4, // asked for every 10 minutes; GitHub drops many scheduled runs, and gaps of 3 hours or more have been seen
   notams: 30, // rebuilt once a day (09:23 UTC, retry 15:23)
 };
 
@@ -50,5 +50,6 @@ export function staleSources(builtAts, now = new Date()) {
 export function staleMessage(stale) {
   const parts = stale.map((s) => `${s.label} ${s.label === "TFRs" ? "are" : "is"} ${s.text} old`);
   const list = parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}` : parts[0];
-  return `${list} — a data refresh may have failed. Check official sources before you fly.`;
+  // a stale TFR layer: the FAA's own page is the fix
+  return `${list} — a data refresh may have failed. ${stale.some((s) => s.source === "tfr") ? "Check tfr.faa.gov and NOTAMs" : "Check official sources"} before you fly.`;
 }

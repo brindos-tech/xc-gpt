@@ -56,7 +56,7 @@ Extend `--probe` to make one delta call and print the first few messages, run it
 
 ### 2. Tell the user how old every data source is: DONE (radar excluded) [checked for NOTAMs, from the 5 Nov scan for the rest]
 
-**Done:** `assets/js/planner/data-age.js` holds the limits (forecast 18 h, TFRs 3 h, NOTAMs 30 h); `main.js` shows a banner when a source passes its limit and when the date rolls over; the crew card says "NOTAM data is N old" and never prints a bare "None found" from a stale file. Radar is not covered: its tiles are live from the weather service and have no build time.
+**Done:** `assets/js/planner/data-age.js` holds the limits (forecast 18 h, TFRs 4 h, NOTAMs 30 h); `main.js` shows a banner when a source passes its limit and when the date rolls over; the crew card says "NOTAM data is N old" and never prints a bare "None found" from a stale file. Radar is not covered: its tiles are live from the weather service and have no build time.
 
 **Problem.** Forecast, TFRs, radar and NOTAMs each have a build time, but the page does not warn when one has stopped refreshing. A failed workflow leaves old data looking current. "Today" also does not roll over if the tab stays open past midnight.
 
