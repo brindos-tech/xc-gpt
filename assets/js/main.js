@@ -6,6 +6,7 @@ import { createFilterRail } from "./views/filter-rail.js";
 import { initWelcome } from "./views/welcome.js";
 import { createPlannerView } from "./planner/planner-view.js";
 import { createFieldPanel } from "./planner/field-panel.js";
+import { createComments } from "./planner/comments.js";
 import { mergeFields, selectFields, meetsRunway } from "./planner/fields.js";
 import { createWxController } from "./planner/wx-controller.js";
 import { createTripPanel } from "./views/trip-panel.js";
@@ -73,6 +74,9 @@ async function boot() {
   const fieldsByCode = new Map(fields.map((f) => [f.code, f]));
   const filterRail = createFilterRail({ store, config });
   const fieldPanel = createFieldPanel({ store, getOriginIcao: () => originsById.get(store.getState().originId)?.icao });
+  // crew comments and problem reports on a field/FBO or an airspace area/route (Fly API in server/); its own host element so
+  // the sheet re-rendering never wipes a half-written comment. Hidden when the config names no API.
+  const comments = createComments({ host: $("fieldComments"), apiBase: config.commentsApi, today });
 
   // show-stopper NOTAMs (airport/runway closed...), refreshed by CI; the card says so when they are not available
   let notamsFile = null;
@@ -324,6 +328,7 @@ async function boot() {
         planner.ensureAirspaceData(state.selectedAirspaceId).then(render).catch(() => {});
       }
     }
+    comments.show(field ? { subject: `field:${field.code}`, label: field.code } : airspace && airspace.type !== "TFR" ? { subject: `airspace:${airspace.id}`, label: airspace.name } : null);
     const [y, m, d] = state.wxDay.split("-").map(Number);
     fieldPanel.render({ field, airspace, ctx: { origin, config, tripDate: new Date(y, m - 1, d), wxRows: field ? wx.fieldRows(field.code, state.wxDay) : null, stateTax: field ? stateTax?.states?.[field.state] : null, stateTaxAsOf: stateTax?.asOf, inTrip: field ? state.trip.some((x) => x.code === field.code) : false } });
   }
@@ -346,6 +351,8 @@ async function boot() {
     syncPage(state.view);
     filterRail.syncFromState(state);
     renderFreshness(state.view);
+    // the phone's "Base & range" button shows what is chosen now
+    $("railToggleVal").textContent = `${originsById.get(state.originId)?.icao || ""} · ${state.rangeNm} nm`;
     checkFreshness(); // the forecast and TFR files arrive after boot and re-render the page
 
     // one-way DOM->store binding on the search input, so typing doesn't
@@ -361,10 +368,12 @@ async function boot() {
       eventsPage?.closeDetail();
       renderPlanner(state);
     } else if (state.view === "weekends") {
+      comments.show(null);
       fieldPanel.render({ field: null, airspace: null });
       filterRail.setCounts("Weekend picks within this range");
       weekendsPage.render(state);
     } else {
+      comments.show(null);
       fieldPanel.render({ field: null, airspace: null });
       renderEvents(state);
     }

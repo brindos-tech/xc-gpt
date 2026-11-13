@@ -6,7 +6,7 @@ primary_region = "dfw"
   dockerfile = "Dockerfile"
 
 [env]
-  ALLOWED_ORIGINS = "https://brindos-tech.github.io"
+  ALLOWED_ORIGINS = "https://brindos-tech.github.io,https://xcscanner.com,https://www.xcscanner.com"
 
 [mounts]
   source = "comments_data"

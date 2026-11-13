@@ -14,7 +14,7 @@ if (!adminToken || adminToken.length < 16) {
 const { server, store } = createApp({
   dataFile: path.join(process.env.DATA_DIR || "/data", "comments.jsonl"),
   adminToken,
-  allowedOrigins: (process.env.ALLOWED_ORIGINS || "https://brindos-tech.github.io").split(",").map((s) => s.trim()).filter(Boolean),
+  allowedOrigins: (process.env.ALLOWED_ORIGINS || "https://brindos-tech.github.io,https://xcscanner.com,https://www.xcscanner.com").split(",").map((s) => s.trim()).filter(Boolean),
   ipSalt: process.env.IP_SALT,
 });
 const port = Number(process.env.PORT) || 8080;

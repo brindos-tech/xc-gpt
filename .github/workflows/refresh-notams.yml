@@ -14,8 +14,7 @@ name: Refresh NOTAMs
 # Published into the `wx-data` branch next to the forecast and TFRs.
 on:
   schedule:
-    - cron: "23 9 * * *"
-    - cron: "23 15 * * *" # retry if the morning run failed; does nothing when there is already a fresh file
+    - cron: "23 */3 * * *" # every 3 hours; all but one a day end at once because the last file is under 23 hours old
   workflow_dispatch:
     inputs:
       probe:

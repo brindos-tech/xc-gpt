@@ -1,13 +1,16 @@
 name: Refresh TFRs
 
-# Hourly: temporary flight restrictions from the FAA (scripts/fetch-tfr.js).
+# Every 10 minutes: temporary flight restrictions from the FAA (scripts/fetch-tfr.js).
+# GitHub runs scheduled workflows on a best-effort basis and drops or delays many of them when it is busy: an "hourly"
+# schedule was observed running only every 3 to 9 hours. So this asks often, and the first step below ends the run
+# early when the published file is already fresh, so the extra tries cost nothing and add no commits.
 # Published into the same `wx-data` branch as the forecast (the weather run
 # also refreshes tfr.json, so the two never clobber each other). The page reads
 # tfr.json straight from that branch, so TFRs are never older than the last
 # run here — no site deploy is needed.
 on:
   schedule:
-    - cron: "17 * * * *"
+    - cron: "*/10 * * * *"
   workflow_dispatch: {}
 
 permissions:
@@ -27,10 +30,25 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Is the published file already fresh?
+        id: fresh
+        run: |
+          if git fetch --depth=1 origin wx-data 2>/dev/null; then
+            built="$(git show FETCH_HEAD:wx/tfr.json 2>/dev/null | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s).builtAt||"")}catch{console.log("")}})')"
+            if [ -n "$built" ]; then
+              age=$(( $(date -u +%s) - $(date -u -d "$built" +%s) ))
+              echo "published file built $built (${age}s ago)"
+              if [ "$age" -lt 1500 ]; then echo "fresh=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+            fi
+          fi
+          echo "fresh=false" >> "$GITHUB_OUTPUT"
+
       - name: Fetch TFRs
+        if: ${{ steps.fresh.outputs.fresh != 'true' }}
         run: node scripts/fetch-tfr.js
 
       - name: Publish to wx-data
+        if: ${{ steps.fresh.outputs.fresh != 'true' }}
         run: |
           set -e
           tmp="$(mktemp -d)"

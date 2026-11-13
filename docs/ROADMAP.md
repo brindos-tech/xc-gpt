@@ -56,7 +56,7 @@ Extend `--probe` to make one delta call and print the first few messages, run it
 
 ### 2. Tell the user how old every data source is: DONE (radar excluded) [checked for NOTAMs, from the 5 Nov scan for the rest]
 
-**Done:** `assets/js/planner/data-age.js` holds the limits (forecast 18 h, TFRs 3 h, NOTAMs 30 h); `main.js` shows a banner when a source passes its limit and when the date rolls over; the crew card says "NOTAM data is N old" and never prints a bare "None found" from a stale file. Radar is not covered: its tiles are live from the weather service and have no build time.
+**Done:** `assets/js/planner/data-age.js` holds the limits (forecast 18 h, TFRs 4 h, NOTAMs 30 h); `main.js` shows a banner when a source passes its limit and when the date rolls over; the crew card says "NOTAM data is N old" and never prints a bare "None found" from a stale file. Radar is not covered: its tiles are live from the weather service and have no build time.
 
 **Problem.** Forecast, TFRs, radar and NOTAMs each have a build time, but the page does not warn when one has stopped refreshing. A failed workflow leaves old data looking current. "Today" also does not roll over if the tab stays open past midnight.
 
@@ -66,7 +66,9 @@ Extend `--probe` to make one delta call and print the first few messages, run it
 
 **Done when.** With a fake clock in the e2e tests, each source shows the banner past its threshold, and the crew card never prints "None found" from a stale file.
 
-### 3. Retire or lock down the comments server [from the 5 Nov scan]
+### 3. Lock down the comments server (kept, and back on the site) [from the 5 Nov scan]
+
+**Status:** the owner chose to keep it. The comment panel is back on field and airspace sheets, and the server accepts requests from xcscanner.com. Still to do: pin `superfly/flyctl-actions/setup-flyctl@master` in `deploy-comments.yml` to a commit SHA (it runs with `FLY_API_TOKEN`), and watch the admin log for spam. The text below is the original finding.
 
 **Problem.** `server/` is deployed to Fly with no access control on writes, and `.github/workflows/deploy-comments.yml` uses `superfly/flyctl-actions/setup-flyctl@master` while holding `FLY_API_TOKEN`. An unpinned action with a deploy token is a supply-chain risk.
 
