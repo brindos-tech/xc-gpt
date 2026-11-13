@@ -1,6 +1,6 @@
 {
-  "name": "OffStation",
-  "short_name": "OffStation",
+  "name": "XC Scanner",
+  "short_name": "XC Scanner",
   "description": "Weekend cross-country planning: events, places and weather within range of your departure base.",
   "start_url": "./",
   "scope": "./",

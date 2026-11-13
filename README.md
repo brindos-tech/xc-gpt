@@ -1,4 +1,4 @@
-# OffStation
+# XC Scanner
 
 *Formerly "XC GPT". The repository, its web address and some internal names (storage keys, cache name, bot name) still use the old name; renaming them would reset visitors' saved settings for no visible gain.*
 

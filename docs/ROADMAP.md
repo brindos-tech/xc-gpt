@@ -1,4 +1,4 @@
-# OffStation (formerly XC GPT): roadmap and handoff
+# XC Scanner (formerly XC GPT): roadmap and handoff
 
 Written 2026-11-11; items 2, 4 and 5 were done the same day (marked DONE below) for whoever picks the work up next. The repo is `brindos-tech/xc-gpt` (the old name `enid-weekend-flight-plan` still redirects); the live site is https://brindos-tech.github.io/xc-gpt/.
 
@@ -29,7 +29,7 @@ These block or shape work below. None of them needs code to answer.
 | Retire the Fly comments server? | It is an open, internet-facing server, and its deploy workflow holds a Fly token and uses an action pinned to `@master`. | Retire it unless the ratings and report-a-problem features are being used. See item 3. |
 | Keep the Spotify top-50 list public? | `data/curated/artists.json` publishes one person's listening ranks. | Keep the artist names the recommendations need and drop the ranks, or move the file out of the published site. |
 | Analytics provider | There is no traffic count today. | GoatCounter: one script tag, no cookies, no consent banner. |
-| Project name | Decided: **OffStation** (formerly XC GPT). | Visible text is renamed. Still on the old name, on purpose: the repository and its web address, storage keys (`xcgpt-*`), the service-worker cache name and the bot name. A custom domain is the next step if wanted. |
+| Project name | Decided: **XC Scanner**, at **xcscanner.com** (formerly XC GPT). | Visible text is renamed. Still on the old name, on purpose: the repository and its web address, storage keys (`xcgpt-*`), the service-worker cache name and the bot name. The custom domain is bought (Squarespace); DNS points at GitHub Pages and the domain is set under Settings, Pages. |
 
 ---
 

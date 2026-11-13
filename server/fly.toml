@@ -1,4 +1,4 @@
-# Fly.io config for the OffStation (formerly XC GPT) comments API. See server/README.md for setup.
+# Fly.io config for the XC Scanner (formerly XC GPT) comments API. See server/README.md for setup.
 app = "xc-gpt-comments"
 primary_region = "dfw"
 
