@@ -1,17 +1,17 @@
 {
-  "buildId": "build-1794663620621",
-  "buildAt": "2026-11-14T13:40:20.621Z",
-  "eventCount": 26696,
+  "buildId": "build-1794751328149",
+  "buildAt": "2026-11-15T14:02:08.149Z",
+  "eventCount": 26192,
   "sources": {
     "ticketmaster": {
       "status": "ok",
-      "lastSuccess": "2026-11-14T13:40:20.622Z",
-      "droppedForUnknownPlace": 118
+      "lastSuccess": "2026-11-15T14:02:08.149Z",
+      "droppedForUnknownPlace": 116
     },
     "seatgeek": {
       "status": "ok",
-      "lastSuccess": "2026-11-14T13:40:20.622Z",
-      "events": 18124
+      "lastSuccess": "2026-11-15T14:02:08.149Z",
+      "events": 17946
     },
     "spotify": {
       "status": "ok",
@@ -20,15 +20,15 @@
     },
     "recurring": {
       "status": "ok",
-      "lastSuccess": "2026-11-14T13:40:20.622Z"
+      "lastSuccess": "2026-11-15T14:02:08.149Z"
     }
   },
   "pr": {
-    "tagged": 76,
+    "tagged": 71,
     "fromCuratedList": 33
   },
   "dedupe": {
-    "merges": 25050,
+    "merges": 24844,
     "addOnListingsDropped": 331
   },
   "linkHealth": {
