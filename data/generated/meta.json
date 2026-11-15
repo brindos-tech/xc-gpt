@@ -1,26 +1,26 @@
 {
-  "buildId": "build-1794751328149",
-  "buildAt": "2026-11-15T14:02:08.149Z",
-  "eventCount": 26192,
+  "buildId": "build-1794754950469",
+  "buildAt": "2026-11-15T15:02:30.469Z",
+  "eventCount": 26233,
   "sources": {
     "ticketmaster": {
       "status": "ok",
-      "lastSuccess": "2026-11-15T14:02:08.149Z",
-      "droppedForUnknownPlace": 116
+      "lastSuccess": "2026-11-15T15:02:30.469Z",
+      "droppedForUnknownPlace": 133
     },
     "seatgeek": {
       "status": "ok",
-      "lastSuccess": "2026-11-15T14:02:08.149Z",
-      "events": 17946
+      "lastSuccess": "2026-11-15T15:02:30.469Z",
+      "events": 17956
     },
     "spotify": {
       "status": "ok",
-      "lastSuccess": "2026-11-08T14:12:34.678Z",
+      "lastSuccess": "2026-11-15T14:38:47.946Z",
       "message": "Synced 50 top artists."
     },
     "recurring": {
       "status": "ok",
-      "lastSuccess": "2026-11-15T14:02:08.149Z"
+      "lastSuccess": "2026-11-15T15:02:30.469Z"
     }
   },
   "pr": {
@@ -28,37 +28,32 @@
     "fromCuratedList": 33
   },
   "dedupe": {
-    "merges": 24844,
+    "merges": 24801,
     "addOnListingsDropped": 331
   },
   "linkHealth": {
-    "https://www.unionstagepresents.com/shows/teen-jesus-and-the-jean-teasers-08-nov": {
-      "ok": false,
-      "status": 404,
-      "checkedAt": "2026-11-08T14:38:37.637Z"
-    },
     "https://www.drphillipscenter.org/show/cann-presents-yacht-rock-revue-cn81?_gl=1*gtv0ud*_up*MQ..*_gs*MQ..&gclid=Cj0KCQjwlNPVBhCMARIsAPZ5RqhutUVVBXpWVDefy3PlkpIm5d4tqruNejfmDA2wHfdJ5Qwa5BylCMsaAgasEALw_wcB&gclsrc=aw.ds&gbraid=0AAAAAD9zq3tw02hIt3ME9oZ5f": {
       "ok": false,
       "status": null,
       "error": "fetch failed",
-      "checkedAt": "2026-11-08T14:38:37.639Z"
+      "checkedAt": "2026-11-15T15:08:20.517Z"
     },
     "https://www.blackhillsstockshow.com": {
       "ok": false,
       "status": null,
       "error": "fetch failed",
-      "checkedAt": "2026-11-08T14:38:37.639Z"
+      "checkedAt": "2026-11-15T15:08:20.517Z"
     },
     "https://usairandseashow.com": {
       "ok": false,
       "status": null,
       "error": "fetch failed",
-      "checkedAt": "2026-11-08T14:38:37.639Z"
+      "checkedAt": "2026-11-15T15:08:20.518Z"
     },
     "https://www.chicago.gov/city/en/depts/dca/supp_info/air_and_watershow.html": {
       "ok": false,
       "status": 404,
-      "checkedAt": "2026-11-08T14:38:37.639Z"
+      "checkedAt": "2026-11-15T15:08:20.518Z"
     }
   }
 }
