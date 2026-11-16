@@ -85,7 +85,7 @@ test("welcome screen: shown to first-time visitors, explains the pieces, remembe
     assert.ok((await page.locator("#welcome .wv-key svg").count()) >= 3, "the key shows towered, non-towered and military");
     await page.click("#welcomeGo");
     assert.equal(await page.locator("#welcome").evaluate((d) => d.open), false);
-    assert.equal(await page.evaluate(() => localStorage.getItem("xcgpt-welcome-seen")), "1", "remembered");
+    await page.waitForFunction(() => localStorage.getItem("xcgpt-welcome-seen") === "1", null, { timeout: 5000 });
     // reopen from the header, close with Escape
     await page.click("#helpBtn");
     assert.equal(await page.locator("#welcome").evaluate((d) => d.open), true);
