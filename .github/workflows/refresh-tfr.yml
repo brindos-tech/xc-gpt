@@ -1,28 +1,35 @@
 name: Refresh TFRs
 
-# Every 10 minutes: temporary flight restrictions from the FAA (scripts/fetch-tfr.js).
-# GitHub runs scheduled workflows on a best-effort basis and drops or delays many of them when it is busy: an "hourly"
-# schedule was observed running only every 3 to 9 hours. So this asks often, and the first step below ends the run
-# early when the published file is already fresh, so the extra tries cost nothing and add no commits.
-# Published into the same `wx-data` branch as the forecast (the weather run
-# also refreshes tfr.json, so the two never clobber each other). The page reads
-# tfr.json straight from that branch, so TFRs are never older than the last
-# run here — no site deploy is needed.
+# Temporary flight restrictions from the FAA (scripts/fetch-tfr.js), kept fresh to within about 10 minutes.
+# GitHub runs scheduled workflows on a best-effort basis: a "every 10 minutes" schedule was observed running only
+# every 4 to 11 hours. So one run does not wait for the scheduler. It stays alive for about 50 minutes, refreshing
+# every 10 minutes, and ends by starting the next run itself (a chain). The schedule below is only the safety net
+# that restarts the chain if it ever breaks; while a run is going, the scheduled ones just wait their turn.
+# Published into the same `wx-data` branch as the forecast (scripts/publish-wx-file.sh retries if another job
+# updated the branch meanwhile). The page reads tfr.json straight from that branch, so no site deploy is needed.
+# A new FAA feed that fails or comes back empty keeps the last good file (fetch-tfr.js refuses to publish nothing).
 on:
   schedule:
-    - cron: "*/10 * * * *"
-  workflow_dispatch: {}
+    - cron: "*/20 * * * *"
+  workflow_dispatch:
+    inputs:
+      minutes:
+        description: "How long to keep refreshing before starting the next run (0 = one refresh and stop, no chain)"
+        type: string
+        default: "50"
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
-  group: refresh-wx
+  group: refresh-tfr
   cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-24.04
+    timeout-minutes: 58
     steps:
       - uses: actions/checkout@v4
 
@@ -30,41 +37,24 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Is the published file already fresh?
-        id: fresh
+      - name: Refresh every 10 minutes
+        env:
+          MINUTES: ${{ inputs.minutes || '50' }}
         run: |
-          if git fetch --depth=1 origin wx-data 2>/dev/null; then
-            built="$(git show FETCH_HEAD:wx/tfr.json 2>/dev/null | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s).builtAt||"")}catch{console.log("")}})')"
-            if [ -n "$built" ]; then
-              age=$(( $(date -u +%s) - $(date -u -d "$built" +%s) ))
-              echo "published file built $built (${age}s ago)"
-              if [ "$age" -lt 1500 ]; then echo "fresh=true" >> "$GITHUB_OUTPUT"; exit 0; fi
-            fi
-          fi
-          echo "fresh=false" >> "$GITHUB_OUTPUT"
+          end=$(( $(date +%s) + MINUTES * 60 ))
+          n=0
+          while :; do
+            n=$((n+1))
+            echo "::group::refresh $n at $(date -u +%H:%M:%SZ)"
+            if node scripts/fetch-tfr.js && scripts/publish-wx-file.sh data/generated/wx/tfr.json "tfr data $(date -u +%Y-%m-%dT%H:%M:%SZ)"; then :; else echo "::warning::refresh $n failed; the last published file stays"; fi
+            echo "::endgroup::"
+            # stop when the next refresh would run past the end
+            [ $(( $(date +%s) + 600 )) -gt "$end" ] && break
+            sleep 600
+          done
 
-      - name: Fetch TFRs
-        if: ${{ steps.fresh.outputs.fresh != 'true' }}
-        run: node scripts/fetch-tfr.js
-
-      - name: Publish to wx-data
-        if: ${{ steps.fresh.outputs.fresh != 'true' }}
-        run: |
-          set -e
-          tmp="$(mktemp -d)"
-          cp data/generated/wx/tfr.json "$tmp/tfr.json"
-          git config user.name "xc-gpt-bot"
-          git config user.email "actions@users.noreply.github.com"
-          # keep the forecast files that are already on wx-data, if any
-          if git fetch --depth=1 origin wx-data; then
-            git checkout --orphan wx-data-tmp FETCH_HEAD
-          else
-            git checkout --orphan wx-data-tmp
-            git rm -rf -q .
-            mkdir wx
-          fi
-          mkdir -p wx
-          cp "$tmp/tfr.json" wx/tfr.json
-          git add wx
-          git commit -q -m "tfr data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          git push --force origin HEAD:wx-data
+      - name: Start the next run
+        if: ${{ always() && (inputs.minutes || '50') != '0' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run refresh-tfr.yml --ref "${{ github.event.repository.default_branch }}"

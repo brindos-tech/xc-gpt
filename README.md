@@ -17,7 +17,7 @@ A nav planner for T-6 cross-country missions, with the events map that started t
 | `data/generated/field-facts.json` | FAA NASR 28-day subscription + GSA per diem | `refresh-fields.yml`, weekly |
 | `data/generated/approaches.json` | FAA d-TPP metadata (`d-TPP_Metafile.xml`, 28-day cycle): instrument approach chart names per field | `refresh-approaches.yml`, weekly (commits only on change). `assets/js/planner/approaches.js` classifies them into ILS / LOC / LOC BC / VOR / RNAV / TACAN / NDB / Hi approach / circling-only for the planner's Approaches filter |
 | `data/curated/state-tax.json` | GSA SmartPay state tax pages (updated 1 Jul 2026): per state, whether federal travelers are exempt from lodging/occupancy tax (exempt / exempt with a form / centrally billed accounts only / nothing lodging-specific), with the form and the GSA page link | by hand when GSA updates its pages (re-read each state's page at https://smartpay.gsa.gov/smarttax/tax-information-by-state/) |
-| `wx/tfr.json` (on `wx-data`) | FAA TFR site (WFS shapes + list types) | `refresh-tfr.yml` hourly; the page reads it straight from the branch (raw.githubusercontent.com), so TFRs don't wait for a deploy |
+| `wx/tfr.json` (on `wx-data`) | FAA TFR site (WFS shapes + list types) | `refresh-tfr.yml` every 10 minutes (a self-restarting chain of runs); the page reads it straight from the branch (raw.githubusercontent.com), so TFRs don't wait for a deploy |
 | `data/generated/airspace-{sua,mtr}.json` | FAA SUA / MTR geometry merged with `ap1.json` | `refresh-fields.yml`, weekly |
 | `wx/` (branch `wx-data`, served at `data/generated/wx/`) | Open-Meteo GFS pressure-level forecast, 1° grid + every nav-list field, 3-hourly for 8 days | `refresh-wx.yml`, twice daily; **not committed to main** — force-published as one commit on `wx-data`, which `deploy-pages.yml` copies into the site |
 
@@ -77,7 +77,7 @@ Two scheduled workflows regenerate `data/generated/`:
 - **`.github/workflows/refresh-daily.yml`** — pulls Ticketmaster and SeatGeek events, weather, expands `recurring.json`, merges, validates, commits.
 - **`.github/workflows/deploy-comments.yml`** — deploys `server/` to Fly on changes (skips until the `FLY_API_TOKEN` secret exists).
 - **`.github/workflows/refresh-approaches.yml`** — weekly: approach charts per field from the FAA d-TPP.
-- **`.github/workflows/refresh-tfr.yml`** — hourly: TFRs into the `wx-data` branch (see above).
+- **`.github/workflows/refresh-tfr.yml`** — every 10 minutes (a run refreshes for ~50 minutes, then starts the next): TFRs into the `wx-data` branch (see above).
 - **`.github/workflows/refresh-wx.yml`** — twice daily: the forecast grid, published to the `wx-data` branch (see above).
 - **`.github/workflows/refresh-fields.yml`** — weekly: NASR + per-diem field facts and the airspace layers (see above).
 - **`.github/workflows/refresh-weekly.yml`** — syncs Spotify top artists, resolves new Ticketmaster attraction IDs, rebuilds, checks link health.
