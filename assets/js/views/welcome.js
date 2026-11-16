@@ -68,7 +68,12 @@ export function initWelcome() {
     const kind = el.dataset.wpin;
     el.innerHTML = pinSvg({ towered: kind === "towered" || kind === "military", military: kind === "military", status: el.dataset.status || null });
   });
-  const close = () => dialog.open && dialog.close();
+  // remember at once: the dialog's own "close" event arrives a moment after close() returns
+  const close = () => {
+    if (!dialog.open) return;
+    remember();
+    dialog.close();
+  };
   document.getElementById("welcomeGo").addEventListener("click", close);
   dialog.addEventListener("close", () => {
     remember();
