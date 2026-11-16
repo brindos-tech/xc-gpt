@@ -1,17 +1,17 @@
 {
-  "buildId": "build-1794754950469",
-  "buildAt": "2026-11-15T15:02:30.469Z",
-  "eventCount": 26233,
+  "buildId": "build-1794843199710",
+  "buildAt": "2026-11-16T15:33:19.710Z",
+  "eventCount": 26058,
   "sources": {
     "ticketmaster": {
       "status": "ok",
-      "lastSuccess": "2026-11-15T15:02:30.469Z",
-      "droppedForUnknownPlace": 133
+      "lastSuccess": "2026-11-16T15:33:19.710Z",
+      "droppedForUnknownPlace": 132
     },
     "seatgeek": {
       "status": "ok",
-      "lastSuccess": "2026-11-15T15:02:30.469Z",
-      "events": 17956
+      "lastSuccess": "2026-11-16T15:33:19.710Z",
+      "events": 18106
     },
     "spotify": {
       "status": "ok",
@@ -20,16 +20,16 @@
     },
     "recurring": {
       "status": "ok",
-      "lastSuccess": "2026-11-15T15:02:30.469Z"
+      "lastSuccess": "2026-11-16T15:33:19.710Z"
     }
   },
   "pr": {
-    "tagged": 71,
+    "tagged": 70,
     "fromCuratedList": 33
   },
   "dedupe": {
-    "merges": 24801,
-    "addOnListingsDropped": 331
+    "merges": 25281,
+    "addOnListingsDropped": 332
   },
   "linkHealth": {
     "https://www.drphillipscenter.org/show/cann-presents-yacht-rock-revue-cn81?_gl=1*gtv0ud*_up*MQ..*_gs*MQ..&gclid=Cj0KCQjwlNPVBhCMARIsAPZ5RqhutUVVBXpWVDefy3PlkpIm5d4tqruNejfmDA2wHfdJ5Qwa5BylCMsaAgasEALw_wcB&gclsrc=aw.ds&gbraid=0AAAAAD9zq3tw02hIt3ME9oZ5f": {
