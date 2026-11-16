@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: write
+  actions: write # to start the site deploy below
 
 concurrency:
   group: refresh-wx
@@ -30,6 +31,7 @@ jobs:
       # Cheap one-request check of the response shape; shows up in the log
       # when the API changes.
       - name: Probe Open-Meteo response shape
+        continue-on-error: true # a network blip here once skipped a whole build; the build below retries on its own
         run: node scripts/fetch-wx.js --probe
 
       - name: Build weather grid
@@ -61,3 +63,11 @@ jobs:
           git commit -q -m "weather data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
           git push --force origin HEAD:wx-data
           du -sh wx
+
+      # A finished run of this workflow only triggers the site deploy (deploy-pages.yml, workflow_run) when GitHub's own
+      # scheduler started it; a run started by refresh-wx-schedule.yml or by hand does not, so the site kept the forecast of
+      # the last unrelated deploy (it was seen 20 hours old while a 5 hour old one was published). Ask for the deploy here.
+      - name: Deploy the site with the new forecast
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy-pages.yml --ref "${{ github.event.repository.default_branch }}"
