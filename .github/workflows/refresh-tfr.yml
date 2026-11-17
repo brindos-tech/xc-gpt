@@ -1,13 +1,14 @@
 name: Refresh TFRs
 
-# Every 10 minutes: temporary flight restrictions from the FAA (scripts/fetch-tfr.js).
-# GitHub runs scheduled workflows on a best-effort basis and drops or delays many of them when it is busy: an "hourly"
-# schedule was observed running only every 3 to 9 hours. So this asks often, and the first step below ends the run
-# early when the published file is already fresh, so the extra tries cost nothing and add no commits.
-# Published into the same `wx-data` branch as the forecast (the weather run
-# also refreshes tfr.json, so the two never clobber each other). The page reads
-# tfr.json straight from that branch, so TFRs are never older than the last
-# run here — no site deploy is needed.
+# Temporary flight restrictions from the FAA (scripts/fetch-tfr.js).
+# GitHub runs scheduled workflows on a best-effort basis: the schedule below was seen running only every 4 to 11
+# hours. So the run is ALSO started every 15 minutes from outside, by a timer service calling GitHub's
+# "run workflow" API with a fine-grained token that can only start workflows in this repository (see
+# docs/OPERATIONS.md, "TFR timer"). The schedule stays as the fallback if that timer stops.
+# The first step ends the run in seconds when the published file is under 10 minutes old, so extra starts cost
+# nothing and add no commits.
+# Published into the same `wx-data` branch as the forecast and NOTAMs (scripts/publish-wx-file.sh retries if one of
+# them updated the branch meanwhile). The page reads tfr.json straight from that branch, so no deploy is needed.
 on:
   schedule:
     - cron: "*/10 * * * *"
@@ -38,7 +39,7 @@ jobs:
             if [ -n "$built" ]; then
               age=$(( $(date -u +%s) - $(date -u -d "$built" +%s) ))
               echo "published file built $built (${age}s ago)"
-              if [ "$age" -lt 1500 ]; then echo "fresh=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+              if [ "$age" -lt 600 ]; then echo "fresh=true" >> "$GITHUB_OUTPUT"; exit 0; fi
             fi
           fi
           echo "fresh=false" >> "$GITHUB_OUTPUT"
@@ -49,22 +50,4 @@ jobs:
 
       - name: Publish to wx-data
         if: ${{ steps.fresh.outputs.fresh != 'true' }}
-        run: |
-          set -e
-          tmp="$(mktemp -d)"
-          cp data/generated/wx/tfr.json "$tmp/tfr.json"
-          git config user.name "xc-gpt-bot"
-          git config user.email "actions@users.noreply.github.com"
-          # keep the forecast files that are already on wx-data, if any
-          if git fetch --depth=1 origin wx-data; then
-            git checkout --orphan wx-data-tmp FETCH_HEAD
-          else
-            git checkout --orphan wx-data-tmp
-            git rm -rf -q .
-            mkdir wx
-          fi
-          mkdir -p wx
-          cp "$tmp/tfr.json" wx/tfr.json
-          git add wx
-          git commit -q -m "tfr data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          git push --force origin HEAD:wx-data
+        run: scripts/publish-wx-file.sh data/generated/wx/tfr.json "tfr data $(date -u +%Y-%m-%dT%H:%M:%SZ)"

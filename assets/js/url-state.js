@@ -23,6 +23,9 @@ export function stateToHash(state) {
   if (state.selectedAirspaceId) params.set("as", state.selectedAirspaceId);
   if (state.tripDate) params.set("day", state.tripDate);
   if (state.wxDay && state.wxDay !== state.tripDate) params.set("wd", state.wxDay);
+  // reviews
+  if (state.reviewsSort && state.reviewsSort !== "recent") params.set("rs", state.reviewsSort);
+  if (state.reviewsType && state.reviewsType !== "all") params.set("rt", state.reviewsType);
   params.set("wx", state.wxLayers.size ? Array.from(state.wxLayers).join(",") : "none");
   if (state.wxTime) params.set("wxt", state.wxTime);
   return `#/${params.toString()}`;
@@ -42,7 +45,7 @@ export function hashToState(hash, defaults, limits = {}) {
     // Pages that no longer exist (feed, places, artists, weekend recs) and
     // the old "map" name all land on the events page.
     const v = params.get("v");
-    patch.view = v === "planner" || v === "weekends" ? v : v === "reviews" ? "planner" : "events"; // the Reviews page is gone for now: old links land on the planner
+    patch.view = v === "planner" || v === "weekends" || v === "reviews" ? v : "events";
   }
   if (isValidDate(params.get("from"))) patch.dateRange = { ...defaults.dateRange, start: parseDate(params.get("from")) };
   if (isValidDate(params.get("to"))) {
@@ -72,6 +75,8 @@ export function hashToState(hash, defaults, limits = {}) {
   if (params.get("ret") === "0") patch.tripReturn = false;
   if (params.has("rdep")) patch.tripReturnDep = decodeDep(params.get("rdep"));
   if (params.has("app")) patch.approachTypes = new Set(params.get("app").split(",").filter(Boolean));
+  if (["recent", "top", "food", "car", "card"].includes(params.get("rs"))) patch.reviewsSort = params.get("rs");
+  if (["all", "field", "air"].includes(params.get("rt"))) patch.reviewsType = params.get("rt");
   if (params.has("air")) patch.airspace = new Set(params.get("air").split(",").filter(Boolean));
   if (params.has("fld")) patch.selectedFieldId = params.get("fld");
   if (params.has("as")) patch.selectedAirspaceId = params.get("as");

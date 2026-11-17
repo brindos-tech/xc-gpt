@@ -48,3 +48,15 @@ test("staleMessage: names every stale source with the right verb", () => {
   const two = staleMessage(staleSources({ forecast: ago(20), tfr: ago(5), notams: ago(40) }, NOW));
   assert.match(two, /^NOTAMs is 40 hours old, Forecast is 20 hours old and TFRs are 5 hours old — /);
 });
+
+test("the TFR sheet says how old its list is", async () => {
+  const { tfrAsOf, airspaceHtml } = await import("../../assets/js/planner/field-panel.js");
+  const now = new Date("2026-11-17T14:05:00Z");
+  assert.equal(tfrAsOf("2026-11-17T13:40:12Z", now), "TFR list as of 13:40Z (25 minutes ago)");
+  assert.equal(tfrAsOf(null, now), "");
+  assert.equal(tfrAsOf("not a time", now), "");
+  const tfr = { type: "TFR", name: "4/1234", kind: "VIP", title: "Somewhere" };
+  assert.match(airspaceHtml(tfr, { tfrBuiltAt: "2026-11-17T09:06:15Z", now }), /TFR list as of 09:06Z \(5 hours ago\)/);
+  assert.doesNotMatch(airspaceHtml(tfr), /as of/, "no time, no line");
+  assert.doesNotMatch(airspaceHtml({ type: "MOA", name: "X" }, { tfrBuiltAt: "2026-11-17T09:06:15Z", now }), /TFR list/);
+});
