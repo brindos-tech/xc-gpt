@@ -58,7 +58,7 @@ fly auth login                                  # prints a link; open it and sig
 cd server
 fly apps create xc-gpt-comments
 fly volumes create comments_data --region dfw --size 1 -a xc-gpt-comments
-fly secrets set ADMIN_TOKEN="<a long password you keep in a password manager>" -a xc-gpt-comments
+fly secrets set ADMIN_TOKEN="<a password of 16+ characters you keep in a password manager>" -a xc-gpt-comments   # the server refuses to start with a shorter one
 fly deploy -a xc-gpt-comments
 ```
 
