@@ -61,3 +61,4 @@ a { color: var(--accent2); }
 .scale-dot.major { background: var(--accent3); }
 .scale-dot.notable { background: var(--muted); }
 .scale-dot.local { background: var(--border); }
+.noscript-about { max-width: 720px; margin: 40px auto; padding: 0 16px; line-height: 1.55; }
