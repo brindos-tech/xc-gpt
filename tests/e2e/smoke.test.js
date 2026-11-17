@@ -107,7 +107,13 @@ test("the site is called XC Scanner everywhere a person looks, with its tagline 
     assert.equal(await page.locator(".app-header .tagline").isVisible(), true, "the tagline is under the name");
     assert.equal((await page.textContent(".app-header .tagline")).trim(), "Off-station awareness for cross-country flying");
     assert.equal(await page.getAttribute('meta[name="apple-mobile-web-app-title"]', "content"), "XC Scanner");
-    assert.match(await page.getAttribute('meta[name="description"]', "content"), /^XC Scanner: off-station awareness for cross-country flying\./);
+    const description = await page.getAttribute('meta[name="description"]', "content");
+    assert.match(description, /^XC Scanner is a free flight-planning reference website for military aircrews/);
+    assert.match(description, /nothing to download or install/, "web filters read this: it is a reference site, not software");
+    // the same plain description for readers that do not run scripts (web filters' categorizers), invisible otherwise
+    const noscript = await page.evaluate(() => document.querySelector("noscript")?.textContent || "");
+    assert.match(noscript, /travel reference website for military aircrews/);
+    assert.match(noscript, /no software to download or install/);
     const welcome = await page.textContent("#welcome");
     assert.match(welcome, /Welcome to XC Scanner/);
     assert.match(welcome, /Off-station awareness for cross-country flying(?!\.)/, "the slogan has no full stop");
