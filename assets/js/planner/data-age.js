@@ -5,7 +5,7 @@
 /** Past this many hours a source is "stale": its schedule would have refreshed it well before. */
 export const MAX_AGE_HOURS = {
   forecast: 18, // rebuilt twice a day (05:43 and 17:43 UTC)
-  tfr: 4, // asked for every 10 minutes; GitHub drops many scheduled runs, and gaps of 3 hours or more have been seen
+  tfr: 4, // started every 15 minutes by an outside timer (GitHub's own schedule is only a fallback: it has skipped hours at a time)
   notams: 30, // rebuilt once a day (09:23 UTC, retry 15:23)
 };
 

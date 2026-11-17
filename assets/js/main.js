@@ -73,7 +73,7 @@ async function boot() {
 
   const fieldsByCode = new Map(fields.map((f) => [f.code, f]));
   const filterRail = createFilterRail({ store, config });
-  const fieldPanel = createFieldPanel({ store, getOriginIcao: () => originsById.get(store.getState().originId)?.icao });
+  const fieldPanel = createFieldPanel({ store, getOriginIcao: () => originsById.get(store.getState().originId)?.icao, getTfrBuiltAt: () => planner.dataBuiltAt("tfr") });
   // crew comments and problem reports on a field/FBO or an airspace area/route (Fly API in server/); its own host element so
   // the sheet re-rendering never wipes a half-written comment. Hidden when the config names no API.
   const comments = createComments({ host: $("fieldComments"), apiBase: config.commentsApi, today });

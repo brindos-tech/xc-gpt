@@ -427,7 +427,7 @@ test("TFRs are on by default, drawn, clickable, and open a sheet linking to the 
     assert.match(text, /Test City, OK/);
     assert.equal(await page.locator('#fieldContent a[href*="tfr.faa.gov"]').count(), 2);
     assert.equal(await page.isHidden("#fieldComments"), true, "no comments on a TFR");
-    assert.equal(await page.isHidden("#fieldComments"), true, "no comments on a TFR");
+    assert.match(text, /TFR list as of \d\d:\d\dZ \(1 minute ago\)/, "the sheet says how old the TFR list is");
     assert.deepEqual(errors, []);
   } finally {
     await context.close();

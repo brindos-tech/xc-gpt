@@ -8,6 +8,7 @@ import { APPROACH_TYPES } from "./approaches.js";
 import { gfcStatus, perDiemFor, telHref, STATUS_LABELS, fieldStatus } from "./fields.js";
 import { airspaceRows, typeName } from "./airspace.js";
 import { esc } from "./html.js";
+import { ageHours, ageText } from "./data-age.js";
 import { toDateKey } from "../format.js";
 import { sunTimes, fieldTimeZone, clock, zoneAbbr, minutesOfDay } from "./sun.js";
 import { hoursForDay, fmtMin } from "./hours.js";
@@ -218,7 +219,14 @@ export function fieldHtml(f, ctx) {
     <div class="fp-disclaimer">Planning reference only. Confirm hours, fuel and PPR with the FBO / base ops, and check the current list and NOTAMs, before you go.</div>`;
 }
 
-export function airspaceHtml(p) {
+/** "TFR list as of 13:40Z (25 minutes ago)", or "" without a usable time. */
+export function tfrAsOf(builtAt, now = new Date()) {
+  const h = ageHours(builtAt, now);
+  if (h == null) return "";
+  return `TFR list as of ${new Date(builtAt).toISOString().slice(11, 16)}Z (${ageText(h)} ago)`;
+}
+
+export function airspaceHtml(p, { tfrBuiltAt = null, now = new Date() } = {}) {
   const rows = airspaceRows(p).map(([k, v]) => row(esc(k), esc(v))).join("");
   return `
     <h3>${esc(p.name)}</h3>
@@ -229,12 +237,13 @@ export function airspaceHtml(p) {
     ${
       p.type === "TFR"
         ? `<div class="fp-links"><a href="https://tfr.faa.gov/tfr3/?page=detail_${esc(String(p.notam || "").replace("/", "_"))}" target="_blank" rel="noopener noreferrer">FAA TFR page ↗</a><a href="https://tfr.faa.gov/" target="_blank" rel="noopener noreferrer">All TFRs ↗</a></div>
-    <div class="fp-disclaimer">Shape and details from the FAA TFR site, refreshed hourly — it can be out of date and may omit altitudes and times. Always check the NOTAM and a current briefing; TFRs can appear or change at any time.</div>`
+    ${tfrAsOf(tfrBuiltAt, now) ? `<div class="fp-asof small">${esc(tfrAsOf(tfrBuiltAt, now))}</div>` : ""}
+    <div class="fp-disclaimer">Shape and details from the FAA TFR site, refreshed every 15 minutes or so — it can be out of date and may omit altitudes and times. Always check the NOTAM and a current briefing; TFRs can appear or change at any time.</div>`
         : `<div class="fp-disclaimer">From FAA data and DoD FLIP AP/1A &amp; AP/1B (eff. 3 Sep 2026). Planning reference only — use current FLIP, NOTAMs and the scheduling activity for actual use.</div>`
     }`;
 }
 
-export function createFieldPanel({ store, getOriginIcao = () => "" }) {
+export function createFieldPanel({ store, getOriginIcao = () => "", getTfrBuiltAt = () => null }) {
   const panel = document.getElementById("fieldPanel");
   const content = document.getElementById("fieldContent");
   const scroller = document.getElementById("fieldScroll");
@@ -279,7 +288,7 @@ export function createFieldPanel({ store, getOriginIcao = () => "" }) {
       return;
     }
     const opening = !panel.classList.contains("open");
-    content.innerHTML = field ? fieldHtml(field, ctx) : airspaceHtml(airspace);
+    content.innerHTML = field ? fieldHtml(field, ctx) : airspaceHtml(airspace, { tfrBuiltAt: airspace.type === "TFR" ? getTfrBuiltAt() : null });
     scroller.scrollTop = 0;
     setOpen(true);
     if (opening) closeBtn.focus({ preventScroll: true }); // the sheet is still sliding in off-screen; a plain focus() scrolls the clipped map area sideways to reveal it

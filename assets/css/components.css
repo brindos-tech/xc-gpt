@@ -230,6 +230,7 @@
 .fp-pd span { font-size: 0.72em; color: var(--muted); }
 .fp-links { display: flex; gap: 14px; margin-top: 16px; font-size: 0.88em; }
 .fp-links a { color: var(--accent3); }
+.fp-asof { margin-top: 12px; color: var(--muted); }
 .fp-disclaimer { margin-top: 18px; font-size: 0.72em; color: var(--muted); font-style: italic; line-height: 1.4; }
 .muted { color: var(--muted); }
 .small { font-size: 0.8em; }
