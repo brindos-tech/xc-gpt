@@ -32,6 +32,9 @@ function defaultState(config, today) {
     wxDay: toDateKey(today), // the day being looked at: the weather bar, and the sun, hours, forecast and per diem month in a field sheet
     wxLayers: new Set(DEFAULT_WX), // weather overlays on the planner map (empty = off)
     wxTime: null, // ISO UTC step picked on the slider; null = default for the day
+    // ---- reviews ----
+    reviewsSort: "recent", // recent | top | food | car | card
+    reviewsType: "all", // all | field | air
   };
 }
 

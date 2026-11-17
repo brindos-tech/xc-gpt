@@ -11,6 +11,7 @@ import { mergeFields, selectFields, meetsRunway } from "./planner/fields.js";
 import { createWxController } from "./planner/wx-controller.js";
 import { createTripPanel } from "./views/trip-panel.js";
 import { createWeekendsPage } from "./views/weekends-page.js";
+import { createReviewsPage } from "./views/reviews-page.js";
 import { crewCardHtml } from "./planner/crew-card.js";
 
 const DATA_BASE = "data";
@@ -65,7 +66,7 @@ async function boot() {
 
   const $ = (id) => document.getElementById(id);
   const app = document.querySelector(".app");
-  const panes = { planner: $("pane-planner"), weekends: $("pane-weekends"), events: $("pane-events") };
+  const panes = { planner: $("pane-planner"), weekends: $("pane-weekends"), reviews: $("pane-reviews"), events: $("pane-events") };
   const tabBar = $("tabBar");
   const searchInput = $("globalSearch");
   const freshnessText = $("freshnessText");
@@ -144,6 +145,7 @@ async function boot() {
   tripBackdrop.addEventListener("click", () => setTripBar(false));
 
   const weekendsPage = createWeekendsPage({ root: $("weekendsPage"), store, config, loadJson, today });
+  const reviewsPage = createReviewsPage({ root: $("reviewsPage"), store, apiBase: config.commentsApi, fieldsByCode });
   const tripPanel = createTripPanel({ store, config, fieldsByCode, getOrigin: () => originsById.get(store.getState().originId), onPrint: printCrewCard, forecastAt: (code, instant) => wx.forecastAt(code, instant) });
 
   // ---- planner ----
@@ -247,6 +249,9 @@ async function boot() {
       const asOf = navinfo.asOf ? parseDate(navinfo.asOf).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "2-digit" }) : "unknown date";
       freshnessText.textContent = `Nav list ${asOf}${factsFile?.nasrCycle ? ` · FAA ${factsFile.nasrCycle}` : ""}`;
       freshnessDot.className = "source-dot " + (factsFile ? "ok" : "stale");
+    } else if (view === "reviews") {
+      freshnessText.textContent = "Reviews from crews";
+      freshnessDot.className = "source-dot ok";
     } else if (view === "weekends" && meta?.buildAt) {
       freshnessText.textContent = `Events updated ${formatUpdatedAgo(meta.buildAt, now)}`;
       freshnessDot.className = "source-dot ok";
@@ -269,7 +274,7 @@ async function boot() {
     app.dataset.page = view;
     Object.entries(panes).forEach(([key, el]) => el.classList.toggle("active", key === view));
     tabBar.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b.dataset.view === view));
-    searchInput.placeholder = view === "planner" ? "Search fields, FBOs…" : view === "weekends" ? "Narrow the picks: rodeo, concert, a team…" : "Search places, events…";
+    searchInput.placeholder = view === "planner" ? "Search fields, FBOs…" : view === "reviews" ? "Search reviews…" : view === "weekends" ? "Narrow the picks: rodeo, concert, a team…" : "Search places, events…";
     // Leaflet measures 0×0 inside a hidden pane.
     if (view === "planner" || view === "events") requestAnimationFrame(() => (view === "planner" ? planner.invalidateSize() : eventsPage?.invalidateSize()));
     if (view === "events") ensureEventsPage();
@@ -372,6 +377,10 @@ async function boot() {
       fieldPanel.render({ field: null, airspace: null });
       filterRail.setCounts("Weekend picks within this range");
       weekendsPage.render(state);
+    } else if (state.view === "reviews") {
+      comments.show(null);
+      fieldPanel.render({ field: null, airspace: null });
+      reviewsPage.render(state);
     } else {
       comments.show(null);
       fieldPanel.render({ field: null, airspace: null });

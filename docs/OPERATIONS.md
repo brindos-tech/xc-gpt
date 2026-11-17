@@ -79,3 +79,17 @@ Copy the whole output (starts `FlyV1`) into the repository secret **FLY_API_TOKE
 - `https://xc-gpt-comments.fly.dev/admin`: paste the ADMIN_TOKEN once to see the log and delete posts or read problem reports.
 
 More detail on how the server works and is backed up: `server/README.md`.
+
+## Moderating comments
+
+Everything anyone posts, including private "Report a problem" notes, is in the log at **https://xc-gpt-comments.fly.dev/admin**. Paste the ADMIN_TOKEN once; the browser remembers it.
+
+- **What you see:** newest first, up to the last 1,000. Each entry shows the field or airspace it is about, the rating, date, name given, every answer and the notes, and a short "poster" code (a salted hash of the poster's network address, not the address itself).
+- **Find things:** the Filter box matches any text (a field code, a name, a word). "Reports only" shows the private problem reports, marked REPORT; those never appear on the site.
+- **Remove one comment:** Delete, then confirm. It disappears from the site at once (the site and the Reviews tab refresh within about a minute).
+- **Remove everything from one person:** "Delete all from this poster" removes every comment with that poster code. Use it for spam or a troll; the same person on a different network gets a different code.
+- **Built-in limits:** 5 posts per 10 minutes and 30 per day per poster, 300 per hour site-wide, no links allowed, a hidden spam trap and a minimum time to fill the form. Ten wrong admin tokens in a minute locks that network out for the minute.
+- **Backup or export:** from a Codespace with the fly command, `fly ssh sftp get /data/comments.jsonl -a xc-gpt-comments` (one JSON line per post or deletion).
+- **If you suspect the token leaked:** `fly secrets set ADMIN_TOKEN=<new 16+ characters> -a xc-gpt-comments` (the server restarts with the new one), then paste the new token in the admin page.
+
+There is no automatic alert for new comments yet: check the log every few days, or ask Claude for a daily e-mail digest (a small GitHub workflow that reads the log and opens or updates an issue when there is something new; GitHub e-mails you about issues).

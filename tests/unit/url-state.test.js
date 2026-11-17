@@ -53,7 +53,9 @@ test("a window still running is restored", () => {
 test("pages that no longer exist land on the events page", () => {
   for (const v of ["map", "feed", "places", "artists"]) assert.equal(hashToState(`#/v=${v}`, defaults).view, "events");
   for (const v of ["planner", "weekends"]) assert.equal(hashToState(`#/v=${v}`, defaults).view, v);
-  assert.equal(hashToState("#/v=reviews", defaults).view, "planner", "the Reviews page is gone for now");
+  assert.equal(hashToState("#/v=reviews", defaults).view, "reviews");
+  assert.equal(hashToState("#/v=reviews&rs=top&rt=field", defaults).reviewsSort, "top");
+  assert.equal(hashToState("#/v=reviews&rs=bogus", defaults).reviewsSort, undefined);
 });
 
 test("garbled or out-of-range links are ignored instead of breaking the page", () => {
