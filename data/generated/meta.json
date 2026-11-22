@@ -1,26 +1,26 @@
 {
-  "buildId": "build-1795358427752",
-  "buildAt": "2026-11-22T14:40:27.752Z",
-  "eventCount": 26299,
+  "buildId": "build-1795361715916",
+  "buildAt": "2026-11-22T15:35:15.916Z",
+  "eventCount": 26414,
   "sources": {
     "ticketmaster": {
       "status": "ok",
-      "lastSuccess": "2026-11-22T14:40:27.753Z",
+      "lastSuccess": "2026-11-22T15:35:15.916Z",
       "droppedForUnknownPlace": 132
     },
     "seatgeek": {
       "status": "ok",
-      "lastSuccess": "2026-11-22T14:40:27.753Z",
-      "events": 19431
+      "lastSuccess": "2026-11-22T15:35:15.916Z",
+      "events": 19433
     },
     "spotify": {
       "status": "ok",
-      "lastSuccess": "2026-11-15T14:38:47.946Z",
+      "lastSuccess": "2026-11-22T15:11:12.497Z",
       "message": "Synced 50 top artists."
     },
     "recurring": {
       "status": "ok",
-      "lastSuccess": "2026-11-22T14:40:27.753Z"
+      "lastSuccess": "2026-11-22T15:35:15.916Z"
     }
   },
   "pr": {
@@ -28,32 +28,55 @@
     "fromCuratedList": 36
   },
   "dedupe": {
-    "merges": 26045,
-    "addOnListingsDropped": 349
+    "merges": 26143,
+    "addOnListingsDropped": 350
   },
   "linkHealth": {
+    "https://boxoffice.mesaartscenter.com/Online/default.asp?BOset::WScontent::SearchCriteria::search_criteria=FabFour&BOparam::WScontent::search::article_search_id=DA4E69F1-5755-40D6-960A-C4D995733613&doWork::WScontent::search=1": {
+      "ok": false,
+      "status": null,
+      "error": "fetch failed",
+      "checkedAt": "2026-11-22T15:41:08.968Z"
+    },
+    "https://boxoffice.mesaartscenter.com/Online/default.asp?BOset::WScontent::SearchCriteria::search_criteria=NurseJohn&BOparam::WScontent::search::article_search_id=DA4E69F1-5755-40D6-960A-C4D995733613&doWork::WScontent::search=1": {
+      "ok": false,
+      "status": null,
+      "error": "fetch failed",
+      "checkedAt": "2026-11-22T15:41:08.970Z"
+    },
     "https://www.drphillipscenter.org/show/cann-presents-yacht-rock-revue-cn81?_gl=1*gtv0ud*_up*MQ..*_gs*MQ..&gclid=Cj0KCQjwlNPVBhCMARIsAPZ5RqhutUVVBXpWVDefy3PlkpIm5d4tqruNejfmDA2wHfdJ5Qwa5BylCMsaAgasEALw_wcB&gclsrc=aw.ds&gbraid=0AAAAAD9zq3tw02hIt3ME9oZ5f": {
       "ok": false,
       "status": null,
       "error": "fetch failed",
-      "checkedAt": "2026-11-15T15:08:20.517Z"
+      "checkedAt": "2026-11-22T15:41:08.970Z"
     },
     "https://www.blackhillsstockshow.com": {
       "ok": false,
       "status": null,
       "error": "fetch failed",
-      "checkedAt": "2026-11-15T15:08:20.517Z"
+      "checkedAt": "2026-11-22T15:41:08.970Z"
+    },
+    "https://boxoffice.mesaartscenter.com/Online/default.asp?BOset::WScontent::SearchCriteria::search_criteria=AndreaGibson&BOparam::WScontent::search::article_search_id=DA4E69F1-5755-40D6-960A-C4D995733613&doWork::WScontent::search=1": {
+      "ok": false,
+      "status": null,
+      "error": "fetch failed",
+      "checkedAt": "2026-11-22T15:41:08.970Z"
+    },
+    "https://www.turntableindy.com/events/myspace-nite-02-13-2027-indianapoli": {
+      "ok": false,
+      "status": 404,
+      "checkedAt": "2026-11-22T15:41:08.970Z"
     },
     "https://usairandseashow.com": {
       "ok": false,
       "status": null,
       "error": "fetch failed",
-      "checkedAt": "2026-11-15T15:08:20.518Z"
+      "checkedAt": "2026-11-22T15:41:08.971Z"
     },
     "https://www.chicago.gov/city/en/depts/dca/supp_info/air_and_watershow.html": {
       "ok": false,
       "status": 404,
-      "checkedAt": "2026-11-15T15:08:20.518Z"
+      "checkedAt": "2026-11-22T15:41:08.971Z"
     }
   }
 }
