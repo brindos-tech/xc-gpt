@@ -107,7 +107,7 @@ export function createWeekendsPage({ root, store, config, loadJson, today }) {
 
   function paint(state) {
     const origin = originsById.get(state.originId);
-    const head = `<div class="rv-head"><h2>Weekend Recs</h2><span class="muted small">best pick within ${state.rangeNm} nm of ${esc(origin.icao)}, plus two backups</span></div>`;
+    const head = `<div class="rv-head"><h2>Weekend Recs</h2><span class="muted small">best pick within ${state.rangeNm} nm of ${esc(origin.icao)}, plus backups; each event is suggested once</span></div>`;
     let body;
     if (status === "loading" && !data) body = `<p class="muted">Loading events…</p>`;
     else if (status === "error" && !data) body = `<p class="muted">Couldn't load the events data. <button type="button" class="cm-link" data-wk-retry>Retry</button></p>`;

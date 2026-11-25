@@ -113,3 +113,32 @@ test("planning: one long festival isn't the pick every week; weekends with nothi
   const empty = planWeekends({ weekends, events: [], places, scoring, rangeNm: 600 });
   assert.ok(empty.rows.every((r) => !r.primary && r.backups.length === 0));
 });
+
+test("a long-running event is offered on one weekend only; the others get something else", () => {
+  const weekends = upcomingWeekends(new Date(2026, 10, 30), 4); // Dec 4, 11, 18, 25
+  const places = [place("tulsa", 100), place("okc", 80), place("wichita", 110)];
+  const events = [
+    // a light show every night of December: the strongest thing on every weekend
+    ev("rhema", "holiday", "2026-11-26", "tulsa", { end: "2026-12-31", scale: "major" }),
+    // weaker things that each happen once
+    ev("tulsa-parade", "holiday", "2026-12-12", "tulsa"),
+    ev("okc-game-1", "sports", "2026-12-05", "okc", { title: "Oklahoma City Thunder vs. A" }),
+    ev("okc-game-2", "sports", "2026-12-19", "okc", { title: "Oklahoma City Thunder vs. B" }),
+    ev("wichita-show", "concert", "2026-12-12", "wichita"),
+    ev("wichita-show-2", "concert", "2026-12-26", "wichita"),
+    ev("okc-fest", "festival", "2026-12-26", "okc"),
+  ];
+  const { rows } = planWeekends({ weekends, events, places, scoring, rangeNm: 600 });
+  const offered = rows.flatMap((r) => [r.primary, ...r.backups].filter(Boolean).map((c) => c.event.id));
+  assert.equal(offered.filter((id) => id === "rhema").length, 1, `the light show is offered once, not every weekend (${offered.join(", ")})`);
+  assert.ok(rows.every((r) => r.primary), "every weekend still has a pick");
+  // the Tulsa holiday slot falls back to the city's next holiday event on the weekend it is on
+  assert.ok(offered.includes("tulsa-parade"));
+});
+
+test("an event repeats only when a weekend has nothing else at all", () => {
+  const weekends = upcomingWeekends(new Date(2026, 10, 30), 2);
+  const events = [ev("only", "holiday", "2026-12-01", "tulsa", { end: "2026-12-31", scale: "major" })];
+  const { rows } = planWeekends({ weekends, events, places: [place("tulsa")], scoring, rangeNm: 600 });
+  assert.deepEqual(rows.map((r) => r.primary?.event.id), ["only", "only"]);
+});
