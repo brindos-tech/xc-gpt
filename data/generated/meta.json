@@ -1,17 +1,17 @@
 {
-  "buildId": "build-1795541684398",
-  "buildAt": "2026-11-24T17:34:44.399Z",
-  "eventCount": 26485,
+  "buildId": "build-1795627264485",
+  "buildAt": "2026-11-25T17:21:04.485Z",
+  "eventCount": 26453,
   "sources": {
     "ticketmaster": {
       "status": "ok",
-      "lastSuccess": "2026-11-24T17:34:44.399Z",
-      "droppedForUnknownPlace": 123
+      "lastSuccess": "2026-11-25T17:21:04.485Z",
+      "droppedForUnknownPlace": 125
     },
     "seatgeek": {
       "status": "ok",
-      "lastSuccess": "2026-11-24T17:34:44.399Z",
-      "events": 19596
+      "lastSuccess": "2026-11-25T17:21:04.485Z",
+      "events": 19579
     },
     "spotify": {
       "status": "ok",
@@ -20,7 +20,7 @@
     },
     "recurring": {
       "status": "ok",
-      "lastSuccess": "2026-11-24T17:34:44.399Z"
+      "lastSuccess": "2026-11-25T17:21:04.485Z"
     }
   },
   "pr": {
@@ -28,8 +28,8 @@
     "fromCuratedList": 36
   },
   "dedupe": {
-    "merges": 26574,
-    "addOnListingsDropped": 355
+    "merges": 26634,
+    "addOnListingsDropped": 353
   },
   "linkHealth": {
     "https://boxoffice.mesaartscenter.com/Online/default.asp?BOset::WScontent::SearchCriteria::search_criteria=FabFour&BOparam::WScontent::search::article_search_id=DA4E69F1-5755-40D6-960A-C4D995733613&doWork::WScontent::search=1": {
