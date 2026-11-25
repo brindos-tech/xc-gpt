@@ -114,7 +114,6 @@ export function pickBackups(primary, candidates, count = 2, weight = () => 1) {
 }
 
 const SPREAD = 0.7; // discount per pick a group already has
-const SAME_EVENT = 0.4; // discount per earlier weekend this same event/series is already the pick
 const eventKey = (ev) => ev.recurringId || ev.id || ev.title;
 
 /**
@@ -126,21 +125,36 @@ const eventKey = (ev) => ev.recurringId || ev.id || ev.title;
  *  2. The remaining weekends take the best remaining pick, discounted by how
  *     many picks its kind already has and capped at a third (rounded up) while
  *     another kind still has something.
- * An event that is already the pick elsewhere (a three-week festival) is
- * discounted throughout. Returns the weekends in date order.
+ * Each event (or series) is offered once across all the weekends, as a pick or a backup: a light show
+ * that runs all December is recommended one weekend, and the other weekends get that city's next best
+ * thing of the same kind instead. It repeats only on a weekend with nothing else at all.
+ * Returns the weekends in date order.
  */
 export function planWeekends({ weekends, events, places, scoring, rangeNm }) {
   const placesById = new Map(places.map((p) => [p.id, p]));
   const rows = weekends.map((w) => ({ ...w, candidates: weekendCandidates(w, events, placesById, scoring, rangeNm), primary: null, backups: [] }));
   const live = rows.filter((r) => r.candidates.length);
   const counts = Object.fromEntries(GROUPS.map((g) => [g, 0]));
-  const picked = new Map(); // event key -> times it is a primary
-  const value = (c) => (c.score / (1 + SPREAD * counts[c.group])) * Math.pow(SAME_EVENT, picked.get(eventKey(c.event)) || 0);
+  const used = new Set(); // event keys already offered somewhere (pick or backup)
+  const value = (c) => c.score / (1 + SPREAD * counts[c.group]);
+  // the candidate as it would be offered now: its own event, or else the place's next event of that kind not yet used
+  const fresh = (c, row) => {
+    if (!used.has(eventKey(c.event))) return c;
+    const alt = c.more.find((ev) => !used.has(eventKey(ev)));
+    if (!alt) return null;
+    const start = parseDate(alt.start);
+    const score = bigEventScore(alt, c.place, scoring) * (start < row.friday ? CONTINUING_WEIGHT : 1);
+    return { ...c, event: alt, score, more: c.more.filter((ev) => ev !== alt).concat(c.event) };
+  };
+  const freshList = (list, row) => {
+    const out = list.map((c) => fresh(c, row)).filter(Boolean);
+    return out.length ? out : list; // nothing new anywhere this weekend: a repeat beats an empty weekend
+  };
   const best = (list) => list.reduce((b, c) => (value(c) > value(b) ? c : b), list[0]);
   const assign = (row, cand) => {
     row.primary = cand;
     counts[cand.group]++;
-    picked.set(eventKey(cand.event), (picked.get(eventKey(cand.event)) || 0) + 1);
+    used.add(eventKey(cand.event));
   };
 
   // 1. guaranteed shares
@@ -153,24 +167,28 @@ export function planWeekends({ weekends, events, places, scoring, rangeNm }) {
       return best(mine).score / r.candidates[0].score;
     };
     const open = weekendsWith(g).filter((r) => !r.primary).sort((a, b) => strength(b) - strength(a) || b.candidates[0].score - a.candidates[0].score);
-    for (const row of open.slice(0, Math.max(0, share - counts[g]))) assign(row, best(row.candidates.filter((c) => c.group === g)));
+    for (const row of open.slice(0, Math.max(0, share - counts[g]))) {
+      const mine = freshList(row.candidates.filter((c) => c.group === g), row);
+      assign(row, best(mine));
+    }
   }
 
   // 2. everything else: best remaining pick, no kind over a third while another has something
   const cap = Math.ceil(live.length / GROUPS.length);
   const rest = live.filter((r) => !r.primary).sort((a, b) => b.candidates[0].score - a.candidates[0].score);
   for (const row of rest) {
-    const open = row.candidates.filter((c) => counts[c.group] < cap);
-    assign(row, best(open.length ? open : row.candidates));
+    const all = freshList(row.candidates, row);
+    const open = all.filter((c) => counts[c.group] < cap);
+    assign(row, best(open.length ? open : all));
   }
 
-  // backups, in date order, preferring things not already the pick (or a backup) elsewhere
-  const backupUses = new Map();
+  // backups, in date order, only from what has not been offered anywhere yet: one backup (or none) beats a repeat
   for (const row of rows) {
     if (!row.primary) continue;
-    const weight = (c) => Math.pow(0.5, picked.get(eventKey(c.event)) || 0) * Math.pow(0.8, backupUses.get(eventKey(c.event)) || 0);
-    row.backups = pickBackups(row.primary, row.candidates, 2, weight);
-    for (const b of row.backups) backupUses.set(eventKey(b.event), (backupUses.get(eventKey(b.event)) || 0) + 1);
+    const others = row.candidates.filter((c) => c.place.id !== row.primary.place.id || c.group !== row.primary.group);
+    const unused = others.map((c) => fresh(c, row)).filter(Boolean);
+    row.backups = pickBackups(row.primary, unused, 2);
+    for (const b of row.backups) used.add(eventKey(b.event));
   }
   return { rows, mix: counts };
 }

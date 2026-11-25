@@ -77,6 +77,7 @@ test("welcome screen: shown to first-time visitors, explains the pieces, remembe
     const text = await page.textContent("#welcome");
     for (const word of ["Departure base, range", "cover the whole continental US", "7 days", "Flight category", "green", "yellow", "when you'll land", "night landings", "tight-on-gas", "closed runways", "a day later", "per diem", "time zones", "Weekend Recs", "category buttons"]) assert.ok(text.toLowerCase().includes(word.toLowerCase()), word);
     assert.equal(await page.locator("#welcome .welcome-sec").count(), 3, "three sections");
+    assert.equal(await page.getAttribute('#welcome a[href^="mailto:"]', "href"), "mailto:Bradley.rindos.1@us.af.mil", "how to report an error");
     assert.ok((await page.locator("#welcome #wvLayers .chip").count()) >= 5, "the example Weather box lists the overlay switches");
     assert.equal(await page.locator("#welcome #wvLayers .chip.active").textContent(), "Radar");
     assert.ok((await page.locator("#welcome #welcomeMap .wv-marker svg").count()) >= 5, "the example map is a real map with the real pin marks");
@@ -1303,6 +1304,30 @@ test("reviews tab says so when the comments server is unreachable", async () => 
     await page.waitForFunction(() => /offline/i.test(document.getElementById("reviewsPage").textContent));
     assert.match(await page.textContent("#reviewsPage"), /Retry/);
     assert.deepEqual(errors.filter((e) => !/Failed to fetch|NetworkError/.test(e)), []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("crew card: one press of Print saves a takeoff time still being edited and prints it", async () => {
+  const { page, context, errors } = await openPage();
+  try {
+    await page.evaluate(() => (window.__prints = 0, window.print = () => window.__prints++));
+    await page.fill("#tripSearch", "KOKC");
+    await page.press("#tripSearch", "Enter");
+    await page.waitForSelector("#tripBody [data-trip-dep]");
+    const dep = page.locator("#tripBody [data-trip-dep]").first();
+    const day = (await dep.inputValue()).slice(0, 10);
+    // a browser saves a datetime box's new value ("change") only when the box loses focus: type it, stay in the box
+    await dep.focus();
+    await dep.evaluate((el, v) => { el.value = v; el.dispatchEvent(new Event("input", { bubbles: true })); }, `${day}T13:45`);
+    assert.equal(await page.evaluate(() => document.activeElement?.matches("[data-trip-dep]")), true, "still editing");
+    await page.click('#tripBody [data-trip="print"]');
+    await page.waitForFunction(() => window.__prints > 0, null, { timeout: 5000 });
+    assert.equal(await page.evaluate(() => window.__prints), 1, "printed once, on the first press");
+    assert.match(await page.textContent("#crewCard"), /1:45 PM/, "the card has the time that was being edited");
+    assert.match(await page.locator("#tripBody [data-trip-dep]").first().inputValue(), /T13:45$/, "and the plan kept it");
+    assert.deepEqual(errors, []);
   } finally {
     await context.close();
   }

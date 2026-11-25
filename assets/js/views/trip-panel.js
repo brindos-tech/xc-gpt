@@ -131,6 +131,22 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
 
   const update = (fn) => store.setState((s) => ({ trip: fn(s.trip.map((x) => ({ ...x }))) }));
 
+  // Print in one press. A takeoff time being edited is saved when its box loses focus, and saving redraws the plan,
+  // Print button included, so a plain click would land on a button that no longer exists (and print the old plan).
+  // On press: keep the button from taking focus, save any open edit ourselves, then print from the saved state.
+  body.addEventListener("pointerdown", (e) => {
+    if (e.button !== 0 || !e.target.closest('[data-trip="print"]')) return;
+    e.preventDefault();
+    const editing = document.activeElement;
+    if (editing && body.contains(editing) && editing.matches("input, select")) {
+      // a takeoff box whose value differs from what was drawn holds an unsaved edit: save it now
+      if (editing.matches("[data-trip-dep]") && editing.value !== editing.defaultValue) setDeparture(Number(editing.dataset.i), editing.value);
+      else editing.blur();
+    }
+    printPending = true;
+  });
+  let printPending = false;
+
   body.addEventListener("click", async (e) => {
     const t = e.target.closest("[data-trip]");
     if (!t) return;
@@ -143,9 +159,20 @@ export function createTripPanel({ store, config, fieldsByCode, getOrigin, onPrin
       case "down": return update((trip) => (i < trip.length - 1 ? (trip.splice(i + 1, 0, ...trip.splice(i, 1)), trip) : trip));
       case "clear": return store.setState({ trip: [], tripReturnDep: "" });
       case "reset-dep": return setDeparture(i, "");
-      case "print": return onPrint();
+      case "print":
+        printPending = false;
+        return onPrint();
       case "select": return store.setState({ selectedFieldId: t.dataset.code, selectedAirspaceId: null });
     }
+  });
+  document.addEventListener("pointerup", () => {
+    if (!printPending) return;
+    // the click that follows normally prints; if a redraw swallowed it, print here instead
+    setTimeout(() => {
+      if (!printPending) return;
+      printPending = false;
+      onPrint();
+    }, 0);
   });
   body.addEventListener("change", (e) => {
     if (e.target.closest("[data-trip-return]")) return store.setState({ tripReturn: e.target.checked });

@@ -177,3 +177,17 @@ test("NMS fetch: refused credentials fail the run and say so without echoing the
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test("FAA data refresh: rebuild only for a new 28-day cycle or a week-old file", async () => {
+  const { isCurrent } = await import("../../scripts/faa-data-current.js");
+  const now = Date.parse("2026-11-25T12:00:00Z"); // cycle 2026-10-29 in force; the next starts 2026-11-26
+  assert.equal(isCurrent({ builtAt: "2026-11-23T19:14:36Z", nasrCycle: "2026-10-29" }, now), true);
+  assert.equal(isCurrent({ builtAt: "2026-11-16T19:14:36Z", nasrCycle: "2026-10-29" }, now), false, "a week old");
+  const thu = Date.parse("2026-11-26T07:17:00Z");
+  assert.equal(isCurrent({ builtAt: "2026-11-23T19:14:36Z", nasrCycle: "2026-10-29" }, thu), false, "new cycle day: rebuild");
+  assert.equal(isCurrent({ builtAt: "2026-11-26T07:20:00Z", nasrCycle: "2026-10-29" }, Date.parse("2026-11-27T07:17:00Z")), false, "FAA was late: the build fell back, so try again");
+  assert.equal(isCurrent({ builtAt: "2026-11-26T07:20:00Z", nasrCycle: "2026-11-26" }, Date.parse("2026-11-27T07:17:00Z")), true);
+  assert.equal(isCurrent({ builtAt: "2026-11-26T08:30:00Z" }, Date.parse("2026-11-27T08:29:00Z")), false, "approaches built on cycle day may be the old cycle");
+  assert.equal(isCurrent({ builtAt: "2026-11-27T08:30:00Z" }, Date.parse("2026-11-28T08:29:00Z")), true);
+  assert.equal(isCurrent(null, now), false);
+});

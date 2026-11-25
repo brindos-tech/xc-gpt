@@ -45,7 +45,7 @@ const select = (name, label) => `<label>${label}<select name="${name}">${TRI.map
 
 function reportFormHtml(label) {
   return `<form class="cm-form cm-report" novalidate hidden data-kind="report">
-    <div class="muted small">Something wrong or out of date for ${esc(label)}? This goes to the site owner only — it isn't posted publicly.</div>
+    <div class="muted small">Something wrong or out of date for ${esc(label)}? This goes to the site owner only — it isn't posted publicly. You can also e-mail <a href="mailto:Bradley.rindos.1@us.af.mil">Bradley.rindos.1@us.af.mil</a>.</div>
     <label>What's wrong?<textarea name="notes" rows="3" maxlength="1500" placeholder="e.g. FBO phone number changed to…, fuel is no longer available, hours are wrong"></textarea></label>
     <label>Your name (optional)<input name="name" maxlength="40" autocomplete="nickname"></label>
     <div class="cm-hp" aria-hidden="true"><label>Website<input name="website" tabindex="-1" autocomplete="off"></label></div>

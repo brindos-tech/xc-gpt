@@ -2,13 +2,12 @@ name: Refresh approaches
 
 # Instrument approaches per nav-list field from the FAA d-TPP metadata
 # (scripts/fetch-approaches.js). The data changes every 28 days, always on a
-# Thursday, so it runs Thursdays (the day a new cycle takes effect) and
-# Mondays (the file is d-TPP_Metafile.xml); the commit only happens when
-# something changed. A finished run triggers deploy-pages.yml.
+# Thursday. It is checked daily (GitHub drops some scheduled runs) and rebuilt
+# only when a new cycle is in force or the file is 6+ days old
+# (scripts/faa-data-current.js). A finished run triggers deploy-pages.yml.
 on:
   schedule:
-    - cron: "29 8 * * 1" # Mondays 08:29 UTC
-    - cron: "29 8 * * 4" # Thursdays 08:29 UTC (AIRAC cycles take effect on Thursdays)
+    - cron: "29 8 * * *" # daily 08:29 UTC; ends at once unless a new 28-day cycle is in force or the data is 6+ days old
   workflow_dispatch: {}
 
 permissions:
@@ -28,10 +27,17 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Already built from the current FAA cycle?
+        id: current
+        if: ${{ github.event_name == 'schedule' }}
+        run: node scripts/faa-data-current.js data/generated/approaches.json | tee /dev/stderr | grep '^current=' >> "$GITHUB_OUTPUT"
+
       - name: Build approaches
+        if: ${{ steps.current.outputs.current != 'true' }}
         run: node scripts/fetch-approaches.js
 
       - name: Commit if changed
+        if: ${{ steps.current.outputs.current != 'true' }}
         run: |
           git config user.name "xc-gpt-bot"
           git config user.email "actions@users.noreply.github.com"

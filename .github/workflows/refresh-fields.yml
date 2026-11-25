@@ -1,6 +1,6 @@
 name: Refresh fields & airspace
 
-# Mondays and Thursdays: FAA NASR airport facts + GSA per diem for every nav-list field,
+# Daily check (GitHub drops some scheduled runs, so one a day rather than one on the cycle's Thursday): FAA NASR airport facts + GSA per diem for every nav-list field,
 # and the airspace layers (FAA SUA / MTR geometry merged with the curated
 # AP/1A-AP/1B scheduling details). NASR changes every 28 days, always on a
 # Thursday, so the Thursday run picks a new cycle up the day it takes effect;
@@ -8,8 +8,7 @@ name: Refresh fields & airspace
 # deploy-pages.yml.
 on:
   schedule:
-    - cron: "17 7 * * 1" # Mondays 07:17 UTC
-    - cron: "17 7 * * 4" # Thursdays 07:17 UTC (AIRAC cycles take effect on Thursdays)
+    - cron: "17 7 * * *" # daily 07:17 UTC; ends at once unless a new 28-day cycle is in force or the data is 6+ days old
   workflow_dispatch:
     inputs:
       probe:
@@ -38,18 +37,23 @@ jobs:
         if: ${{ inputs.probe }}
         run: node scripts/probe-nasr.js
 
+      - name: Already built from the current FAA cycle?
+        id: current
+        if: ${{ !inputs.probe && github.event_name == 'schedule' }}
+        run: node scripts/faa-data-current.js data/generated/field-facts.json | tee /dev/stderr | grep '^current=' >> "$GITHUB_OUTPUT"
+
       - name: Field facts (NASR + per diem)
-        if: ${{ !inputs.probe }}
+        if: ${{ !inputs.probe && steps.current.outputs.current != 'true' }}
         env:
           GSA_API_KEY: ${{ secrets.GSA_API_KEY }}
         run: node scripts/build-fields.js
 
       - name: Airspace layers
-        if: ${{ !inputs.probe }}
+        if: ${{ !inputs.probe && steps.current.outputs.current != 'true' }}
         run: node scripts/fetch-airspace.js
 
       - name: Commit if changed
-        if: ${{ !inputs.probe }}
+        if: ${{ !inputs.probe && steps.current.outputs.current != 'true' }}
         run: |
           git config user.name "xc-gpt-bot"
           git config user.email "actions@users.noreply.github.com"
